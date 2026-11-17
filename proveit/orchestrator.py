@@ -1157,8 +1157,15 @@ def stage_phase5(run: Run) -> None:
     def post_text(o):
         return o.title + "\n" + o.body
     post, pissue = guarded(run, "launch_post", lambda fb: launcher.post(run.id, title, audience, fb, [f"{m} (a checklist and a CSV template)" for m in modules]), post_text)
+    from sources.base import split_sentences
+    # What the product contains is stated by code, never by the model (which invents extra parts).
+    if modules:
+        inside = re.compile(r"\b(includ\w*|contain\w*|comes with|you get|inside|packed with|features?)\b", re.I)
+        rest = [x for x in split_sentences(post.body) if not inside.search(x)]
+        made = f"It includes {', '.join(modules[:-1]) + ' and ' + modules[-1] if len(modules) > 1 else modules[0]}: " \
+               f"{'each part is a' if len(modules) > 1 else 'a'} checklist and a CSV template."
+        post.body = " ".join([made] + rest)
     if pissue:   # still blocked after a redraft: code drops the sentences the guard blocks
-        from sources.base import split_sentences
         sentences = split_sentences(post.body)
         kept = [x for x in sentences if not guard.check_output(x, "outward").blocked]
         if len(kept) < len(sentences):
