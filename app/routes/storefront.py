@@ -7,10 +7,13 @@ unapproved page returns 409.
 
 from __future__ import annotations
 
+import io
 import re
+import zipfile
+from pathlib import Path
 
 from fastapi import APIRouter, Form, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from app.errors import error_response
 from app.templates import status_page
@@ -27,8 +30,9 @@ DEFAULT_PRICE = 39.0
 MAX_EMAIL_CHARS = 320
 _EMAIL = re.compile(r"[^@\s]{1,64}@[^@\s]{1,255}")
 DOWNLOAD_GLOB = "phase3_step*"
-DOWNLOAD_FILENAME = "toolkit.txt"
-EMPTY_DOWNLOAD = "product files"
+DOWNLOAD_FILENAME = "toolkit.zip"
+EMPTY_DOWNLOAD_NAME = "README.txt"
+EMPTY_DOWNLOAD = "The product files are not built yet."
 
 
 def _serve(request: Request, run_id: str, kind: str) -> Response:
@@ -146,8 +150,20 @@ def download(request: Request, token: str) -> Response:
     except delivery.AccessDenied:
         return error_response(request, 403)
     run_id = _order_run_id(order_id)
-    files = sorted((runs_dir() / run_id).glob(DOWNLOAD_GLOB))
-    body = "\n\n".join(f"===== {f.name} =====\n{f.read_text(encoding='utf-8')}" for f in files)
-    return PlainTextResponse(
-        body or EMPTY_DOWNLOAD, headers={"Content-Disposition": f"attachment; filename={DOWNLOAD_FILENAME}"}
+    return Response(
+        _toolkit_zip(runs_dir() / run_id),
+        media_type="application/zip",
+        headers={"Content-Disposition": f"attachment; filename={DOWNLOAD_FILENAME}"},
     )
+
+
+def _toolkit_zip(run_dir: Path) -> bytes:
+    """The run's Phase 3 files as one zip archive, built in memory; a note file when none exist yet."""
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        files = sorted(f for f in run_dir.glob(DOWNLOAD_GLOB) if f.is_file())
+        for f in files:
+            archive.write(f, arcname=f.name)
+        if not files:
+            archive.writestr(EMPTY_DOWNLOAD_NAME, EMPTY_DOWNLOAD)
+    return buffer.getvalue()

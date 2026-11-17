@@ -62,3 +62,26 @@ def test_public_placeholder_is_never_the_signing_secret(monkeypatch, tmp_path):
     assert key != "dev-only-change-me" and len(key) == 64
     assert (tmp_path / "secret_key").read_text() == key
     secrets_store.secret_key.cache_clear()
+
+
+def test_download_is_a_zip_of_the_phase3_files_and_403_after_refund(tmp_path):
+    import io
+    import zipfile
+
+    from proveit.commerce import delivery, payments, webhooks
+
+    run_dir = tmp_path / "runs" / "r-zip"
+    run_dir.mkdir(parents=True)
+    (run_dir / "phase3_step1_toolkit.md").write_text("# Toolkit", encoding="utf-8")
+    (run_dir / "phase2_step1_lean-canvas.md").write_text("not for sale", encoding="utf-8")
+    provider = payments.MockPaymentProvider()
+    order_id = provider.create_order("r-zip", 39.0)
+    token = webhooks.handle(provider.create_checkout(order_id, 39.0))["token"]
+    r = client.get(f"/download/{token}")
+    assert r.status_code == 200 and r.headers["content-type"] == "application/zip"
+    assert "toolkit.zip" in r.headers["content-disposition"]
+    archive = zipfile.ZipFile(io.BytesIO(r.content))
+    assert archive.namelist() == ["phase3_step1_toolkit.md"]
+    assert archive.read("phase3_step1_toolkit.md") == b"# Toolkit"
+    delivery.revoke(order_id)  # what an approved refund does
+    assert client.get(f"/download/{token}").status_code == 403
