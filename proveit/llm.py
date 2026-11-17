@@ -30,7 +30,7 @@ from typing import TypeVar
 import httpx
 from pydantic import BaseModel, ValidationError
 
-from . import metrics
+from . import db, metrics
 from .log import log_action
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -353,6 +353,32 @@ def _empty_usage() -> dict:
 def usage(run_id: str) -> dict:
     with _usage_lock:
         return dict(_usage.get(run_id, _empty_usage()))
+
+
+def usage_from_log(run_id: str) -> dict:
+    """Model usage summed from the persistent decision log, so it survives a restart or another process."""
+    totals = _empty_usage()
+    rows = db.query("SELECT extra FROM actions WHERE run_id=? AND model IS NOT NULL", (run_id,))
+    for row in rows:
+        try:
+            extra = json.loads(row.get("extra") or "{}")
+        except ValueError:
+            continue
+        if not isinstance(extra, dict) or "tokens_in" not in extra:
+            continue
+        totals["calls"] += 1
+        totals["tokens_in"] += int(extra.get("tokens_in") or 0)
+        totals["tokens_out"] += int(extra.get("tokens_out") or 0)
+        totals["seconds"] += float(extra.get("seconds") or 0)
+    totals["seconds"] = round(totals["seconds"], 2)
+    return totals
+
+
+def run_usage(run_id: str) -> dict:
+    """The larger of the persisted and this process's counts, field by field: a resumed run in a new
+    process never shrinks the usage recorded before it."""
+    persisted, in_memory = usage_from_log(run_id), usage(run_id)
+    return {k: max(persisted[k], in_memory[k]) for k in persisted}
 
 
 def _add_usage(run_id: str | None, tin: int, tout: int, secs: float) -> None:

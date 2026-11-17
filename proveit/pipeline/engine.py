@@ -12,7 +12,7 @@ import time
 import traceback
 from collections.abc import Callable
 
-from .. import gates, llm, metrics
+from .. import db, gates, llm, metrics
 from ..log import emit, log_action
 from . import run as runs
 from .run import FINISHED, WAITING, Run, Stage, Status
@@ -82,7 +82,20 @@ def run_pipeline(brief_text: str, fields: dict | None = None, mode: str = "live"
 
 
 def advance(run_id: str) -> str:
-    """Run stages until one needs the founder, the run stops, or it is done. Returns the stage reached."""
+    """Run stages until one needs the founder, the run stops, or it is done. Returns the stage reached.
+
+    A database lock lets only one process (API worker or CLI) advance a run at a time; a call that
+    finds the run locked changes nothing and returns its current stage.
+    """
+    if not db.acquire_run_lock(run_id):
+        return runs.load(run_id).stage
+    try:
+        return _advance_locked(run_id)
+    finally:
+        db.release_run_lock(run_id)
+
+
+def _advance_locked(run_id: str) -> str:
     for _ in range(MAX_STEPS_PER_ADVANCE):
         run = runs.load(run_id)
         step = STAGES.get(run.stage)
@@ -99,7 +112,7 @@ def advance(run_id: str) -> str:
             _pause_on_error(run, str(e), INTERNAL_ERROR_MESSAGE, detail=traceback.format_exc()[-TRACEBACK_CHARS:])
             raise
     run = runs.load(run_id)
-    run.state["usage"] = llm.usage(run_id)
+    run.state["usage"] = llm.run_usage(run_id)
     run.save()
     return run.stage
 

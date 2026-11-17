@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
-from proveit import decisions, guard, llm, orchestrator
+import time
+
+from proveit import db, decisions, guard, llm, orchestrator
+from proveit.log import log_action
 from proveit.pipeline.run import ROOT
 
 WEAK = (ROOT / "tests" / "fixtures" / "weak_brief.md").read_text(encoding="utf-8")  # matches weak_hits.json
@@ -100,3 +103,37 @@ def test_llm_backs_off_and_retries_transient_errors(monkeypatch):
 
     out, _ = llm.chat_json(Out, "s", "u")
     assert out.answer == "ok" and len(calls) == 3
+
+
+def _stage_actions(rid: str) -> int:
+    return len(db.query("SELECT seq FROM actions WHERE run_id=? AND agent != 'gatekeeper'", (rid,)))
+
+
+def test_a_locked_run_is_not_advanced_by_a_second_caller(fake_llm, offline_sources):
+    offline_sources("weak_hits.json")
+    rid = orchestrator.start(WEAK, label="weak")
+    before_stage, before_actions = orchestrator.load(rid).stage, _stage_actions(rid)
+    assert db.acquire_run_lock(rid)
+    assert not db.acquire_run_lock(rid)  # held: a second caller cannot take it
+    assert orchestrator.advance(rid) == before_stage
+    assert _stage_actions(rid) == before_actions
+    db.release_run_lock(rid)
+    assert orchestrator.advance(rid) != before_stage
+    assert _stage_actions(rid) > before_actions
+    assert db.acquire_run_lock(rid)  # advance released its own lock
+    db.release_run_lock(rid)
+
+
+def test_a_stale_run_lock_can_be_taken_over():
+    db.execute("INSERT INTO run_locks (run_id, locked_at) VALUES (?, ?)", ("r-stale", time.time() - 1000))
+    assert not db.acquire_run_lock("r-stale", ttl_s=5000)
+    assert db.acquire_run_lock("r-stale", ttl_s=300)
+    db.release_run_lock("r-stale")
+
+
+def test_usage_is_read_from_the_persistent_log(monkeypatch):
+    log_action("r-usage", "researcher", "find", model="m", cost=0, tokens_in=100, tokens_out=40, seconds=1.5)
+    log_action("r-usage", "strategist", "canvas", model="m", cost=0, tokens_in=20, tokens_out=10, seconds=0.5)
+    log_action("r-usage", "gate", "evidence_gate", model=None, cost=0)
+    monkeypatch.setattr(llm, "_usage", {})  # a fresh process has counted nothing yet
+    assert llm.run_usage("r-usage") == {"calls": 2, "tokens_in": 120, "tokens_out": 50, "seconds": 2.0}
