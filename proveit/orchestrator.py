@@ -1127,9 +1127,12 @@ def stage_phase5(run: Run) -> None:
         sprov.add("phase5_step1_store-page.html", s)
     sprov.write(run.dir)
     p = run.state["pricing"]
-    tiers = [{"name": "Good", "price": p["good"], "what": "Module 1 checklist and template"},
-             {"name": "Better", "price": p["better"], "what": "All modules and templates"},
-             {"name": "Best", "price": p["best"], "what": "All modules and templates, plus the buyer guide"}]
+    if len((run.state.get("product") or {}).get("modules") or []) > 1:
+        what = ["Module 1 checklist and template", "All modules and templates",
+                "All modules and templates, plus the buyer guide"]
+    else:
+        what = ["The checklist", "The checklist and the CSV template", "The checklist, the CSV template and the buyer guide"]
+    tiers = [{"name": n, "price": p[k], "what": w} for n, k, w in zip(("Good", "Better", "Best"), ("good", "better", "best"), what)]
     note = ("Prices: " + p["basis"] + ". " + p["note"]) if p["basis"] == "verified_price_points" else \
         "ASSUMPTION: " + p["note"]
     html = TEMPLATES.get_template("store.html.j2").render(run_id=run.id, tiers=tiers, pricing_note=note, **fields)
