@@ -68,3 +68,15 @@ def test_model_suspect_counts_missed_qualified_sentences():
             sentences=split_sentences(text), published_at=datetime.now(timezone.utc))
     missed = verifier.missed_qualified({"H1": h}, {"H1": [1, 2, 3, 4]}, [], V)
     assert missed == ["H1.S1", "H1.S3"]          # first-person complaints count; product copy does not
+
+
+def test_product_pitches_and_feature_bullets_are_not_complaints():
+    from proveit.models import Claim
+    pitch = Claim(id="C1", run_id="r", kind="pain", claim_text="x", source="hn", url="https://x.example",
+                  quote="One of the biggest struggles I hear from independent workers is onboarding new clients",
+                  hit_title="freelance web designers onboarding", status="verified_live")
+    bullet = pitch.model_copy(update={"id": "C2", "quote": "- Automated reminders when onboarding new clients is tedious"})
+    real = pitch.model_copy(update={"id": "C3", "quote": "Onboarding new clients is tedious and I hate chasing them for content"})
+    verifier.apply_relevance([pitch, bullet, real], V)
+    assert pitch.weight == 0 and bullet.weight == 0 and "pitch" in pitch.weight_note
+    assert real.weight == 1.0

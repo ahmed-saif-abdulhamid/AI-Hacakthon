@@ -33,6 +33,8 @@ class HackerNews(Source):
                 text = title
             if not text:
                 continue
+            if title.strip().lower() in ("[dead]", "[flagged]") or text.strip().lower().startswith(("[dead]", "[flagged]")):
+                continue                     # moderated-away posts are not evidence
             hits.append(make_hit("hn", f"https://news.ycombinator.com/item?id={h['objectID']}", text,
                                  title=title, published_at=ts_to_dt(h.get("created_at_i")),
                                  engagement=h.get("points") or h.get("num_comments"), query=query))

@@ -26,6 +26,9 @@ from .models import Claim, Hit, Variant
 ARCHIVE_WEIGHT = {"hn": 0.5, "stackexchange": 0.5, "github": 0.5, "web": 0.0}
 CUE_KINDS = {"pain": "pain", "wtp": "wtp", "price_point": "price_point"}
 FIRST_PERSON = re.compile(r"\b(i|i'm|i've|i'd|me|my|we|we're|we've|our|us)\b", re.I)
+PITCH = re.compile(r"\b(i|we)('ve| have)? (built|made|created|launched|am building|'m building|are building|'re building)\b"
+                   r"|\bthe idea came from\b|\bi hear from\b|\b(my|our) (app|tool|product|startup|saas)\b"
+                   r"|\b(sign up|try it|check it out|join (the|our) waitlist|show hn|launch hn)\b", re.I)
 URLISH = re.compile(r"https?://|www\.|#\w")
 STRONG_WTP = re.compile(r"\b(paid|would pay|pay for|paying for|bought)\b|[$€£]\s?\d", re.I)
 
@@ -219,6 +222,11 @@ def apply_relevance(claims: list[Claim], variant: Variant, max_age_months: int =
         if not c.on_topic:
             c.weight = 0.0
             notes.append("off topic for this variant (code keyword check)")
+        elif c.kind in ("pain", "wtp") and (PITCH.search(c.quote) or c.quote.lstrip().startswith(("-", "*", "•"))):
+            # Someone selling a tool describes "the problem" to pitch it; a feature bullet is not a person's
+            # experience. Neither is a complaint from a would-be customer.
+            c.weight = 0.0
+            notes.append("product pitch or feature list, not a complaint")
         elif c.kind in CUE_KINDS:
             cue = match_cue(c.kind, c.quote)
             c.cue_matched = cue
