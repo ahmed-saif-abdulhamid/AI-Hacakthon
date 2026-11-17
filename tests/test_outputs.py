@@ -7,7 +7,7 @@ import json
 import re
 from pathlib import Path
 
-from proveit.promote import CANONICAL_ALIASES, CANONICAL_DEFAULT, CANONICAL_FROM, RUN_FILE_RE, _copy_outputs
+from proveit.promote import CANONICAL_DEFAULT, CANONICAL_FROM, RUN_FILE_RE, _copy_outputs
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "outputs"
@@ -71,8 +71,7 @@ def test_plain_phase1_gate_is_the_weak_runs_stop():
 
 
 def test_each_plain_file_matches_its_suffixed_source():
-    aliases = set(CANONICAL_ALIASES.values())
-    plain = [p for p in files() if RUN_FILE_RE.match(p.name) and not SUFFIXED.search(p.stem) and p.name not in aliases]
+    plain = [p for p in files() if RUN_FILE_RE.match(p.name) and not SUFFIXED.search(p.stem)]
     assert len(plain) > 2
     for p in plain:
         label = CANONICAL_FROM.get(p.name, CANONICAL_DEFAULT)
@@ -93,8 +92,3 @@ def test_copy_writes_canonical_copies(tmp_path, monkeypatch):
     assert (out / "phase1_step1_opportunities.md").read_text(encoding="utf-8") == "s"
     assert (out / "phase1_step1_opportunities-weak.md").read_text(encoding="utf-8") == "w"
     assert (out / "phase1_gate_decision-strong.md").exists()
-
-
-def test_core_step_5_2_has_its_phase_step_name():
-    alias = ROOT / "outputs" / "phase5_step2_payment-test-log.md"
-    assert alias.read_bytes() == (ROOT / "outputs" / "payment_test_log.md").read_bytes()

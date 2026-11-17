@@ -22,8 +22,6 @@ NAME_RE = re.compile(r"^(phase\d+_(step\d+|gate)_[a-z0-9-]+|payment_test_log)\.(
 # The phase 1 gate comes from the weak run so the plain gate decision shows the system recommending STOP.
 CANONICAL_DEFAULT = "strong"
 CANONICAL_FROM = {"phase1_gate_decision.md": "weak"}
-# Run files whose checker-facing name differs: also copied under the phase/step name of their Core step.
-CANONICAL_ALIASES = {"payment_test_log.md": "phase5_step2_payment-test-log.md"}
 
 
 def promote(weak_id: str, strong_id: str, to_root: bool = False) -> dict:
@@ -72,12 +70,9 @@ def _targets(out: Path, name: str, label: str) -> list[Path]:
     target = _target(out, name, label)
     if target is None:
         return []
-    targets = [target]
     if RUN_FILE_RE.match(name) and CANONICAL_FROM.get(name, CANONICAL_DEFAULT) == label:
-        targets.append(out / name)
-    if name in CANONICAL_ALIASES and label == CANONICAL_DEFAULT:
-        targets.append(out / CANONICAL_ALIASES[name])
-    return targets
+        return [target, out / name]
+    return [target]
 
 
 def _target(out: Path, name: str, label: str) -> Path | None:
