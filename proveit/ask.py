@@ -13,16 +13,17 @@ from . import approval, guard, llm, voice
 from .log import emit, log_action
 
 APP_FACTS = (
-    "ProveIt runs six phases: 1 Discover (find real complaints on Hacker News, Stack Exchange, GitHub, "
-    "Wikipedia and optional web search, cut verbatim quotes and re-check them on the live page), 2 Validate "
-    "(Lean Canvas and a waitlist landing page), 3 Build (a downloadable toolkit of templates and guides), "
-    "4 Commercial setup (prices from verified price points, refund and privacy policy drafts), 5 Sell, "
-    "deliver and get paid (MOCKED payment, delivery link, refund revokes access), 6 Operate and learn (STUBBED). "
-    "Gates between phases decide go, repeat, pivot or stop using rules written in code, with thresholds "
-    "locked by a SHA-256 hash before any search. The founder can accept, repeat, pivot, stop, or override "
-    "with a logged reason. Nothing is published without the founder pressing the hash-locked Approve button. "
-    "The model is NVIDIA Nemotron on NVIDIA's free hosted API; a run costs $0.00. To start a run, fill in the idea in the "
-    "brief form or say: evaluate this idea, followed by the idea."
+    "ProveIt checks whether people really want a digital product before the founder builds it. Step 1: it "
+    "searches public forums (Hacker News, Stack Exchange, GitHub) for people describing the problem and checks "
+    "every quote is really on that page. Step 2: a one-page business plan and a waiting-list page. Step 3: it "
+    "builds the product files (templates, checklists, guides). Step 4: suggested prices and draft refund and "
+    "privacy policies. Step 5: a practice sale, delivery and refund with no real money. Step 6: learning from "
+    "results (not switched on yet). After each step there is a checkpoint that says go ahead, look again, try a "
+    "different angle, or stop. The bar each checkpoint uses is set before any searching, so it can't be moved "
+    "later. The founder can accept the advice, search again, try another angle, stop, or carry on anyway with a "
+    "reason. Nothing is published or sent until the founder presses Approve. The AI runs on NVIDIA's free "
+    "service, so a run costs nothing. To test a new idea, press Test a new idea, or say: evaluate this idea, "
+    "followed by the idea."
 )
 
 
@@ -84,6 +85,7 @@ def strip_wake(text: str) -> str:
     return re.sub(r"^\s*(hey|ok|okay)?[\s,]*jarvis\b[\s,.:!?-]*", "", text or "", flags=re.I).strip()
 
 
+MAX_SENTENCES = 4
 SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"'(])")
 
 
@@ -130,8 +132,14 @@ def converse_stream(text: str, run, history: list[dict] | None = None):
                 s = clean(done)
                 if s:
                     yield s
-            buf = parts[-1]
-        s = clean(buf)
+                if len(said) >= MAX_SENTENCES:      # spoken answers stay short for a founder
+                    buf = ""
+                    break
+            else:
+                buf = parts[-1]
+                continue
+            break
+        s = clean(buf) if len(said) < MAX_SENTENCES else None
         if s:
             yield s
     except llm.LLMError as e:
@@ -156,21 +164,20 @@ def offline_answer(text: str, run) -> str:
     """Answer from the recorded run without a model (public demo, or the NVIDIA API not answering)."""
     import os
     s = voice.address()
-    tail = (" This hosted demo has no model attached, so I answer from the recorded run; run ProveIt locally "
-            "for full conversation." if os.environ.get("PROVEIT_DEMO") == "1"
-            else " The NVIDIA model is not answering; check NVIDIA_API_KEY in .env and your connection.")
+    tail = (" (This online demo can only read back the saved results.)" if os.environ.get("PROVEIT_DEMO") == "1"
+            else " (I can't reach the AI service right now, so this is a short answer. Check the internet "
+                 "connection and the NVIDIA key.)")
     if run is None or not run.state.get("gate1"):
-        return f"Select a run and I will tell you what the evidence says, {s}." + tail
+        return f"Open one of your ideas on the left, {s}, and I'll tell you what I found." + tail
     g = run.state["gate1"]
     t = (text or "").lower()
     if re.search(r"quote|evidence|found|said|say|complain|source|people", t):
-        top = sorted([c for c in run.claims() if c.weight > 0], key=lambda c: -c.weight)[:2]
+        top = sorted([c for c in run.claims() if c.weight > 0], key=lambda c: -c.weight)[:1]
         if top:
-            quotes = " ".join(f"On {c.source}, someone wrote: {(c.quote or '')[:160]}" for c in top)
-            return f"{len(top)} of the strongest counted quotes, {s}. {quotes}" + tail
-        return "No quote passed the relevance and wording checks, " + s + "." + tail
+            return f"Here's one of the clearest comments I found, {s}: \"{(top[0].quote or '')[:160]}\"" + tail
+        return f"I didn't find anyone clearly describing this problem, {s}." + tail
     if re.search(r"next|should|do now|recommend|continue|give up", t):
-        return voice.gate_line(**g) + " The decision is yours: accept, search again, pivot or stop." + tail
+        return voice.gate_line(**g) + " It's your call, of course." + tail
     return voice.gate_line(**g) + tail
 
 
@@ -213,7 +220,7 @@ def handle(text: str, run_id: str | None = None, use_model: bool = True,
     from . import orchestrator
     text = strip_wake(text)
     if not text:
-        return {"intent": "wake", "text": "Listening.", "spoken": "Yes, " + voice.address() + "?", "listen": True}
+        return {"intent": "wake", "text": "I'm listening.", "spoken": "Yes, " + voice.address() + "?", "listen": True}
     res = guard.check_input(text, scope="ask", use_model=use_model, run_id=run_id)
     if res.blocked:
         log_action(run_id, "guard", "refuse_ask_request", model=llm.model_name() if res.layer == "model" else None,
@@ -233,7 +240,8 @@ def handle(text: str, run_id: str | None = None, use_model: bool = True,
     log_action(run_id, "ask", f"ask_{intent}", model=None, cost=0)
     if intent == "explain_decision":
         if run is None:
-            return {"intent": intent, "text": "Select a run first.", "spoken": "Which run, " + voice.address() + "?"}
+            return {"intent": intent, "text": "Open an idea on the left first.",
+                    "spoken": "Which idea do you mean, " + voice.address() + "? Open it on the left and ask me again."}
         out = _gate_summary(run)
         if stream and use_model:
             return {"intent": intent, "converse": True, "text": out["text"], "fallback": out["spoken"]}
@@ -242,25 +250,27 @@ def handle(text: str, run_id: str | None = None, use_model: bool = True,
                 "spoken": spoken or out["spoken"]}
     if intent == "change_threshold":
         sha = run.sha[:12] if run else ""
-        msg = (f"Thresholds were pre-registered before any data was seen (SHA-256 {sha}...). Changing one now is "
-               "logged as goalpost_moved: true and shown in red. Edit config/gates.yaml before starting a new run.")
-        return {"intent": intent, "text": msg, "spoken": "The thresholds are locked for this run, " + voice.address()
-                + ". Any change would be logged as a moved goalpost."}
+        msg = ("The bar for this run was set before I looked at anything, so it stays as it is. That keeps the "
+               "verdict honest. You can set a different bar for your next run (config/gates.yaml). "
+               f"Fingerprint of this run's bar: {sha}...")
+        return {"intent": intent, "text": msg, "spoken": "I'd rather not move the bar now that we've seen the "
+                "results, " + voice.address() + ". It keeps the verdict honest. You can set a different one for "
+                "your next idea."}
     if intent == "approve_request":
         pending = approval.list_approvals(run_id, "pending") if run_id else approval.list_approvals(status="pending")
         if not pending:
-            return {"intent": intent, "text": "No approval is pending.", "spoken": "Nothing awaits approval, "
-                    + voice.address() + "."}
+            return {"intent": intent, "text": "Nothing is waiting for your approval.",
+                    "spoken": "There's nothing waiting for your approval right now, " + voice.address() + "."}
         ap = pending[-1]
         return {"intent": intent, "highlight_approval": ap.id,
-                "text": f"Pending: {ap.action} ({ap.id}), payload SHA-256 {ap.payload_sha256}. A message is not an "
-                        "approval: use the hash-locked APPROVE button or `python -m proveit approvals approve "
-                        f"{ap.id}`.",
-                "spoken": f"The {ap.action.replace('_', ' ')} card is highlighted, {voice.address()}. "
-                          "Please confirm with the hash-locked button."}
+                "text": f"The {ap.action.replace('_', ' ')} is waiting for you in the Approvals tab. Have a look, "
+                        "then press Approve if you're happy. I can't approve things for you from a chat message.",
+                "spoken": f"I've opened the {ap.action.replace('_', ' ')} for you, {voice.address()}. Have a look, "
+                          "and press Approve if you're happy with it."}
     if intent == "rerun_step":
-        return {"intent": intent, "text": "Use the Repeat or Research-variant button at the gate; a rerun is logged.",
-                "spoken": "Use the repeat control at the gate, " + voice.address() + ". Every rerun is logged."}
+        return {"intent": intent, "text": "Press Search again (or Try another angle) under the verdict.",
+                "spoken": "Sure. Just press Search again under the verdict, " + voice.address() + ", and I'll take "
+                          "another look."}
     if intent == "evaluate_brief":
         brief = re.split(r"(?i)\b(brief|idea)\s*:", text, maxsplit=1)
         idea = brief[-1].strip() if len(brief) > 1 else re.sub(
@@ -268,14 +278,15 @@ def handle(text: str, run_id: str | None = None, use_model: bool = True,
         if len(idea) < 8:
             return {"intent": intent, "text": "Tell me the idea in one sentence, for example: evaluate this idea: "
                     "a contract template pack for freelance photographers.",
-                    "spoken": "Certainly, " + voice.address() + ". What is the idea?"}
+                    "spoken": "Happy to, " + voice.address() + ". What's the idea?"}
         new_id = orchestrator.start(f"Idea: {idea}", mode="live", label="ask")
-        return {"intent": intent, "run_id": new_id, "text": f"Started run {new_id}.",
-                "spoken": "Right away, " + voice.address() + ". Evaluating the brief now.", "start_run": new_id}
+        return {"intent": intent, "run_id": new_id, "text": "I've started looking into it.",
+                "spoken": "Great, " + voice.address() + ". I'm looking into it now; it takes about a minute.",
+                "start_run": new_id}
     if intent == "edit_copy":
         if run is None or "variants" not in run.state:
-            return {"intent": intent, "text": "Select a run that has landing copy first.", "spoken": "Which run, "
-                    + voice.address() + "?"}
+            return {"intent": intent, "text": "Open an idea that already has a landing page first.",
+                    "spoken": "Which idea should I work on, " + voice.address() + "? Open it on the left first."}
         from agents import strategist
         out = strategist.landing(run.id, run.variant(), feedback="Founder request: " + text[:300])
         copy = "\n".join([out.headline, out.subheadline] + out.benefits)
@@ -283,8 +294,9 @@ def handle(text: str, run_id: str | None = None, use_model: bool = True,
         if chk.blocked:
             return {"intent": intent, "refused": True, "text": chk.message, "spoken": voice.refusal_line(chk.rule or "", chk.message),
                     "alert": "crimson"}
-        return {"intent": intent, "text": "Suggested copy (not applied; it needs a new approval):\n" + copy,
-                "spoken": "I have drafted revised copy for your review, " + voice.address() + "."}
+        return {"intent": intent, "text": "Here's a new version (nothing changes until you approve it):\n" + copy,
+                "spoken": "Here's a new version for you to look at, " + voice.address() + ". Nothing changes until "
+                          "you approve it."}
     if stream and use_model:
         return {"intent": "other", "converse": True, "text": ""}
     spoken = converse(text, run, history, use_model)

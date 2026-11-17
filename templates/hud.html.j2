@@ -200,7 +200,8 @@ aside{background:var(--surface);border-right:1px solid var(--rule);display:flex;
 .msg.him{align-self:flex-start;background:var(--night-2);border:1px solid var(--night-rule);border-bottom-left-radius:4px}
 .msg.sys{align-self:center;background:none;color:var(--night-ink-2);font-size:13px;text-align:center;padding:2px 8px}
 .msg.p0{border-color:#F07167;color:#FFD9D5}
-.msg .detail{margin-top:8px;font-size:12.5px;color:var(--night-ink-2);white-space:pre-wrap}
+.msg .detail,.askout .detail{margin-top:8px;font-size:12.5px;color:var(--night-ink-2);white-space:pre-wrap}
+.detail summary{cursor:pointer;color:inherit;opacity:.85}.askout .detail{color:var(--ink-3)}
 .voiceinfo{font-size:12px;color:var(--night-ink-2);text-align:center;padding:0 16px 10px}
 
 /* ---------- ask bar ---------- */
@@ -288,7 +289,7 @@ details.paste summary{cursor:pointer;color:var(--ink-2);font-size:13.5px;margin-
           <button data-tab="debate" onclick="tab('debate')">Advocate and skeptic</button>
           <button data-tab="approvals" onclick="tab('approvals')">Approvals<span class="count" id="apCount" hidden></span></button>
           <button data-tab="files" onclick="tab('files')">Files</button>
-          <button data-tab="status" onclick="tab('status')">What is real</button>
+          <button data-tab="status" onclick="tab('status')">What's real vs. practice</button>
         </div>
         <div class="pane" id="pane-evidence"></div>
         <div class="pane" id="pane-debate" hidden></div>
@@ -478,7 +479,7 @@ function render(v){
   $("steps").innerHTML = PHASES.map((n,i)=>{ const p=i+1; const cls = p<v.phase ? "done" : (p===v.phase ? (stopped||v.stage==="stopped" ? "halt" : "now") : "");
     return `<li class="${cls}"><b>${p}. ${n}</b>${p<v.phase?"Done":(p===v.phase?(cls==="halt"?"Stopped here":"Current"):"Not started")}</li>`; }).join("");
   let ban = "";
-  if (v.override) ban += `<div class="banner hold"><b>Preview only.</b> You overrode the evidence at the gate, so demand is not yet proven. Your reason: ${esc(v.override.reason)}</div>`;
+  if (v.override) ban += `<div class="banner hold"><b>Preview only.</b> You chose to carry on even though the evidence was thin, so treat the later steps as a preview. Your note: ${esc(v.override.reason)}</div>`;
   if (v.goalpost_moved) ban += `<div class="banner stop"><b>Thresholds changed after they were locked.</b> This run is marked goalpost moved.</div>`;
   if (v.error) ban += `<div class="banner stop"><b>Something failed.</b> ${esc(v.error).slice(0,300)}</div>`;
   if (v.clarify && v.stage === "await_clarify") ban += `<div class="banner hold"><b>Please confirm.</b> ${esc(v.clarify)} <button class="btn" onclick="decide('clarify_ok')">It is a digital product with no advice</button></div>`;
@@ -495,38 +496,46 @@ function bar(label, val, thr, max, unit, note){
 }
 function renderVerdict(v){
   const g = v.gate1, el = $("verdict");
-  if (!g) { el.innerHTML = `<div class="verdict"><div><div class="which">Gate 1, evidence</div><p class="word" style="color:var(--ink-3)">${v.working?"Searching…":"Waiting"}</p><p class="why">The decision appears here once the sources are searched and every quote is checked.</p></div><div class="bars"></div></div>`; return; }
+  if (!g) { el.innerHTML = `<div class="verdict"><div><div class="which">First checkpoint: do people have this problem?</div><p class="word" style="color:var(--ink-3)">${v.working?"Searching…":"Waiting"}</p><p class="why">The decision appears here once the sources are searched and every quote is checked.</p></div><div class="bars"></div></div>`; return; }
   const m = v.metrics || g.metrics || {}, th = v.thresholds || g.thresholds || {};
   const cov = (v.coverage_rows||[]).map(r=>`${r.source} ${r.on_topic}/${r.hits}${r.ok?"":" (unavailable)"}`).join(", ");
   const bars = [
-    m.sourced_pain!=null ? bar("Pain signals", m.sourced_pain, th.min_sourced_pain, Math.max(th.min_sourced_pain*1.6, m.sourced_pain), "", `${m.claims_verified_live||0} confirmed on the live page, ${m.claims_archived||0} from archives`) : "",
-    m.coverage!=null ? bar("Searches that found the problem", Math.round(m.coverage*100), Math.round(th.min_coverage*100), 100, "%", cov ? "On-topic results per source: " + esc(cov) : "") : "",
-    m.distinct_sources!=null && th.min_distinct_sources!=null ? bar("Distinct sources", m.distinct_sources, th.min_distinct_sources, Math.max(th.min_distinct_sources*2, m.distinct_sources), "") : "",
+    m.sourced_pain!=null ? bar("Real complaints found", m.sourced_pain, th.min_sourced_pain, Math.max(th.min_sourced_pain*1.6, m.sourced_pain), "", `Every quote was checked on the page it came from`) : "",
+    m.coverage!=null ? bar("Searches that found the problem", Math.round(m.coverage*100), Math.round(th.min_coverage*100), 100, "%", "") : "",
+    m.distinct_sources!=null && th.min_distinct_sources!=null ? bar("Different places online", m.distinct_sources, th.min_distinct_sources, Math.max(th.min_distinct_sources*2, m.distinct_sources), "") : "",
   ].join("");
   const st = v.stage; let act = "";
   if (!DEMO && (st === "await_founder" || st === "stopped") && !v.gate2) {
     act = `<div class="actions"><button class="btn" onclick="decide('accept')">Accept the recommendation</button><button class="btn hold" onclick="decide('repeat')">Search again</button><button class="btn hold" onclick="decide('pivot')">Try variant ${(v.variant_n||1)+1}</button><button class="btn stop" onclick="decide('stop')">Stop this idea</button></div>`;
     if (st === "await_founder" && g.outcome !== "go") act += overrideBox();
   }
-  el.innerHTML = `<div class="verdict ${g.outcome}"><div><div class="which">Gate 1, evidence · decided by code, not the model</div>
+  el.innerHTML = `<div class="verdict ${g.outcome}"><div><div class="which">First checkpoint: do people have this problem?</div>
     <p class="word">${OUT[g.outcome]||esc(g.outcome)}</p><p class="why">${esc(whyLine(g, m, th))}</p>
-    <div class="founder">Rule: ${esc(human(g.rule_fired))}. Your decision: ${esc(human(g.founder_decision||"pending"))}.</div></div>
-    <div class="bars">${bars}<div class="hashline">Thresholds locked before the search, SHA-256 <code>${esc((v.thresholds_sha256||"").slice(0,16))}…</code> ${v.goalpost_moved?'<span class="moved">changed after locking</span>':"unchanged"}</div></div></div>${act}`;
+    <div class="founder">${esc(decisionText(g.founder_decision))}</div></div>
+    <div class="bars">${bars}<div class="hashline" title="SHA-256 ${esc(v.thresholds_sha256||"")}">${v.goalpost_moved?'<span class="moved">The bar was changed after the search started.</span>':"The bar was set before searching, so it can't be moved to fit the result."}</div></div></div>${act}`;
 }
+const DECISIONS = {accept:"You accepted this advice.", accepted:"You accepted this advice.", overridden:"You chose to carry on anyway.",
+  override:"You chose to carry on anyway.", stop:"You stopped here.", repeat:"You asked me to search again.", pivot:"You asked me to try another angle.",
+  pending:"Your call: accept the advice, search again, try another angle, or stop."};
+function decisionText(d){ return DECISIONS[d] || DECISIONS.pending; }
+const REASONS = {insufficient_evidence:"Not enough to go on yet", all_required_pass:"All checks passed", checks_failed:"Too little evidence",
+  weak_pain_evidence:"Too little evidence", no_real_signups:"No real sign-ups yet", founder_approved:"You approved it",
+  model_failure:"The research didn't come back clean", excluded_category:"Not a product we can build"};
+function reasonText(r){ const k = String(r||""); if (REASONS[k]) return REASONS[k]; if (/approved/.test(k)) return "You approved it"; return human(k).replace(/^./, c=>c.toUpperCase()); }
 function whyLine(g, m, th){
   const short = [];
-  if (m.sourced_pain!=null && th.min_sourced_pain!=null && m.sourced_pain < th.min_sourced_pain) short.push(`only ${m.sourced_pain} of the ${th.min_sourced_pain} pain signals needed were found`);
-  if (m.coverage!=null && th.min_coverage!=null && m.coverage < th.min_coverage) short.push(`only ${Math.round(m.coverage*100)}% of searches found people discussing the problem (${Math.round(th.min_coverage*100)}% needed)`);
-  if (m.distinct_sources!=null && th.min_distinct_sources!=null && m.distinct_sources < th.min_distinct_sources) short.push(`the evidence came from ${m.distinct_sources} source(s), ${th.min_distinct_sources} needed`);
-  if (g.outcome === "go") return "The evidence clears every pre-registered threshold. Continue to validation.";
-  const lead = {stop:"Stop here: ", repeat:"Search again: ", pivot:"Try a different angle: "}[g.outcome] || "";
-  if (short.length) return lead + short.join("; ") + ".";
+  if (m.sourced_pain!=null && th.min_sourced_pain!=null && m.sourced_pain < th.min_sourced_pain) short.push(`I found only ${Math.round(m.sourced_pain)} real complaints about this problem, and I wanted at least ${th.min_sourced_pain}`);
+  if (m.coverage!=null && th.min_coverage!=null && m.coverage < th.min_coverage) short.push(`too few of my searches found people talking about it`);
+  if (m.distinct_sources!=null && th.min_distinct_sources!=null && m.distinct_sources < th.min_distinct_sources) short.push(`it all came from just ${m.distinct_sources} place online`);
+  if (g.outcome === "go") return "Enough people describe this problem. It is worth taking to the next step.";
+  const lead = {stop:"My advice is to stop here. ", repeat:"Worth another look. ", pivot:"Worth trying a different angle. "}[g.outcome] || "";
+  if (short.length) { const b = short.join("; "); return lead + b.charAt(0).toUpperCase() + b.slice(1) + "."; }
   return human(g.recommendation || g.reason);
 }
 function overrideBox(){ return `<div class="override"><input id="ovr" placeholder="Why continue against the evidence? (required, logged)"><button class="btn hold" onclick="decide('override', $('ovr').value)">Override and continue</button></div>`; }
 function renderLater(v){
-  const items = [["Gate 2, demand", v.gate2], ["Gate 3, tests", v.gate3], ["Gate 4, price and policies", v.gate4]].filter(x=>x[1]);
-  let html = items.map(([k,g])=>`<div><div class="k">${k}</div><div class="v ${g.outcome}">${OUT[g.outcome]||esc(g.outcome)}</div><div class="k">${esc(human(g.reason))}</div></div>`).join("");
+  const items = [["Did people sign up?", v.gate2], ["Is the product ready?", v.gate3], ["Price and policies", v.gate4]].filter(x=>x[1]);
+  let html = items.map(([k,g])=>`<div><div class="k">${k}</div><div class="v ${g.outcome}">${OUT[g.outcome]||esc(g.outcome)}</div><div class="k">${esc(reasonText(g.reason))}</div></div>`).join("");
   if (!DEMO && v.stage === "await_override") html += `<div><div class="k">Gate 2 needs you</div><div class="actions" style="margin-top:8px"><button class="btn" onclick="decide('accept')">Accept repeat</button><button class="btn stop" onclick="decide('stop')">Stop</button></div>${overrideBox()}</div>`;
   if (!DEMO && v.stage === "await_gate4") html += `<div><div class="k">Gate 4: approve price and policies</div><div class="actions" style="margin-top:8px"><button class="btn primary" onclick="decide('gate4_approve')">Approve</button><button class="btn stop" onclick="decide('gate4_reject')">Reject</button></div></div>`;
   $("later").innerHTML = html;
@@ -543,16 +552,16 @@ function tab(name){
   for (const p of ["evidence","debate","approvals","files","status"]) $("pane-"+p).hidden = p !== name;
 }
 function tagFor(c){
-  if (c.weight > 0 && c.status === "verified_live") return `<span class="tag live">Confirmed live · ${c.weight}</span>`;
-  if (c.weight > 0 && c.status === "archived_match") return `<span class="tag arch">Archive match · ${c.weight}</span>`;
-  return `<span class="tag none">Not counted · 0</span>`;
+  if (c.weight > 0 && c.status === "verified_live") return `<span class="tag live" title="Checked on the live page">Counted</span>`;
+  if (c.weight > 0 && c.status === "archived_match") return `<span class="tag arch" title="Page offline; matched an archived copy, counts half">Counted (half)</span>`;
+  return `<span class="tag none">Not counted</span>`;
 }
 function renderEvidence(v){
   const all = (v.claims||[]).slice().sort((a,b)=>b.weight-a.weight);
   const counted = all.filter(c=>c.weight>0);
   const list = S.showZero ? all : counted;
-  const head = `<div class="filterrow"><span>${counted.length} of ${all.length} quotes counted toward the gate.</span>
-    <label><input type="checkbox" ${S.showZero?"checked":""} onchange="S.showZero=this.checked;renderEvidence(S.view)"> Show quotes that were not counted</label></div>`;
+  const head = `<div class="filterrow"><span>${counted.length} of ${all.length} comments are clearly about this problem.</span>
+    <label><input type="checkbox" ${S.showZero?"checked":""} onchange="S.showZero=this.checked;renderEvidence(S.view)"> Show the rest</label></div>`;
   const rows = list.map(c=>`<div class="claim ${c.weight>0?"":"zero"}"><div class="meta"><b>${esc(c.id)}</b>${tagFor(c)}<span>${esc(human(c.kind))}</span></div>
     <div><blockquote>“${esc(c.quote||c.claim_text||"")}”</blockquote>
     <div class="src">${c.url?`<a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.source)}${c.hit_title?": "+esc(c.hit_title).slice(0,90):""}</a>`:"ASSUMPTION"}${c.weight_note?" · "+esc(c.weight_note):""}</div></div></div>`).join("");
@@ -562,8 +571,8 @@ function renderDebate(v){
   if (!v.debate) { $("pane-debate").innerHTML = `<div class="empty">The advocate and the skeptic argue after the evidence is in.</div>`; return; }
   const ids = new Set((v.claims||[]).filter(c=>c.weight>0).map(c=>c.id));
   const st = s => { const ok = (s.claim_ids||[]).filter(i=>ids.has(i)); return `<p>${ok.length?"":`<span class="assume">ASSUMPTION</span>`}${esc(s.text)}${ok.map(i=>`<span class="cite">${i}</span>`).join("")}</p>`; };
-  $("pane-debate").innerHTML = `<div class="debate"><div><h4>The case for going ahead</h4><p class="sub">Advocate. Cites only counted quotes.</p>${v.debate.advocate.map(st).join("")}</div>
-    <div><h4>The case for stopping</h4><p class="sub">Skeptic. Same evidence, opposite brief.</p>${v.debate.skeptic.map(st).join("")}</div></div>`;
+  $("pane-debate").innerHTML = `<div class="debate"><div><h4>The case for going ahead</h4><p class="sub">The optimist, using only the counted comments.</p>${v.debate.advocate.map(st).join("")}</div>
+    <div><h4>The case for stopping</h4><p class="sub">The sceptic, using the same comments.</p>${v.debate.skeptic.map(st).join("")}</div></div>`;
 }
 const PHASE_OF = f => { const m = f.match(/^phase(\d)/); return m ? "Phase " + m[1] + ", " + PHASES[+m[1]-1] : "Sale to cash"; };
 function prettyName(f){ return f.replace(/^phase\d_(step\d_|gate_)?/,"").replace(/\.(md|json|html|csv|txt)$/,"").replace(/_/g," ").replace(/^./,c=>c.toUpperCase()) + (f.includes("_gate_") ? " (gate)" : ""); }
@@ -647,7 +656,11 @@ async function sendAsk(text){
     }
   } catch(e) { full = "I could not reach the console server. Is it running?"; bubble.textContent = full; say(full); }
   const detail = meta && (meta.detail || (meta.text && meta.text !== full ? meta.text : ""));
-  if (detail) { const x = document.createElement("div"); x.className = "detail"; x.textContent = detail; bubble.appendChild(x); if (showInBar) showAsk(full + "\n\n" + detail, meta.alert === "crimson"); }
+  if (detail && meta.detail) {   // the exact figures stay one click away, not in the spoken answer
+    const d = document.createElement("details"); d.className = "detail"; const sm = document.createElement("summary"); sm.textContent = "Show the numbers";
+    const pre = document.createElement("div"); pre.textContent = detail; d.append(sm, pre); bubble.appendChild(d);
+    if (showInBar) { showAsk(full, meta.alert === "crimson"); $("askbody").appendChild(d.cloneNode(true)); }
+  } else if (detail && showInBar) showAsk(detail, meta.alert === "crimson");
   S.history.push({role:"user", text}, {role:"assistant", text:full}); S.history = S.history.slice(-12);
   asking = false;
   if (!(meta && meta.alert === "crimson")) setState("idle");

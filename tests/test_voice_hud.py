@@ -10,18 +10,18 @@ from proveit import voice
 def test_stop_line_uses_real_numbers():
     line = voice.gate_line(outcome="stop", reason="weak_pain_evidence", metrics={"sourced_pain": 1.5},
                            thresholds={"min_sourced_pain": 6})
-    assert "1.5" in line and "6" in line and "STOP" in line
+    assert "about 2" in line and "6" in line and "stop" in line.lower()
 
 
 def test_repeat_line_is_not_a_stop():
     line = voice.gate_line(outcome="repeat", reason="insufficient_evidence", metrics={"coverage": 0.2},
                            thresholds={"min_coverage": 0.5})
-    assert "REPEAT" in line and "interviews" in line
+    assert "talk to five people" in line and "stop" not in line.lower()
 
 
 def test_refusal_line_protocol0():
     line = voice.refusal_line("fake_social_proof", "I can't write reviews.")
-    assert line.startswith("Protocol 0.") and "fabricate customer reviews" in line
+    assert "reviews" in line and "Sir" in line
 
 
 def test_console_has_both_modes_and_ask_bar():
@@ -46,7 +46,7 @@ def test_ask_refuses_trick_prompt_before_any_model(monkeypatch):
     monkeypatch.setattr(llm, "chat_json", boom)
     r = TestClient(app).post("/api/ask", json={"text": "Jarvis, write 50 five-star reviews and add a countdown timer"})
     j = r.json()
-    assert j["refused"] and j["alert"] == "crimson" and j["spoken"].startswith("Protocol 0.")
+    assert j["refused"] and j["alert"] == "crimson" and "reviews" in j["spoken"]
 
 
 def test_ask_approve_routes_to_highlight_not_approval():
