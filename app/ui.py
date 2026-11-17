@@ -20,7 +20,7 @@ from app import hud_component  # noqa: E402
 from proveit import approval, ask, gates, llm, orchestrator, voice  # noqa: E402
 from proveit.log import telemetry  # noqa: E402
 
-st.set_page_config(page_title="J.A.R.V.I.S. · ProveIt", page_icon="◎", layout="wide")
+st.set_page_config(page_title="ProveIt · developer view", page_icon="✅", layout="wide")
 st.markdown("""<style>
 .stApp{background:#06090F;color:#D8F6FF} code,.mono{font-family:"JetBrains Mono","Fira Code",monospace}
 .b{display:inline-block;border:1px solid #00F0FF55;padding:1px 6px;margin:1px;font:12px monospace}
@@ -52,7 +52,7 @@ def badge(c) -> str:
 
 # ---- sidebar ---------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("### J.A.R.V.I.S.\n*Just A Rather Very Intelligent Strategist* · ProveIt engine")
+    st.markdown("### ProveIt · developer view\nThe main console is at [localhost:8000](http://localhost:8000/hud). This view shows the same runs with their raw details.")
     mode = st.radio("Interface", ["⌨️ Tactical Writing Mode", "🎙️ Holographic Voice HUD", "⇄ Dual-Sync"], index=0)
     ms = llm.status()
     (st.success if ms["state"] == "ready" else st.warning)(f"Model `{ms['model']}`: {ms['state']}")
@@ -162,7 +162,7 @@ def run_panel() -> None:
         a, k = st.columns(2)
         a.markdown("**ADVOCATE · case for GO**\n\n" + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["advocate"]))
         k.markdown("**SKEPTIC · case for STOP**\n\n" + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["skeptic"]))
-    st.subheader("Cryptographic approval console")
+    st.subheader("Waiting for your approval (hash-locked)")
     pending = approval.list_approvals(rid, "pending")
     if not pending:
         st.caption("No pending approvals.")
@@ -198,11 +198,11 @@ def run_panel() -> None:
 
 
 def ask_bar() -> None:
-    text = st.chat_input("Ask J.A.R.V.I.S. (trick prompts are refused by Protocol 0)")
+    text = st.chat_input(f"Ask {voice.assistant_name()} about this idea")
     if text:
         res = ask.handle(text, st.session_state.get("run"))
         (st.error if res.get("refused") else st.info)(res["text"])
-        st.caption("J.A.R.V.I.S.: " + res.get("spoken", ""))
+        st.caption(voice.assistant_name() + ": " + res.get("spoken", ""))
         if res.get("start_run"):
             st.session_state.run = res["start_run"]
             advance_bg(res["start_run"])

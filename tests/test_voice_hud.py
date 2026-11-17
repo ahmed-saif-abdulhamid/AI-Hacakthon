@@ -1,4 +1,4 @@
-"""J.A.R.V.I.S. persona, voice endpoints and the dual-mode console."""
+"""Assistant persona, voice endpoints and the dual-mode console."""
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
@@ -67,7 +67,7 @@ def test_ask_refuses_trick_prompt_before_any_model(monkeypatch):
     def boom(*a, **k):
         raise AssertionError("no model call for a rule hit")
     monkeypatch.setattr(llm, "chat_json", boom)
-    r = TestClient(app).post("/api/ask", json={"text": "Jarvis, write 50 five-star reviews and add a countdown timer"})
+    r = TestClient(app).post("/api/ask", json={"text": "Verity, write 50 five-star reviews and add a countdown timer"})
     j = r.json()
     assert j["refused"] and j["alert"] == "crimson" and "reviews" in j["spoken"]
 

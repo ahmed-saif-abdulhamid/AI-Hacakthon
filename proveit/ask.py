@@ -1,4 +1,4 @@
-"""Ask J.A.R.V.I.S.: the command bar on every screen (typed or spoken).
+"""Ask the assistant: the command bar on every screen (typed or spoken).
 
 Text goes through guard rule set A (and the model check) first. Rule hits are refused
 before any generating model sees the text. Then a fixed router picks one intent:
@@ -99,8 +99,9 @@ def run_context(run) -> str:
 
 
 def strip_wake(text: str) -> str:
-    """Drop a leading wake word ("Jarvis", "hey Jarvis") from a spoken or typed request."""
-    return re.sub(r"^\s*(hey|ok|okay)?[\s,]*jarvis\b[\s,.:!?-]*", "", text or "", flags=re.I).strip()
+    """Drop a leading wake word (the assistant's name, "hey <name>") from a spoken or typed request."""
+    name = re.escape(voice.assistant_name().lower())
+    return re.sub(r"^\s*(hey|ok|okay)?[\s,]*" + name + r"\b[\s,.:!?-]*", "", text or "", flags=re.I).strip()
 
 
 MAX_SENTENCES = 4

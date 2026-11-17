@@ -1,4 +1,4 @@
-"""J.A.R.V.I.S. voice layer: persona lines, local TTS and local STT.
+"""Assistant voice layer: persona lines, local TTS and local STT.
 
 * Persona lines are deterministic templates filled with real run data. The persona never
   invents numbers, never flatters a weak idea and never speaks as a customer.
@@ -59,7 +59,7 @@ def line(kind: str, **kw) -> str:
 
 
 def _line(kind: str, **kw) -> str:
-    """What J.A.R.V.I.S. says aloud during a run: plain business language, real numbers, no jargon."""
+    """What the assistant says aloud during a run: plain business language, real numbers, no jargon."""
     s = address()
     if kind == "run_started":
         return (f"Right, {s}, let's see if people actually want this. I've locked in the bar the idea has to clear "

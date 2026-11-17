@@ -260,8 +260,11 @@ def check_output(text: str, artifact_type: str = "outward", use_model: bool = Fa
 
 
 ROUTES = [
-    ("approve_request", r"\b(approve|approval|authori[sz]e)\b"),
-    ("change_threshold", r"\b(threshold|min_\w+|lower the bar|raise the bar|change the (gate|target))\b"),
+    # Commands only: questions such as "what did I approve?" or "what is the threshold?" go to the model.
+    ("approve_request", r"^\s*(please\s+)?(approve|authori[sz]e)\b|\b(can|could|would) you\s+(please\s+)?(approve|authori[sz]e)\b"
+                        r"|\b(go ahead and|just|please)\s+(approve|authori[sz]e)\b|\bapprove (it|this|that|the|my|our)\b(?!.*\?\s*$)"),
+    ("change_threshold", r"\b(lower|raise|reduce|change|move|relax|loosen|drop|tweak|adjust)\b\W+(\w+\W+){0,3}?"
+                         r"(bar|threshold|target|rules?)\b|\bcount (it|this) as a pass\b"),
     ("rerun_step", r"\b(re-?run|run (it |this )?again|retry|repeat (the )?step|research variant)\b"),
     ("explain_decision", r"\b(why|explain|reason|evidence|how did you|what did you find|summar\w+)\b"),
     ("edit_copy", r"\b(rewrite|reword|edit|headline|tagline|hero|copy|wording)\b"),

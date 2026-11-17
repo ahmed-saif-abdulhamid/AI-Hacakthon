@@ -6,7 +6,7 @@
   runs                                                       list runs
   approvals list [--run ID] | approve <id> | reject <id>     founder approvals (hash-bound)
   decide <run_id> <accept|stop|override|pivot|repeat|clarify_ok|gate4_approve|gate4_reject> [--reason TEXT]
-  ask "<text>" [--run ID]                                    Ask J.A.R.V.I.S. (guard first)
+  ask "<text>" [--run ID]                                    Ask the assistant (guard first)
   promote --weak <id> --strong <id> [--root]                 the only writer of outputs/
 """
 from __future__ import annotations

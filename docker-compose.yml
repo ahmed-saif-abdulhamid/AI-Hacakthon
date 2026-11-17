@@ -1,44 +1,55 @@
-# One-command setup: docker compose up  ->  open http://localhost:8501 (Streamlit)
-# or http://localhost:8000/hud (J.A.R.V.I.S. console with the voice HUD).
-# Needs NVIDIA_API_KEY in .env (free key from build.nvidia.com).
-# Ports are bound to 127.0.0.1 only, so nobody on the local network can click Approve.
+# One-command setup: docker compose up  ->  open http://localhost:8000 (the ProveIt console).
+# A developer view (Streamlit) is also served on http://localhost:8501.
+# Needs NVIDIA_API_KEY in .env (free key from build.nvidia.com; docker compose reads .env itself).
+# Ports are bound to 127.0.0.1 only, so nobody on the local network can press Approve.
 services:
   searxng:
     image: searxng/searxng:2026.10.29-c15647b5a
     environment:
       SEARXNG_SECRET: "${SEARXNG_SECRET:-dev-only-change-me}"
-    volumes: ["./config/searxng:/etc/searxng"]
+    volumes: ["./config/searxng:/etc/searxng:ro"]
 
   api:
     build: .
+    image: proveit:local
     command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
     environment: &env
       SEARXNG_URL: "http://searxng:8080"
       PROVEIT_DB: "/app/data/proveit.db"
+      # Runs live on the named volume, which is always writable whatever your host user id is.
+      PROVEIT_RUNS: "/app/data/runs"
       SECRET_KEY: "${SECRET_KEY:-dev-only-change-me}"
       GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
       SE_KEY: "${SE_KEY:-}"
-      # The model is hosted by NVIDIA (free developer tier); docker compose reads the key from .env.
+      # The model is NVIDIA Nemotron (open weights) on NVIDIA's free hosted tier.
       NVIDIA_API_KEY: "${NVIDIA_API_KEY:-}"
       NVIDIA_MODEL: "${NVIDIA_MODEL:-nvidia/nemotron-3-ultra-550b-a55b}"
+      NVIDIA_BASE_URL: "${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}"
+      LLM_TIMEOUT: "${LLM_TIMEOUT:-120}"
+      LLM_RPM: "${LLM_RPM:-30}"
+      ASSISTANT_NAME: "${ASSISTANT_NAME:-Verity}"
+      FOUNDER_NAME: "${FOUNDER_NAME:-}"
       API_PUBLIC_URL: "http://localhost:8000"
-      JARVIS_ADDRESS: "${JARVIS_ADDRESS:-Sir}"
-    user: "${UID:-1000}:${GID:-1000}"
-    volumes: ["proveit-data:/app/data", "./outputs:/app/outputs", "./runs:/app/runs"]
+    volumes: ["proveit-data:/app/data"]
     ports: ["127.0.0.1:8000:8000"]
-    extra_hosts: ["host.docker.internal:host-gateway"]
+    depends_on:
+      searxng: { condition: service_started }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/model', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 15s
 
   ui:
-    build: .
+    image: proveit:local
+    pull_policy: never
     command: ["streamlit", "run", "app/ui.py", "--server.port", "8501", "--server.address", "0.0.0.0",
               "--browser.gatherUsageStats", "false"]
     environment: *env
-    user: "${UID:-1000}:${GID:-1000}"
-    volumes: ["proveit-data:/app/data", "./outputs:/app/outputs", "./runs:/app/runs"]
+    volumes: ["proveit-data:/app/data"]
     ports: ["127.0.0.1:8501:8501"]
-    extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
-      searxng: { condition: service_started }
-      api: { condition: service_started }
+      api: { condition: service_healthy }
 
 volumes: { proveit-data: {} }

@@ -1,6 +1,6 @@
-"""Embeds the J.A.R.V.I.S. holographic HUD (templates/hud.html.j2, served by the API on
+"""Embeds the ProveIt console (voice HUD) (templates/hud.html.j2, served by the API on
 port 8000) inside Streamlit. The HUD talks to the API directly, so voice, telemetry and
-Ask J.A.R.V.I.S. work the same as on http://localhost:8000/hud."""
+the Ask bar work the same as on http://localhost:8000/hud."""
 from __future__ import annotations
 
 import os

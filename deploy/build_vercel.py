@@ -2,7 +2,7 @@
 
 The hosted demo shows the two committed runs (weak -> STOP, strong -> preview after override)
 with the same console. It never runs the pipeline (no key is shipped for that), so starting runs,
-gate decisions, approvals, purchases and refunds return 403. Ask J.A.R.V.I.S. answers from the
+gate decisions, approvals, purchases and refunds return 403. The assistant answers from the
 recorded run without a model, and speech uses the browser's own voice.
 
 Usage:  python deploy/build_vercel.py   then   cd deploy/vercel_site && npx vercel deploy --prod

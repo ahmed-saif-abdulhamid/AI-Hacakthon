@@ -20,5 +20,8 @@ ENV PIPER_VOICE=/opt/voices/en_GB-alan-medium.onnx
 COPY . .
 RUN mkdir -p /app/data /app/outputs /app/runs && chown -R 1000:1000 /app && chmod 1777 /app/data
 
+# Never run as root: uid 1000 owns /app, and the named volume for /app/data starts with that owner.
+USER 1000:1000
+
 EXPOSE 8000 8501
 CMD ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
