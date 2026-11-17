@@ -4,12 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-import delivery
-import payments
-import reconcile
-import refunds
-import webhooks
 from proveit import approval, decisions
+from proveit.commerce import delivery, payments, reconcile, refunds, webhooks
 
 
 @pytest.fixture

@@ -1,6 +1,10 @@
-"""Re-exports proveit.gates for convenience."""
+"""Gates: pre-registered thresholds and deterministic decisions. Implemented in ``proveit/gates.py``.
 
-from proveit import gates as _m
-from proveit.gates import *  # noqa: F401,F403
+This root module is an alias of that module (same object), so ``import gates`` works from the repository root.
+"""
 
-globals().update({k: getattr(_m, k) for k in dir(_m) if not k.startswith("__")})
+import sys
+
+from proveit import gates
+
+sys.modules[__name__] = gates

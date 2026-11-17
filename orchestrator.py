@@ -1,6 +1,10 @@
-"""Re-exports proveit.orchestrator for convenience."""
+"""The six-phase pipeline state machine. Implemented in ``proveit/orchestrator.py``.
 
-from proveit import orchestrator as _m
-from proveit.orchestrator import *  # noqa: F401,F403
+This root module is an alias of that module (same object), so ``import orchestrator`` works from the repository root.
+"""
 
-globals().update({k: getattr(_m, k) for k in dir(_m) if not k.startswith("__")})
+import sys
+
+from proveit import orchestrator
+
+sys.modules[__name__] = orchestrator

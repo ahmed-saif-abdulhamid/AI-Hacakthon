@@ -44,6 +44,7 @@ from sources.searxng import SearXNG
 from sources.stackexchange import StackExchange
 
 from . import approval, db, gates, guard, llm, render, verifier, voice
+from .commerce import delivery, payments, reconcile, refunds, webhooks
 from .log import emit, log_action, utcnow
 from .models import Claim, FounderBrief, GateDecision, Hit, SourceCall, Variant
 from .reports import (
@@ -1186,11 +1187,6 @@ def stage_phase5(run: Run) -> None:
 
 def stage_payment_test(run: Run) -> None:
     """MOCKED sale to cash: purchase -> webhook -> delivery -> replay -> refund needs approval."""
-    import delivery
-    import payments
-    import refunds
-    import webhooks
-
     progress(run, 5, "Sale to cash (MOCKED)")
     price = float(run.state["pricing"]["better"])
     provider = payments.MockPaymentProvider()
@@ -1227,10 +1223,6 @@ def stage_payment_test(run: Run) -> None:
 
 
 def stage_refund(run: Run) -> None:
-    import delivery
-    import reconcile
-    import refunds
-
     o = run.state["order"]
     res = refunds.refund(o["id"], run.state["refund_approval"])
     try:

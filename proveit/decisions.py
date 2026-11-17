@@ -7,7 +7,10 @@ rejected the exact bytes of a gated action.
 
 from __future__ import annotations
 
+import json
+
 from . import approval, db, guard
+from .commerce import refunds
 from .log import log_action, utcnow
 from .models import GateDecision
 from .orchestrator import Run, load, say
@@ -183,11 +186,7 @@ def on_approval_decided(approval_id: str) -> str | None:
         # A refund a customer asked for from the store page is not a pipeline step: run it whenever the
         # founder approves it (or just log the rejection), whatever stage the run is at.
         if ap.action == "refund":
-            import json as _json
-
-            import refunds
-
-            order_id = _json.loads(approval.blob(ap.payload_sha256)[0]).get("order_id")
+            order_id = json.loads(approval.blob(ap.payload_sha256)[0]).get("order_id")
             if ap.status == "approved":
                 refunds.refund(order_id, approval_id)
                 log_action(

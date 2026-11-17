@@ -1,6 +1,10 @@
-"""Re-exports proveit.approval for convenience."""
+"""Founder approval: hash-locked, enforced in code. Implemented in ``proveit/approval.py``.
 
-from proveit import approval as _m
-from proveit.approval import *  # noqa: F401,F403
+This root module is an alias of that module (same object), so ``import approval`` works from the repository root.
+"""
 
-globals().update({k: getattr(_m, k) for k in dir(_m) if not k.startswith("__")})
+import sys
+
+from proveit import approval
+
+sys.modules[__name__] = approval
