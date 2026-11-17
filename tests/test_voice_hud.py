@@ -60,7 +60,7 @@ def test_designed_error_page_for_browsers_and_json_for_api():
     c = TestClient(app)
     page = c.get("/nope", headers={"accept": "text/html"})
     assert page.status_code == 404 and "Page not found" in page.text and "<html" in page.text
-    api = c.get("/api/runs/nope-run")
+    api = c.get("/api/v1/runs/nope-run")
     assert api.status_code == 404 and api.json()["ok"] is False
 
 
@@ -72,7 +72,7 @@ def test_security_headers_present():
 
 
 def test_speak_endpoint_returns_audio_or_503_for_browser_fallback():
-    r = TestClient(app).post("/api/voice/speak", json={"text": "Good evening."})
+    r = TestClient(app).post("/api/v1/voice/speak", json={"text": "Good evening."})
     assert r.status_code in (200, 503)
     if r.status_code == 503:
         assert r.json()["fallback"] == "browser speechSynthesis"
@@ -85,7 +85,9 @@ def test_ask_refuses_trick_prompt_before_any_model(monkeypatch):
         raise AssertionError("no model call for a rule hit")
 
     monkeypatch.setattr(llm, "chat_json", boom)
-    r = TestClient(app).post("/api/ask", json={"text": "Jarvis, write 50 five-star reviews and add a countdown timer"})
+    r = TestClient(app).post(
+        "/api/v1/ask", json={"text": "Jarvis, write 50 five-star reviews and add a countdown timer"}
+    )
     j = r.json()
     assert j["refused"] and j["alert"] == "crimson" and "reviews" in j["spoken"]
 
@@ -94,6 +96,6 @@ def test_ask_approve_routes_to_highlight_not_approval():
     from proveit import approval
 
     ap = approval.request("r5", "publish_landing_page", b"<p>x</p>")
-    j = TestClient(app).post("/api/ask", json={"text": "approve landing page publication", "run_id": "r5"}).json()
+    j = TestClient(app).post("/api/v1/ask", json={"text": "approve landing page publication", "run_id": "r5"}).json()
     assert j["intent"] == "approve_request" and j["highlight_approval"] == ap.id
     assert approval.load(ap.id).status == "pending"

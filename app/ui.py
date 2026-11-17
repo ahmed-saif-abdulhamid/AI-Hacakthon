@@ -1,13 +1,13 @@
 """Streamlit UI (port 8501): Mode 1 Tactical Writing / Command mode (native), Mode 2 the
 holographic voice HUD (embedded), and Dual-Sync (both side by side).
 
-The pipeline runs in a background worker thread; the page polls SQLite every second.
+The pipeline runs in a background worker thread (shared with the API registry, so a run never
+has two workers in this process); the page polls SQLite every second.
 """
 
 from __future__ import annotations
 
 import sys
-import threading
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -18,6 +18,7 @@ import streamlit as st  # noqa: E402
 
 from agents.intake import parse_brief  # noqa: E402
 from app import hud_component  # noqa: E402
+from app.background import run_workers  # noqa: E402
 from proveit import approval, ask, decisions, gates, llm, orchestrator, voice  # noqa: E402
 from proveit.log import telemetry  # noqa: E402
 
@@ -34,16 +35,6 @@ st.markdown(
 )
 
 FIELDS = ["idea", "skills", "budget", "hours_per_week", "target_market", "values"]
-WORKERS: dict[str, threading.Thread] = st.session_state.setdefault("workers", {})
-
-
-def advance_bg(run_id: str) -> None:
-    t = WORKERS.get(run_id)
-    if t and t.is_alive():
-        return
-    t = threading.Thread(target=orchestrator.advance, args=(run_id,), daemon=True)
-    WORKERS[run_id] = t
-    t.start()
 
 
 def badge(c) -> str:
@@ -116,7 +107,7 @@ def brief_form() -> None:
         else:
             rid = orchestrator.start("", fields, mode=run_mode)
             st.session_state.run = rid
-            advance_bg(rid)
+            run_workers.advance(rid)
             st.rerun()
 
 
@@ -164,28 +155,28 @@ def run_panel() -> None:
             )
     if run.stage == "await_clarify" and st.button("Confirm: digital product, no advice"):
         decisions.founder_decide(rid, "clarify_ok")
-        advance_bg(rid)
+        run_workers.advance(rid)
     if run.stage in ("await_founder", "await_override"):
         b = st.columns(5)
         if b[0].button("Accept"):
             decisions.founder_decide(rid, "accept")
         if run.stage == "await_founder" and b[1].button("Repeat"):
             decisions.founder_decide(rid, "repeat")
-            advance_bg(rid)
+            run_workers.advance(rid)
         if run.stage == "await_founder" and b[2].button("Pivot to next variant"):
             decisions.founder_decide(rid, "pivot")
-            advance_bg(rid)
+            run_workers.advance(rid)
         if b[3].button("Stop"):
             decisions.founder_decide(rid, "stop")
         reason = st.text_input("Override reason (required, guard-checked, logged)", key="ovr")
         if b[4].button("Founder override"):
             res = decisions.founder_decide(rid, "override", reason)
-            st.error(res["error"]) if not res.get("ok") else advance_bg(rid)
+            st.error(res["error"]) if not res.get("ok") else run_workers.advance(rid)
     if run.stage == "await_gate4":
         c1, c2 = st.columns(2)
         if c1.button("Approve price and policies (Gate 4)", type="primary"):
             decisions.founder_decide(rid, "gate4_approve")
-            advance_bg(rid)
+            run_workers.advance(rid)
         if c2.button("Reject (Gate 4)"):
             decisions.founder_decide(rid, "gate4_reject")
     if s.get("debate"):
@@ -211,7 +202,7 @@ def run_panel() -> None:
         if c1.button("[ APPROVE (HASH-LOCKED) ]", key="ok" + ap.id, type="primary"):
             approval.decide(ap.id, True, via="ui")
             decisions.on_approval_decided(ap.id)
-            advance_bg(rid)
+            run_workers.advance(rid)
         if c2.button("[ REJECT ]", key="no" + ap.id):
             approval.decide(ap.id, False, via="ui")
             decisions.on_approval_decided(ap.id)
@@ -244,7 +235,7 @@ def ask_bar() -> None:
         st.caption(voice.assistant_name() + ": " + res.get("spoken", ""))
         if res.get("start_run"):
             st.session_state.run = res["start_run"]
-            advance_bg(res["start_run"])
+            run_workers.advance(res["start_run"])
 
 
 if mode.startswith("⌨️"):

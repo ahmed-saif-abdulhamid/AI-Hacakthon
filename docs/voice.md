@@ -4,7 +4,7 @@ J.A.R.V.I.S. is ProveIt's assistant. You call it by saying "Jarvis" (`WAKE_WORD`
 
 ## Speech out
 
-1. The console posts each sentence to `POST /api/voice/speak` as soon as it arrives.
+1. The console posts each sentence to `POST /api/v1/voice/speak` as soon as it arrives.
 2. If Piper is installed (`pip install -r requirements-voice.txt` and a voice file such as `en_GB-alan-medium.onnx` in `data/voices/`, or `PIPER_VOICE=/path/to/voice.onnx`), the API returns a WAV, cached in the system temp folder. The console plays it through a WebAudio `AnalyserNode`, so the voice visual follows the real audio.
 3. If the server answers 503 or the first sentence takes more than 500 ms, the browser's `speechSynthesis` speaks instead, with the best available en-GB voice.
 
@@ -12,7 +12,7 @@ J.A.R.V.I.S. is ProveIt's assistant. You call it by saying "Jarvis" (`WAKE_WORD`
 
 - **Hold to talk:** the browser's `SpeechRecognition` transcribes (Chrome and Edge send the audio to Google or Microsoft; the Privacy dialog says so).
 - **Say "Jarvis":** turn it on, then say "Jarvis, ..." followed by the question; saying only "Jarvis" gets "Yes?" and a short listening window. Recognition is in English (en-GB) whatever your browser's language is.
-- **Fallback:** without browser recognition, the console records audio and posts it to `POST /api/voice/transcribe`, which uses a local `faster-whisper` `tiny.en` model when installed (STUBBED otherwise).
+- **Fallback:** without browser recognition, the console records audio and posts it to `POST /api/v1/voice/transcribe`, which uses a local `faster-whisper` `tiny.en` model when installed (STUBBED otherwise).
 - Missing or blocked microphones are reported in plain words; typing always works.
 
 ## What J.A.R.V.I.S. says

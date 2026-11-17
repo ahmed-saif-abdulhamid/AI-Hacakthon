@@ -1,10 +1,10 @@
 /* ProveIt console. Plain JavaScript, no build step. Uses the browser's speechSynthesis and
    SpeechRecognition, WebAudio (AnalyserNode.getByteFrequencyData) for the voice visual, and the
-   local Piper voice through /api/voice/speak when it is installed. */
+   local Piper voice through the voice/speak API route when it is installed. */
 "use strict";
 (() => {
 const CFG = window.PROVEIT || {};
-const API = CFG.api || "";
+const API = (CFG.api || "") + (CFG.apiPrefix || "/api/v1");  // base of every JSON route
 const DEMO = !!CFG.demo;
 const NAME = CFG.assistant || "J.A.R.V.I.S.";
 const WAKE_WORD = CFG.wake || "Jarvis";
@@ -116,7 +116,7 @@ function parsePaste() {
   announce("Brief read into the fields");
 }
 async function loadPreset(name) {
-  try { const r = await api("/api/presets/" + name); $("paste").value = r.text; parsePaste(); $("f-idea").focus(); }
+  try { const r = await api("/presets/" + name); $("paste").value = r.text; parsePaste(); $("f-idea").focus(); }
   catch (e) { showAnswer("I couldn't load that example: " + e.message, "err"); }
 }
 function openNew() {
@@ -131,7 +131,7 @@ async function startRun(ev) {
   const fields = {}; for (const f of FIELDS) fields[f] = $("f-" + f).value.trim();
   busy(btn, true, "Starting…");
   try {
-    const r = await api("/api/runs", {method: "POST", body: JSON.stringify({brief_text: "", fields, mode: $("runmode").value})});
+    const r = await api("/runs", {method: "POST", body: JSON.stringify({brief_text: "", fields, mode: $("runmode").value})});
     $("newdlg").close(); $("newform").reset();
     await refreshRuns(); followRun(r.run_id); announce("Started. Looking for evidence now.");
   } catch (e) { err.textContent = e.status === 429 ? "Too many starts in a short time. Wait a few seconds." : "That didn't start: " + e.message; err.hidden = false; }
@@ -145,7 +145,7 @@ function runDot(r) {
   return r.outcome || "";
 }
 async function refreshRuns() {
-  let runs; try { runs = await api("/api/runs"); } catch (e) { return; }
+  let runs; try { runs = await api("/runs"); } catch (e) { return; }
   S.runs = runs; $("latestbtn").hidden = !runs.length;
   const groups = []; const seen = new Map();
   const visible = S.showAll ? runs : runs.filter(r => !r.calibration);
@@ -183,7 +183,7 @@ function followRun(id, {push = true} = {}) {
   if (push) { const u = new URL(location.href); u.searchParams.set("run", id); history.replaceState(null, "", u); }
   $("intro").hidden = true; $("runview").hidden = false;
   setState("idle"); poll(true); refreshRuns();
-  if (!DEMO) fetch(API + "/api/ask/warm", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text: "", run_id: id})}).catch(() => {});
+  if (!DEMO) fetch(API + "/ask/warm", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text: "", run_id: id})}).catch(() => {});
   openDrawer(false);
 }
 function showWelcome() {
@@ -198,7 +198,7 @@ async function poll(now) {
   if (document.hidden && !now) { schedule(4000); return; }
   if (!S.run) { schedule(4000); return; }
   try {
-    const [v, tel] = await Promise.all([api("/api/runs/" + encodeURIComponent(S.run)), api(`/api/runs/${encodeURIComponent(S.run)}/telemetry?since=${S.seq}`)]);
+    const [v, tel] = await Promise.all([api("/runs/" + encodeURIComponent(S.run)), api(`/runs/${encodeURIComponent(S.run)}/telemetry?since=${S.seq}`)]);
     if (S.fails >= 2) announce("Reconnected to ProveIt.");
     S.fails = 0; $("conn").hidden = true;
     S.view = v;
@@ -219,7 +219,7 @@ const isBusy = v => v && (v.working || v.status === "running");
 
 async function sysStatus() {
   try {
-    const m = await api("/api/model");
+    const m = await api("/model");
     const st = m.state || "unknown"; const dot = $("modelDot");
     const words = {ready: "AI model ready", busy: "AI model busy, retrying", unreachable: "AI model not answering",
       "missing NVIDIA_API_KEY": "Add your NVIDIA key", "downloading the local model": "Downloading the local AI model", "not attached in this demo": "Saved results only (demo)"}[st] || ("AI model: " + st);
@@ -228,7 +228,7 @@ async function sysStatus() {
     dot.className = "status-dot " + (st === "ready" ? "ok" : (st === "busy" || st.startsWith("not attached") ? "warn" : "bad"));
   } catch (e) {}
   try {
-    const v = await api("/api/voice/status"); const t = v.tts || {};
+    const v = await api("/voice/status"); const t = v.tts || {};
     $("voiceState").textContent = t.engine === "piper" ? "Voice: on this computer" : "Voice: browser";
     $("voiceState").title = t.engine === "piper" ? "Piper, " + (t.voice || "en-GB") : "Your browser's built-in voice";
   } catch (e) {}
@@ -400,7 +400,7 @@ async function decide(d, btn) {
   if (d === "override") { reason = ($("ovr")?.value || "").trim(); if (reason.length < 8) { if (errEl) { errEl.textContent = "Write a short reason first; it's saved with your decision."; errEl.hidden = false; } $("ovr")?.focus(); return; } }
   busy(btn, true);
   try {
-    const r = await api(`/api/runs/${encodeURIComponent(S.run)}/decide`, {method: "POST", body: JSON.stringify({decision: d, reason})});
+    const r = await api(`/runs/${encodeURIComponent(S.run)}/decide`, {method: "POST", body: JSON.stringify({decision: d, reason})});
     if (!r.ok) { if (errEl) { errEl.textContent = r.error; errEl.hidden = false; } else showAnswer(r.error, "err"); }
     else { S.keys = {}; announce(d === "stop" ? "Stopped." : "Done. Working on it."); }
   } catch (e) { if (errEl) { errEl.textContent = "That didn't go through: " + e.message; errEl.hidden = false; } }
@@ -408,7 +408,7 @@ async function decide(d, btn) {
 }
 async function retryRun(btn) {
   busy(btn, true, "Trying again…");
-  try { await api(`/api/runs/${encodeURIComponent(S.run)}/continue`, {method: "POST"}); S.keys = {}; announce("Trying again."); }
+  try { await api(`/runs/${encodeURIComponent(S.run)}/continue`, {method: "POST"}); S.keys = {}; announce("Trying again."); }
   catch (e) { showAnswer("That didn't work: " + e.message, "err"); }
   finally { poll(true); }
 }
@@ -511,7 +511,7 @@ async function viewFile(name, btn) {
   document.querySelectorAll("#files button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.file === name)));
   const el = $("viewer"); el.innerHTML = `<div class="skeleton" aria-hidden="true"><i></i><i style="width:70%"></i></div>`;
   try {
-    const t = await api(`/api/runs/${encodeURIComponent(S.run)}/files/${encodeURIComponent(name)}`);
+    const t = await api(`/runs/${encodeURIComponent(S.run)}/files/${encodeURIComponent(name)}`);
     const text = typeof t === "string" ? t : JSON.stringify(t, null, 2);
     if (name.endsWith(".html")) { el.innerHTML = `<iframe sandbox="" title="${esc(prettyName(name))}"></iframe>`; el.querySelector("iframe").srcdoc = text; }
     else if (name.endsWith(".md")) el.innerHTML = `<article class="doc" tabindex="-1"><div class="docbar"><span>${esc(PHASE_OF(name))}</span><span>${esc(name)}</span></div>${md(text)}</article>`;
@@ -528,7 +528,7 @@ function renderCost(v) {
 let shownApprovals = "";
 async function renderApprovals() {
   let list = [];
-  try { list = await api("/api/approvals?status=pending" + (S.run ? "&run=" + encodeURIComponent(S.run) : "")); } catch (e) { return; }
+  try { list = await api("/approvals?status=pending" + (S.run ? "&run=" + encodeURIComponent(S.run) : "")); } catch (e) { return; }
   const c = $("apCount"); c.hidden = !list.length; c.textContent = list.length;
   const key = list.map(a => a.id).join(","); if (key === shownApprovals) return; shownApprovals = key;
   const box = $("approvals");
@@ -537,7 +537,7 @@ async function renderApprovals() {
   const WHAT = {publish_landing_page: "Publish the waiting-list page", open_store: "Open the store page", refund: "Approve the refund",
     publish_post: "Post the launch announcement", send_email: "Send the email"};
   for (const a of list) {
-    let payload = ""; try { payload = await api(`/api/approvals/${a.id}/payload`); } catch (e) {}
+    let payload = ""; try { payload = await api(`/approvals/${a.id}/payload`); } catch (e) {}
     const div = document.createElement("article"); div.className = "ap"; div.id = "ap-" + a.id;
     div.innerHTML = `<h3>${esc(WHAT[a.action] || human(a.action))}</h3><p class="note">${esc(a.note || "")}</p>
       <p class="sha">You approve exactly what you see below. If it changes, the approval no longer matches. <span title="SHA-256 ${esc(a.payload_sha256)}">Fingerprint <code>${esc(a.payload_sha256.slice(0, 12))}…</code></span></p><div class="slot"></div>
@@ -553,7 +553,7 @@ async function renderApprovals() {
 }
 async function approve(id, yes, sha, btn) {
   busy(btn, true);
-  try { await api(`/api/approvals/${id}`, {method: "POST", body: JSON.stringify({approve: yes, payload_sha256: sha})}); announce(yes ? "Approved." : "Rejected. A new draft is being written."); }
+  try { await api(`/approvals/${id}`, {method: "POST", body: JSON.stringify({approve: yes, payload_sha256: sha})}); announce(yes ? "Approved." : "Rejected. A new draft is being written."); }
   catch (e) { showAnswer("That didn't go through: " + e.message, "err"); busy(btn, false); }
   shownApprovals = ""; poll(true);
 }
@@ -597,7 +597,7 @@ async function sendAsk(text) {
   if (inBar) showAnswer("…");
   const ctrl = new AbortController(); const timer = setTimeout(() => ctrl.abort(), 45000);
   try {
-    const r = await fetch(API + "/api/ask/stream", {method: "POST", headers: {"Content-Type": "application/json"}, signal: ctrl.signal,
+    const r = await fetch(API + "/ask/stream", {method: "POST", headers: {"Content-Type": "application/json"}, signal: ctrl.signal,
       body: JSON.stringify({text, run_id: S.run, history: S.history.slice(-6), screen: screenLabels()})});
     if (!r.ok) { const j = await r.json().catch(() => ({})); throw Object.assign(new Error(j.error || ("HTTP " + r.status)), {status: r.status}); }
     const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = "";
@@ -653,7 +653,7 @@ function fetchSpeech(text) {
   // answered, later sentences are fetched while the previous one plays, so they get more time.
   if (piperOK === false) return Promise.resolve(null);
   const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), piperOK ? 6000 : 500);
-  return fetch(API + "/api/voice/speak", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text}), signal: ctrl.signal})
+  return fetch(API + "/voice/speak", {method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({text}), signal: ctrl.signal})
     .then(r => { clearTimeout(t); if (!r.ok) { piperOK = false; return null; } piperOK = true; return r.arrayBuffer(); })
     .catch(() => { clearTimeout(t); return null; });
 }
@@ -742,7 +742,7 @@ async function recordFallback() {
     mediaRec = new MediaRecorder(stream); mediaRec.ondataavailable = e => chunks.push(e.data);
     mediaRec.onstop = async () => { stream.getTracks().forEach(t => t.stop()); mediaRec = null; micToAnalyser(false); micPressed(false);
       const fd = new FormData(); fd.append("audio", new Blob(chunks, {type: "audio/webm"}), "speech.webm");
-      try { const r = await fetch(API + "/api/voice/transcribe", {method: "POST", body: fd}); const j = await r.json();
+      try { const r = await fetch(API + "/voice/transcribe", {method: "POST", body: fd}); const j = await r.json();
         if (j.text) sendAsk(j.text); else throw new Error("none"); }
       catch (e) { setState("idle"); showAnswer("This browser can't turn speech into text, and local transcription isn't installed. Use Chrome or Edge, or type your question.", "refuse"); } };
     mediaRec.start();

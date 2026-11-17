@@ -18,7 +18,7 @@ select = ["E", "F", "W", "I", "B", "UP", "SIM", "RET"]
 # Long string literals (prompts, user-facing copy, regexes) are clearer unbroken.
 "*" = ["E501"]
 # FastAPI declares request parameters with File(...)/Form(...) defaults by design.
-"app/api.py" = ["B008"]
+"app/routes/*.py" = ["B008"]
 
 [tool.ruff.format]
 quote-style = "double"
