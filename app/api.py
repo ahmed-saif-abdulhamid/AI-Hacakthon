@@ -7,6 +7,7 @@ an unapproved page returns 409.
 from __future__ import annotations
 
 import json
+import os
 import re
 import threading
 from pathlib import Path
@@ -26,6 +27,7 @@ from proveit.log import entries, telemetry, utcnow
 from proveit.startup import check_writable, runs_dir
 
 ROOT = Path(__file__).resolve().parent.parent
+DEMO = os.environ.get("PROVEIT_DEMO") == "1"   # read-only public demo of the committed runs
 app = FastAPI(title="ProveIt - J.A.R.V.I.S. edition", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:8501", "http://127.0.0.1:8501",
                                                   "http://localhost:8000", "http://127.0.0.1:8000"],
@@ -46,9 +48,22 @@ STATUS_TABLE = [
 ]
 
 
+DEMO_ALLOWED_POSTS = ("/api/ask", "/api/ask/stream", "/api/voice/speak")
+
+
+@app.middleware("http")
+async def _demo_read_only(request: Request, call_next):
+    """In the public demo nothing can start a run, decide a gate, approve, buy or refund."""
+    if DEMO and request.method not in ("GET", "HEAD", "OPTIONS") and request.url.path not in DEMO_ALLOWED_POSTS:
+        return JSONResponse({"ok": False, "error": "This public demo is read-only. Run the project locally "
+                             "(docker compose up) to start runs and make decisions."}, status_code=403)
+    return await call_next(request)
+
+
 @app.on_event("startup")
 def _warm_voice() -> None:
-    voice.warm_up()
+    if not DEMO:
+        voice.warm_up()
 
 
 def _advance_bg(run_id: str) -> None:
@@ -70,7 +85,7 @@ def root():
 @app.get("/hud", response_class=HTMLResponse)
 def hud(mode: str = "tactical", embed: int = 0, api: str = ""):
     return _env.get_template("hud.html.j2").render(initial_mode=mode, embed=bool(embed), api_base=api,
-                                                   status_table=STATUS_TABLE)
+                                                   status_table=STATUS_TABLE, demo=DEMO)
 
 
 @app.get("/api/health")
@@ -103,9 +118,20 @@ def create_run(body: RunIn):
     return {"run_id": run_id}
 
 
+def _run_title(run_id: str) -> str | None:
+    try:
+        st = orchestrator.load(run_id).state
+    except Exception:  # noqa: BLE001
+        return None
+    variants = st.get("variants") or []
+    if variants:
+        return variants[min(len(variants), st.get("variant_n", 1)) - 1].get("title")
+    return ((st.get("brief") or {}).get("idea") or "")[:80] or None
+
+
 @app.get("/api/runs")
 def runs():
-    return orchestrator.list_runs()
+    return [dict(r, title=_run_title(r["id"])) for r in orchestrator.list_runs()]
 
 
 def run_view(run_id: str) -> dict:
@@ -219,15 +245,70 @@ def decide_approval(approval_id: str, body: ApproveIn):
 class AskIn(BaseModel):
     text: str
     run_id: str | None = None
+    history: list[dict] = []
 
 
 @app.post("/api/ask")
 def ask_endpoint(body: AskIn):
-    res = ask.handle(body.text, body.run_id)
+    res = ask.handle(body.text, body.run_id, history=body.history[-6:])
     voice.prerender(res.get("spoken", ""))
     if res.get("start_run"):
         _advance_bg(res["start_run"])
     return res
+
+
+@app.post("/api/ask/stream")
+def ask_stream(body: AskIn):
+    """NDJSON: one "meta" line, then one "sentence" line per spoken sentence, then "done".
+
+    Sentences are spoken as they arrive, so the first words play about a second after the
+    model starts instead of after the whole answer.
+    """
+    from fastapi.responses import StreamingResponse
+    res = ask.handle(body.text, body.run_id, history=body.history[-6:], stream=True)
+
+    def gen():
+        if not res.get("converse"):
+            voice.prerender(res.get("spoken", ""))
+            if res.get("start_run"):
+                _advance_bg(res["start_run"])
+            yield json.dumps({"type": "meta", **res}) + "\n"
+            yield json.dumps({"type": "sentence", "text": res.get("spoken", "")}) + "\n"
+            yield json.dumps({"type": "done", "text": res.get("spoken", "")}) + "\n"
+            return
+        yield json.dumps({"type": "meta", "intent": res["intent"], "detail": res.get("text", "")}) + "\n"
+        run = None
+        if body.run_id:
+            try:
+                run = orchestrator.load(body.run_id)
+            except KeyError:
+                run = None
+        said = []
+        try:
+            for s in ask.converse_stream(ask.strip_wake(body.text), run, body.history[-6:]):
+                said.append(s)
+                voice.prerender(s)
+                yield json.dumps({"type": "sentence", "text": s}) + "\n"
+        except llm.LLMError:
+            msg = ask.offline_answer(ask.strip_wake(body.text), run)
+            said.append(msg)
+            yield json.dumps({"type": "sentence", "text": msg}) + "\n"
+        yield json.dumps({"type": "done", "text": " ".join(said)}) + "\n"
+
+    return StreamingResponse(gen(), media_type="application/x-ndjson")
+
+
+@app.post("/api/ask/warm")
+def ask_warm(body: AskIn):
+    """Called when a run is opened in the console: caches its context in the local model (no log entry)."""
+    if DEMO or not body.run_id:
+        return {"ok": False}
+    try:
+        run = orchestrator.load(body.run_id)
+    except KeyError:
+        return {"ok": False}
+    threading.Thread(target=ask.warm, args=(run,), daemon=True).start()
+    return {"ok": True}
 
 
 @app.get("/api/presets/{name}")

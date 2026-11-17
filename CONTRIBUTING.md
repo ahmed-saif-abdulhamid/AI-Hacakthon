@@ -7,7 +7,7 @@ Thanks for helping. ProveIt is Apache-2.0 and every core feature stays free.
 ```bash
 docker compose up            # or, without Docker:
 python -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
-ollama pull qwen3:4b-instruct-2507-q4_K_M
+cp .env.example .env         # then set NVIDIA_API_KEY (free key from build.nvidia.com)
 python -m pytest
 ```
 

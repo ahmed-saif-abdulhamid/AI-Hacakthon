@@ -1,22 +1,8 @@
 # One-command setup: docker compose up  ->  open http://localhost:8501 (Streamlit)
 # or http://localhost:8000/hud (J.A.R.V.I.S. console with the voice HUD).
+# Needs NVIDIA_API_KEY in .env (free key from build.nvidia.com).
 # Ports are bound to 127.0.0.1 only, so nobody on the local network can click Approve.
 services:
-  ollama:
-    image: ollama/ollama:0.40.16
-    volumes: [ollama:/root/.ollama]
-    healthcheck: { test: ["CMD", "ollama", "list"], interval: 5s, timeout: 5s, retries: 60 }
-
-  ollama-pull:
-    image: ollama/ollama:0.40.16
-    depends_on: { ollama: { condition: service_healthy } }
-    environment:
-      OLLAMA_HOST: "ollama:11434"
-      MODEL: "${MODEL:-qwen3:4b-instruct-2507-q4_K_M}"
-      SKIP_PULL: "${SKIP_PULL:-0}"
-    # Works offline once the model is present; SKIP_PULL=1 when using the host's native Ollama.
-    entrypoint: ["sh", "-c", "[ \"$$SKIP_PULL\" = 1 ] || ollama list | grep -q \"$$MODEL\" || ollama pull \"$$MODEL\""]
-
   searxng:
     image: searxng/searxng:2026.10.29-c15647b5a
     environment:
@@ -27,13 +13,14 @@ services:
     build: .
     command: ["uvicorn", "app.api:app", "--host", "0.0.0.0", "--port", "8000"]
     environment: &env
-      MODEL: "${MODEL:-qwen3:4b-instruct-2507-q4_K_M}"
-      LLM_BASE_URL: "${LLM_BASE_URL:-http://ollama:11434}"
       SEARXNG_URL: "http://searxng:8080"
       PROVEIT_DB: "/app/data/proveit.db"
       SECRET_KEY: "${SECRET_KEY:-dev-only-change-me}"
       GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
       SE_KEY: "${SE_KEY:-}"
+      # The model is hosted by NVIDIA (free developer tier); docker compose reads the key from .env.
+      NVIDIA_API_KEY: "${NVIDIA_API_KEY:-}"
+      NVIDIA_MODEL: "${NVIDIA_MODEL:-nvidia/nemotron-3-ultra-550b-a55b}"
       API_PUBLIC_URL: "http://localhost:8000"
       JARVIS_ADDRESS: "${JARVIS_ADDRESS:-Sir}"
     user: "${UID:-1000}:${GID:-1000}"
@@ -51,8 +38,7 @@ services:
     ports: ["127.0.0.1:8501:8501"]
     extra_hosts: ["host.docker.internal:host-gateway"]
     depends_on:
-      ollama-pull: { condition: service_started }
       searxng: { condition: service_started }
       api: { condition: service_started }
 
-volumes: { ollama: {}, proveit-data: {} }
+volumes: { proveit-data: {} }

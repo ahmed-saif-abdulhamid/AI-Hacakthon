@@ -215,7 +215,8 @@ ROUTES = [
     ("rerun_step", r"\b(re-?run|run (it |this )?again|retry|repeat (the )?step|research variant)\b"),
     ("explain_decision", r"\b(why|explain|reason|evidence|how did you|what did you find|summar\w+)\b"),
     ("edit_copy", r"\b(rewrite|reword|edit|headline|tagline|hero|copy|wording)\b"),
-    ("evaluate_brief", r"\b(evaluate|assess|validate|analy[sz]e|check) (this|my|the|a)\b|\b(idea|brief)\s*:"),
+    ("evaluate_brief", r"\b(evaluate|assess|validate|analy[sz]e|check|test) (this|my|a|the|an|new) "
+                       r"(new |business |product |startup )?(idea|brief|concept)\b|\b(idea|brief)\s*:"),
 ]
 
 

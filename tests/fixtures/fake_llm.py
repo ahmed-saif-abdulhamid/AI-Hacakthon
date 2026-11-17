@@ -119,4 +119,6 @@ def backend(system: str, user: str, schema: dict, agent: str) -> str:
                            "who_it_is_not_for": "Large agencies with a project management team."})
     if agent == "launcher":
         return json.dumps({"title": "I built a client onboarding toolkit", "body": "I made the checklists I use with my own clients into a toolkit. Feedback welcome."})
+    if agent == "assistant":
+        return "Gate 1 stopped this run. The weighted pain signals were below the threshold. Ask me about the quotes."
     raise AssertionError(f"fake LLM has no answer for agent {agent}")

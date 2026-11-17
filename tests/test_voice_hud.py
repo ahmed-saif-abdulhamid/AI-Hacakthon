@@ -26,8 +26,8 @@ def test_refusal_line_protocol0():
 
 def test_console_has_both_modes_and_ask_bar():
     html = TestClient(app).get("/hud").text
-    for s in ("TACTICAL WRITING MODE", "HOLOGRAPHIC VOICE HUD", "DUAL-SYNC", "Ask J.A.R.V.I.S.", "PUSH TO TALK",
-              "APPROVE (HASH-LOCKED)", "getByteFrequencyData", "speechSynthesis", "SpeechRecognition", "MOCKED", "STUBBED"):
+    for s in ("Tactical writing mode", "Holographic voice HUD", "Dual-sync", "Ask J.A.R.V.I.S.", "Push to talk",
+              "Approve (hash-locked)", "getByteFrequencyData", "speechSynthesis", "SpeechRecognition", "MOCKED", "STUBBED"):
         assert s in html, s
 
 

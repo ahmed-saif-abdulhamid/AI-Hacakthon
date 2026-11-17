@@ -2,7 +2,7 @@
 
 ## Overview
 
-ProveIt is an open-source team of eleven agents that takes a founder's brief through six phases, with a gate after every step. Plain Python code calls every tool, cuts every quote, decides every gate and executes every approved action; the local open-weight model (Ollama, `qwen3:4b-instruct-2507-q4_K_M`) only extracts sentence IDs, summarises and argues. Before any source is called, the gate thresholds and the brief are hashed (SHA-256) and logged as the first decision-log entry, so moving the goalposts later is visible. J.A.R.V.I.S. is the interface and voice on top: a Tactical Writing console and a holographic voice HUD that narrate real run data and never invent it.
+ProveIt is an open-source team of eleven agents that takes a founder's brief through six phases, with a gate after every step. Plain Python code calls every tool, cuts every quote, decides every gate and executes every approved action; the open-weight model (NVIDIA Nemotron 3 Ultra, `nvidia/nemotron-3-ultra-550b-a55b`, hosted on NVIDIA's free developer API) only extracts sentence IDs, summarises and argues. Before any source is called, the gate thresholds and the brief are hashed (SHA-256) and logged as the first decision-log entry, so moving the goalposts later is visible. J.A.R.V.I.S. is the interface and voice on top: a Tactical Writing console and a holographic voice HUD that narrate real run data and never invent it.
 
 ```mermaid
 flowchart LR

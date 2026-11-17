@@ -5,7 +5,7 @@ Proof before product: an open-source team of AI agents that tests a founder's id
 | It is | It is not |
 |---|---|
 | A six-phase pipeline with code-decided gates, a claim ledger of quotes cut by code from public sources, and founder approvals bound to SHA-256 | A business-plan generator, an income promise, or an autopilot that posts, sells or moves money |
-| Free: a local open-weight model via Ollama, no keys | A paid API wrapper |
+| Free: open-weight NVIDIA Nemotron on NVIDIA's free hosted tier (a free key, no card) | A paid API wrapper |
 | Honest about what is MOCKED or STUBBED | A demo that hides its mocks |
 
 ## Quickstart
@@ -14,9 +14,9 @@ Proof before product: an open-source team of AI agents that tests a founder's id
 docker compose up
 ```
 
-Then open **http://localhost:8501** (Streamlit: Tactical Writing mode, Holographic Voice HUD and Dual-Sync) or **http://localhost:8000/hud** (the J.A.R.V.I.S. console full screen, best for voice). The first start downloads about 3-4 GB (model and images). Load the weak or strong brief and press **RUN PIPELINE**, or type "Jarvis, why did you stop this idea?" in the Ask bar.
+Before the first start, copy `.env.example` to `.env` and set `NVIDIA_API_KEY` (free key from [build.nvidia.com](https://build.nvidia.com): open any model page and choose **Get API Key**). Then open **http://localhost:8501** (Streamlit: Tactical Writing mode, Holographic Voice HUD and Dual-Sync) or **http://localhost:8000/hud** (the J.A.R.V.I.S. console full screen, best for voice). The first start builds the images; no model is downloaded. Load the weak or strong brief and press **RUN PIPELINE**, or type "Jarvis, why did you stop this idea?" in the Ask bar.
 
-Without Docker: `pip install -r requirements.txt`, `ollama pull qwen3:4b-instruct-2507-q4_K_M`, then `python -m proveit run briefs/weak.md` (CLI) or `uvicorn app.api:app` and `streamlit run app/ui.py`.
+Without Docker: `pip install -r requirements.txt`, set `NVIDIA_API_KEY` in `.env`, then `python -m proveit run briefs/weak.md` (CLI) or `uvicorn app.api:app` and `streamlit run app/ui.py`.
 
 ## What works and what is mocked
 
@@ -48,8 +48,8 @@ Without Docker: `pip install -r requirements.txt`, `ollama pull qwen3:4b-instruc
 - **Who acted as founder:** for the committed demo runs, the operator of the build machine issued every approval and the Gate 2 override through the CLI (`python -m proveit approvals approve <id>`, `python -m proveit decide <run> override`). The log shows `approved_by: "founder"` for those actions.
 - **Phases after an override are a preview:** Gate 2 cannot pass without real traffic, so any run reaches Phases 3-5 only through `founder_override_against_evidence` (reason required, guard-checked, logged). Every later file says "PREVIEW after a founder override against the evidence ...: demand not yet proven", and the UI shows the same banner.
 - **Privacy:** search queries derived from the brief go to Hacker News, Stack Exchange, GitHub and SearXNG's engines. Don't put confidential details in the brief.
-- **CI:** the smoke tests use a fake LLM fixture that lives only in `tests/`. Every real run uses the open-weight model.
-- **Committed runs:** both were produced with `python -m proveit` on a Windows laptop (Ollama 0.40.16, the pinned model, a 4 GB GPU) because Docker was not available on that machine; `docker compose up` itself was not exercised there. SearXNG was not deployed for these runs (`SEARXNG_URL` unset), which the log records as `searxng_not_deployed`; evidence came from Hacker News, Stack Exchange, GitHub and Wikipedia. The weak brief (motivational lock-screen wallpapers) ends in **STOP** (rule 3). The strong brief (a late-payment follow-up toolkit for freelancers) also ends in **STOP** at Gate 1 (3.0 weighted pain signals against a threshold of 6), so its Phases 2-6 exist only as a preview after logged founder overrides at Gate 1 and Gate 2. An earlier strong brief (client onboarding) stopped too; the history and every calibration change are in [docs/calibration.md](docs/calibration.md). No threshold was changed.
+- **CI:** the smoke tests use a fake LLM fixture that lives only in `tests/`. Every real run uses the hosted open-weight model.
+- **Committed runs:** both were recorded before the switch to NVIDIA, with the earlier local model `qwen3:4b-instruct-2507-q4_K_M` (Ollama 0.40.16, a 4 GB laptop GPU), which is why `decision_log.json` names that model. They were produced with `python -m proveit` because Docker was not available on that machine; `docker compose up` itself was not exercised there. SearXNG was not deployed for these runs (`SEARXNG_URL` unset), which the log records as `searxng_not_deployed`; evidence came from Hacker News, Stack Exchange, GitHub and Wikipedia. The weak brief (motivational lock-screen wallpapers) ends in **STOP** (rule 3). The strong brief (a late-payment follow-up toolkit for freelancers) also ends in **STOP** at Gate 1 (3.0 weighted pain signals against a threshold of 6), so its Phases 2-6 exist only as a preview after logged founder overrides at Gate 1 and Gate 2. An earlier strong brief (client onboarding) stopped too; the history and every calibration change are in [docs/calibration.md](docs/calibration.md). No threshold was changed.
 
 ## Architecture
 
@@ -57,23 +57,23 @@ Eleven agents work through six phases, but only plain Python code calls tools, c
 
 ## Models and free resources
 
-- **Model:** `qwen3:4b-instruct-2507-q4_K_M` (Qwen3 4B Instruct 2507, open weights, non-thinking) served by **Ollama**. The same tag is used in `docker-compose.yml`, `.env.example` and this README.
-- **No keys and no paid service are required.** Optional free keys (`SE_KEY`, `GITHUB_TOKEN`) only raise public rate limits.
-- **Bigger model on a GPU:** `MODEL=qwen3:8b docker compose up`, or `MODEL=gpt-oss:20b` with enough memory.
-- **Native GPU / Apple Metal:** Docker on a Mac has no GPU access, so run Ollama on the host and point the stack at it: `SKIP_PULL=1 LLM_BASE_URL=http://host.docker.internal:11434 docker compose up`.
+- **Model:** `nvidia/nemotron-3-ultra-550b-a55b` (NVIDIA Nemotron 3 Ultra, open weights, thinking switched off for speed), called through NVIDIA's hosted, OpenAI-compatible API at `https://integrate.api.nvidia.com/v1`. Change it with `NVIDIA_MODEL` in `.env`; any chat model listed at build.nvidia.com works.
+- **How to run without paying:** create a free key at build.nvidia.com (no card) and put it in `.env` as `NVIDIA_API_KEY`. The free developer tier is rate limited (about 40 requests per minute per account); a full six-phase run makes about 45 calls spread over several minutes. Nothing runs a model on your machine.
+- **Structured output:** every agent call sends the Pydantic JSON schema as `response_format`, temperature 0 and a fixed seed; invalid JSON is retried once and then turned into REPEAT (model failure) by the gate.
+- **Privacy:** briefs, quotes and Ask questions are sent to NVIDIA. Don't put confidential details in a brief.
+- **Optional free keys** (`SE_KEY`, `GITHUB_TOKEN`) only raise public search rate limits.
 - **Search:** a self-hosted SearXNG container (no account). Wikipedia is used for context only.
-- **Voice:** local Piper text-to-speech (`requirements-voice.txt`, British voice `en_GB-alan-medium`) and the browser's built-in speech recognition and en-GB voice as fallback. No paid speech API.
+- **Voice:** Piper text-to-speech (`requirements-voice.txt`, British voice `en_GB-alan-medium`) when installed, otherwise the browser's built-in en-GB voice; speech recognition is the browser's own. No paid speech API.
 
 ## Cost per run
 
-**About $0.00 per run** (local `qwen3:4b-instruct-2507-q4_K_M` via Ollama; no paid API, no keys). Measured on the committed runs (see `decision_log.json`):
+**About $0.00 per run** (NVIDIA free developer tier, no card; about 7k tokens for a Phase 1 STOP and about 45k tokens for all six phases). Measured:
 
-| Run | Model calls | Tokens (in + out) | Model time | Cost |
-|---|---|---|---|---|
-| Weak brief, live mode, Phase 1 to STOP | 7 | 5,435 + 1,573 = ~7k | ~2.7 min | $0.00 |
-| Strong brief, full mode, all six phases (preview) | 44 | 28,629 + 13,207 = ~42k | ~21.5 min | $0.00 |
-
-Times are on a 4 GB laptop GPU; electricity is the only cost.
+| Run | Model | Model calls | Tokens (in + out) | Model time | Cost |
+|---|---|---|---|---|---|
+| Weak brief, live mode, Phase 1 (committed run) | local qwen3 4B (earlier setup) | 7 | 5,435 + 1,573 = ~7k | ~2.7 min | $0.00 |
+| Strong brief, full mode, all six phases (committed run) | local qwen3 4B (earlier setup) | 44 | 28,629 + 13,207 = ~42k | ~21.5 min | $0.00 |
+| Weak brief, live mode, Phase 1 (verification run) | NVIDIA Nemotron 3 Ultra | 7 | 5,919 + 704 = ~6.6k | ~16 s | $0.00 |
 
 ## What our system will NOT do
 

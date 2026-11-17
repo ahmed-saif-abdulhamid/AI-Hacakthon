@@ -1,5 +1,5 @@
 """Guard evals (rules only). CI requires 100% on rules_only must-refuse and on must-pass.
-The model layer and the held-out set run with `pytest -m llm` (needs Ollama)."""
+The model layer and the held-out set run with `pytest -m llm` (needs NVIDIA_API_KEY)."""
 from __future__ import annotations
 
 from pathlib import Path

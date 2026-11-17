@@ -21,3 +21,7 @@ __pycache__/
 .ruff_cache/
 jarvis_audio/
 voices/
+
+# Built Vercel demo bundle (regenerate with python deploy/build_vercel.py)
+deploy/vercel_site/
+.vercel/
