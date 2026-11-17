@@ -1,14 +1,20 @@
 # ProveIt
 
-**Find out if anyone wants it before you build it.** ProveIt is an open-source team of AI agents that tests a founder's product idea against what real people say in public, stops them when the evidence is thin, and never publishes, sends or refunds anything without the founder's hash-locked approval. J.A.R.V.I.S., its spoken assistant, explains every verdict in plain words.
+**Find out if anyone wants it before you build it.**
+
+**The problem:** first-time founders spend months building digital products nobody asked for, and most AI business tools make it worse: they write a confident business plan, promise income and never say "don't". **The user:** a solo founder or small team with an idea, a few hours a week and a small budget. **What ProveIt does:** a team of AI agents takes the founder's brief (idea, skills, budget, time, market, values) through six phases, from Discover to Operate and learn. Between phases, code-decided gates say **go, repeat, pivot or stop**, against a bar hashed before any searching starts. Nothing is published, sent or refunded without the founder approving the exact bytes.
 
 | It is | It is not |
 |---|---|
-| A six-phase pipeline whose checkpoints are decided by code, with quotes cut by code from public posts and re-checked on their source page | A business-plan generator, an income promise, or an autopilot that posts, sells or moves money |
+| A six-phase pipeline whose gates are decided by code, with quotes cut by code from public posts and re-checked on their source page | A business-plan generator, an income promise, or an autopilot that posts, sells or moves money |
 | Free: open-weight NVIDIA Nemotron on NVIDIA's free hosted tier (a free key, no card) | A paid API wrapper |
 | Honest about what is MOCKED or STUBBED, in this README and on screen | A demo that hides its mocks |
 
-**Two committed runs show it working** ([outputs/](outputs/), [decision_log.json](decision_log.json)): a weak idea (an ebook of inspirational quotes) gets **STOP** in about a minute; a stronger idea (a late-payment toolkit for freelancers) does not pass either: its first search failed (the gate refused to give a verdict on broken research), and the wider second search said **look again** (the forums didn't show enough people discussing it). The founder then carries on against the evidence with a logged reason, so phases 2-6 run as a clearly labelled preview through to a MOCKED sale, delivery and refund; on the way the founder rejected a launch-post draft that invented their own experience, and it was redrafted.
+**What the committed runs show** ([outputs/](outputs/), [decision_log.json](decision_log.json)):
+
+1. **It says "don't launch this".** A weak idea (an ebook of inspirational quotes) gets **STOP** in about a minute: too few people complain about the problem in public ([outputs/phase1_gate_decision-weak.md](outputs/phase1_gate_decision-weak.md)).
+2. **It refuses to judge on broken research.** The first search for a stronger idea (a late-payment toolkit for freelancers) came back unusable, so the gate said REPEAT rather than "weak idea". The wider second search found real complaints, but not enough on the sources it can read, so it said **look again** and produced a Mom Test interview kit ([outputs/phase1_step4_interview-kit-strong.md](outputs/phase1_step4_interview-kit-strong.md)).
+3. **The founder stays in charge, and it stays on the record.** The founder carried on against the evidence with a logged reason, so phases 2-6 ran as a labelled preview: Lean Canvas, landing page, a tested MVP toolkit, pricing and draft policies, store page, then a MOCKED sale, automatic delivery and an approved refund that revoked access. The founder rejected a launch-post draft that invented their own experience, and it was redrafted.
 
 ## Quickstart
 
@@ -33,7 +39,7 @@ Without Docker: `pip install -r requirements.txt`, put `NVIDIA_API_KEY` in `.env
 | 2.1 Lean Canvas + riskiest assumption (Core) | **Working** | Each cell cites claim IDs or is ASSUMPTION |
 | 2.2 Landing page + waitlist | **Working** | Served on localhost after approval |
 | Public hosting of the landing page | **STUBBED** | Every sign-up is stored with test=true and excluded from gates |
-| Gate 2: demand | **Working** | Real sign-ups only (0 while hosting is STUBBED) -> repeat; continuing needs a logged founder override |
+| Gate 2: demand | **Working** (always REPEAT while hosting is STUBBED) | Counts real sign-ups only, so it cannot pass with test traffic; continuing needs a logged founder override |
 | 3.1 Build MVP toolkit (Core) | **Working** | Spec, 1 module (3 in full mode), CSV templates, buyer docs |
 | Gate 3: tests | **Working** | Deterministic QA |
 | 4.1 Pricing (Core) | **Working** | From verified price points, otherwise ASSUMPTION |
@@ -45,7 +51,7 @@ Without Docker: `pip install -r requirements.txt`, put `NVIDIA_API_KEY` in `.env
 | Posting to external platforms / email | **STUBBED** | Adapters are gated and raise NotEnabled |
 | 6 Operate and learn | **STUBBED** | Memo from real metrics only ("not enough data") |
 | Reddit source | **STUBBED** | Self-serve API access is restricted |
-| Console, J.A.R.V.I.S. assistant, voice | **Working** | Piper voice on this computer when installed, browser voice otherwise |
+| Console and optional spoken assistant (J.A.R.V.I.S.) | **Working** | Piper voice on this computer when installed, browser voice otherwise |
 
 - **Who acted as founder:** for the committed runs, the operator of the build machine pressed every approval and gave both override reasons through the command line; the log records `approved_by: "founder"` for those actions.
 - **Later phases after an override are a preview:** Gate 2 cannot pass without real traffic, so a run reaches phases 3-5 only through a logged `founder_override_against_evidence`. Every later file says "PREVIEW after a founder override", and so does the console.
