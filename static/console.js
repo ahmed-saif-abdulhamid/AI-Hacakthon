@@ -710,26 +710,29 @@ async function micToAnalyser(on) {
     if (on && !micSrc) { const ctx = audioCtx(); if (ctx.state === "suspended") await ctx.resume(); const stream = await navigator.mediaDevices.getUserMedia({audio: true}); micSrc = ctx.createMediaStreamSource(stream); micSrc._stream = stream; micAn = ctx.createAnalyser(); micAn.fftSize = 256; micSrc.connect(micAn); }
     if (!on && micSrc) { micSrc.disconnect(); micSrc._stream.getTracks().forEach(t => t.stop()); micSrc = null; micAn = null; micFreq.fill(0); }
     return true;
-  } catch (e) { micError(e); return false; }
+  } catch (e) { return false; }          // the visual is optional; recognition reports its own errors
 }
 function pauseWake() { if (wakeRec) { wakeRec._paused = true; try { wakeRec.stop(); } catch (e) {} } }
 function resumeWake() { if (S.wake && wakeRec) { wakeRec._paused = false; try { wakeRec.start(); } catch (e) {} } }
 function micPressed(on) { $("ptt").classList.toggle("live", on); $("askmic").setAttribute("aria-pressed", String(on)); }
-async function startListening(auto) {
+function startListening(auto) {
   if (rec || mediaRec) return;
   stopAudio(); try { speechSynthesis.cancel(); } catch (e) {}
   pauseWake();
-  if (!(await micToAnalyser(true))) return;
   setState("listen", "Listening"); micPressed(true);
-  if (!SR) { recordFallback(); return; }
-  rec = new SR(); rec.lang = SR_LANG; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 3; let finalText = "";
+  if (!SR) { micToAnalyser(true); recordFallback(); return; }
+  // Start recognition straight away, inside the press itself; the voice visual starts alongside and never
+  // holds recognition up (waiting for it first meant a quick press-and-release recorded nothing).
+  rec = new SR(); rec.lang = SR_LANG; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 3;
+  let finalText = "";
   rec.onresult = e => { let t = ""; for (const r of e.results) { t += r[0].transcript; if (r.isFinal) finalText = t; } $("caption").textContent = t; };
-  rec.onerror = e => micError(e);
+  rec.onerror = e => { if (e.error !== "no-speech" && e.error !== "aborted") micError(e); };
   rec.onend = () => { rec = null; micToAnalyser(false); micPressed(false);
     const t = (finalText || $("caption").textContent).trim(); $("caption").textContent = "";
     if (t) sendAsk(t); else if (S.state === "listen") setState("idle");
     setTimeout(resumeWake, 400); };
-  try { rec.start(); } catch (e) { rec = null; micPressed(false); }
+  try { rec.start(); } catch (e) { rec = null; micPressed(false); setState("idle"); return; }
+  micToAnalyser(true);                       // visual only: errors here never stop listening
   if (auto) setTimeout(() => { if (rec) rec.stop(); }, 8000);
 }
 function stopListening() { if (rec) { try { rec.stop(); } catch (e) {} } else if (mediaRec) mediaRec.stop(); }
