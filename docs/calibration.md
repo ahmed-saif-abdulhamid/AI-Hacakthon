@@ -30,3 +30,33 @@ Calibration changes the cue lexicons and the relevance rule, never the gate thre
 After these changes all briefs were re-run from scratch.
 
 No gate threshold was changed. The held-out trick set (`evals/trick_prompts_heldout.yaml`) was never used for any change above.
+
+## Round 2: hosted model and independent review (2026-11-17)
+
+The model moved from a local 4B model to NVIDIA Nemotron 3 Ultra on NVIDIA's free hosted tier. Four independent reviews (a first-time founder, an investor, an accessibility and polish audit, and a compliance and stress test) found the problems below. Gate thresholds (`config/gates.yaml`) were not changed.
+
+| Date | Change | Why (evidence) |
+|---|---|---|
+| 2026-11-17 | Relevance ignores generic business words (small, new, clients, forms, track, records, US, UK...) and needs two specific topic words, one of them about the job | A dog-groomer brief was marked "topic discussed" (coverage 0.67) by Hacker News posts that only shared generic words, so it got a STOP for the wrong reason. |
+| 2026-11-17 | One comment counts as one complaint | Two sentences of the same Hacker News comment counted as two pain signals. |
+| 2026-11-17 | Wikipedia context is shown only when the article shares two topic words and is not a list, disambiguation or media page | The strong market file quoted the article on the 2003 video game "Freelancer". |
+| 2026-11-17 | Hacker News pain queries search comments, not stories | Stories are mostly product launches (competitor evidence); people describe their problems in replies. |
+| 2026-11-17 | Posts with a complaint or payment cue are shown to the researcher first; GitHub repositories take at most 3 of 20 slots; batches of 7 threads | The 550B model handles longer lists; before this, repositories with keyword-dense titles crowded out comments. |
+| 2026-11-17 | Stack Exchange quotes are re-checked through the official API | The HTML pages now sit behind a bot challenge (HTTP 403), so every Stack Exchange quote was wrongly downgraded to an archived match. |
+| 2026-11-17 | Scout queries: complete phrases (no dangling "for"), five words at most; Stack Exchange site chosen by who the buyers are, from a list checked against the live site registry (`productivity` removed, `writers` corrected to `writing`) | Queries such as "intake form mess for"; a dog-groomer idea searched `freelancing`; two site names returned HTTP 400. |
+| 2026-11-17 | Complaint cues gained common words (complicated, confusing, difficult, impossible, losing time, a chore, error-prone, costly, overkill) | Real complaints such as "notoriously hard" or "way more complicated" were not recognised. |
+| 2026-11-17 | Rule 0's missed-sentence proxy counts only first-person sentences without links or hashtags | Marketing copy ("alerts you when overdue payments are detected", "Try free: ...") made rule 0 fire on a model that had chosen correctly. |
+| 2026-11-17 | Live mode searches Hacker News 3 times and Stack Exchange twice (was 2 and 1); the researcher sees 20 posts (was 12) | Runtime caps only; they change how much is read, not the bar. |
+| 2026-11-17 | Model calls are paced to 30 a minute with back-off on HTTP 429 and 5xx | In the first calibration run half the runs failed with "Too Many Requests". |
+| 2026-11-17 | Weak brief changed from quote wallpapers to an ebook of inspirational quotes | On the hosted model the wallpaper idea gets REPEAT: the forums we search can't see that market, and the gate never says STOP on silence. The quotes ebook is discussed but nobody describes it as a problem. |
+
+### Weak brief attempts on the final code (all kept in the database)
+
+| Run | Gate 1 |
+|---|---|
+| `r20261117-105019-7a30` | STOP (rule 3: coverage 0.6, 1 complaint) |
+| `r20261117-105214-47a5` | REPEAT (rule 2: coverage below 0.5) |
+| `r20261117-105451-d4b0` | REPEAT (rule 2) |
+| `r20261117-105529-93d0` | STOP (rule 3), committed |
+
+The variation comes from the Scout's search phrasing, which differs between calls even at temperature 0 on the hosted model. Neither outcome recommends building. The committed strong run is `r20261117-105650-2561` (STOP at Gate 1 with 2 complaints against 6; founder override; preview through all six phases).

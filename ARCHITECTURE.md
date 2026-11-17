@@ -1,8 +1,8 @@
-# ProveIt architecture (J.A.R.V.I.S. edition)
+# ProveIt architecture
 
 ## Overview
 
-ProveIt is an open-source team of eleven agents that takes a founder's brief through six phases, with a gate after every step. Plain Python code calls every tool, cuts every quote, decides every gate and executes every approved action; the open-weight model (NVIDIA Nemotron 3 Ultra, `nvidia/nemotron-3-ultra-550b-a55b`, hosted on NVIDIA's free developer API) only extracts sentence IDs, summarises and argues. Before any source is called, the gate thresholds and the brief are hashed (SHA-256) and logged as the first decision-log entry, so moving the goalposts later is visible. J.A.R.V.I.S. is the interface and voice on top: a Tactical Writing console and a holographic voice HUD that narrate real run data and never invent it.
+ProveIt is an open-source team of eleven agents that takes a founder's brief through six phases, with a gate after every step. Plain Python code calls every tool, cuts every quote, decides every gate and executes every approved action; the open-weight model (NVIDIA Nemotron 3 Ultra, `nvidia/nemotron-3-ultra-550b-a55b`, hosted on NVIDIA's free developer API) only extracts sentence IDs, summarises and argues. Before any source is called, the gate thresholds and the brief are hashed (SHA-256) and logged as the first decision-log entry, so moving the goalposts later is visible. Verity, the spoken assistant, and the console sit on top: they narrate and explain real run data in plain words and never invent it.
 
 ```mermaid
 flowchart LR
@@ -90,12 +90,12 @@ Phase 5 is named "Launch" in the problem statement and "Sell / deliver / get pai
 - **Agent:** Analyst (`agents/analyst.py`), STUBBED: the memo is written by code from real metrics only (real sign-ups, real orders; test orders excluded). Below the thresholds it says "Not enough data to call persevere or pivot." The interface for a future model-written memo is documented in `prompts/analyst.md`.
 - **Output:** `phase6_step1_memo`.
 
-### Interface: J.A.R.V.I.S.
+### Interface: the console and Verity
 
-- **Mode 1, Tactical Writing / Command:** the 6-field brief form with a paste parser and preset loaders, live telemetry over phases 1-6, the pre-registration hash badge (red with `GOALPOST_MOVED: TRUE` if thresholds change), evidence and coverage meters, claim badges (`VERIFIED_LIVE`, `ARCHIVED_MATCH`, `ASSUMPTION`), Advocate vs Skeptic cards, the hash-locked approval console and the artifact viewer.
-- **Mode 2, Holographic voice HUD:** an HTML5 canvas with a rotating phase ring, source telemetry, a 64-band circular waveform driven by WebAudio `AnalyserNode` (local Piper speech or the microphone; simulated when the browser's own speech voice is used) and a core coloured cyan (nominal / GO), amber (REPEAT / PIVOT / awaiting approval) or crimson (STOP / Protocol 0).
-- **Voice:** local Piper TTS (British voice) through `/api/voice/speak`, falling back to the browser's en-GB voice when the server takes more than 500 ms or is unavailable; push-to-talk and a "Jarvis" wake word through the browser's speech recognition, with a local faster-whisper fallback endpoint. No paid API.
-- **Ask J.A.R.V.I.S.:** on every screen; text goes through guard rule set A and the model check first, then a fixed router (`edit_copy`, `explain_decision`, `rerun_step`, `change_threshold`, `approve_request`, `evaluate_brief`). "Approve" only highlights the approval card: a message is never an approval.
+- **Workspace (the "tactical writing" mode):** a welcome screen with three steps for first-time founders; per idea, a six-step progress bar, the verdict card (one big word, a plain-language reason, counts of complaints / people who'd pay / existing tools, bars against the pre-registered bar), decision buttons labelled by their effect and offered only when the server says they are valid (`allowed_decisions`), a next-step card (for REPEAT: the interview kit), and tabs for Evidence (verbatim quotes with their source links and why each counted or didn't), For and against (only cited arguments count), Approvals (the exact bytes to approve, hash-locked), Files (rendered Markdown) and What's real (Working / MOCKED / STUBBED).
+- **Voice (the "holographic voice HUD" mode) and Both (dual-sync):** a canvas visual driven by WebAudio `AnalyserNode` (Piper audio or the microphone), hold-to-talk, saying the assistant's name, and the conversation.
+- **Verity:** the assistant's name is a setting (`ASSISTANT_NAME`). Typed or spoken text goes through guard rule set A and the model check first; then a fixed router sends commands (approve, change the bar, rerun, evaluate a new idea, edit copy) to code, quote questions to code (verbatim quotes, never paraphrased), and everything else to the model with the run's facts only. Answers stream sentence by sentence; each sentence passes the guard; a dropped sentence is announced, never silently skipped. "Approve" only opens the approval card: a message is never an approval.
+- **Quality floor:** WCAG 2.2 AA contrast tokens, a skip link, ARIA tabs with arrow keys, live regions for verdicts and answers, keyboard shortcuts (`Ctrl K`, `N`, `1-3`, `?`), visible focus, reduced-motion support, designed 404/403/409/500 pages, a connection-lost banner with back-off, security headers (CSP with `frame-ancestors`, `nosniff`, a microphone-only Permissions-Policy), per-client rate limits on model-spending routes, self-hosted fonts and a print stylesheet for the evidence report.
 
 ## Gates
 
@@ -163,7 +163,8 @@ sequenceDiagram
 ```
 
 - **Payment triggers delivery:** `webhooks.handle()` records the payment and payout, then `delivery.grant()` issues an `itsdangerous` token valid for 24 hours for `GET /download/{token}`.
-- **Idempotency prevents double delivery:** the `webhook_events` table is keyed by `event_id`; a replay returns 200 with `duplicate: true` and no second delivery.
+- **Idempotency prevents double delivery:** the `webhook_events` table is keyed by `event_id`, so a replayed event returns 200 with `duplicate: true` and no second delivery; and an order can be paid only once (its status must be `created`), so a second, different payment event for the same order, or a late event after a refund, never re-grants access.
+- **Only real (mock) events count:** every mock event is HMAC-SHA256 signed with `SECRET_KEY`; an unsigned or altered event is refused with 401 and writes nothing. Malformed bodies get 400, never a server error.
 - **A refund revokes access:** `refunds.refund(order_id, approval_id)` is `@gated("refund")`, so it raises `ApprovalRequired` without the founder's approval of the exact payload; once approved it revokes the token and the download returns 403.
 - **Reconciliation:** `reconcile.run()` matches each order to its payment, fee, net and payout and to any refund, and flags mismatches (`phase5_step3_reconciliation.csv`). The fee model is an "illustrative ASSUMPTION: 2.9% + $0.30, typical card-processor pricing".
 
@@ -207,12 +208,12 @@ Privacy: search queries derived from the brief go to Hacker News, Stack Exchange
 | Payment, delivery, refund, reconciliation | MOCKED |
 | Phase 6 analyst memo | STUBBED (code memo from real metrics) |
 | Reddit source | STUBBED |
-| J.A.R.V.I.S. console, HUD, Ask bar, browser voice | Working |
+| Console, Verity assistant, voice | Working |
 | Local Piper voice / faster-whisper fallback | Working when the optional voice packages are installed; otherwise the browser voice is used |
 
 ## Roadmap
 
-- **v0.2:** interview-notes import and analysis of Mom Test answers; Product Hunt and (when access allows) Reddit adapters; more Arabic cue words.
-- **v0.3:** a micro-tool product format for the Builder (small HTML tools as well as toolkits).
-- **v0.4:** opt-in publishing adapters (landing page hosting, post scheduling), still approval-gated and hash-bound.
-- **v1.0:** a community-hosted instance with no paywall on core features.
+- **December 2026:** interview-notes import (counts strong and weak signals from five Mom Test conversations); Product Hunt and IndieHackers sources; SearXNG on by default.
+- **January 2027:** the calibration set ([evals/gate_backtest.md](evals/gate_backtest.md)) grown to 50 ideas with 90-day outcomes.
+- **February 2027:** a micro-tool product format; opt-in publishing adapters, still approval-gated and hash-bound.
+- **v1.0:** a community-hosted instance with no paywall on core features. Details: [docs/roadmap.md](docs/roadmap.md).
