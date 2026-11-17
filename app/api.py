@@ -42,7 +42,7 @@ from app import security
 from app.security import (
     RUN_ID,
 )
-from proveit import approval, ask, db, llm, orchestrator, seed, voice
+from proveit import approval, ask, db, decisions, llm, orchestrator, seed, voice
 from proveit.log import entries, telemetry, utcnow
 from proveit.startup import check_writable, runs_dir
 
@@ -416,7 +416,7 @@ def run_view(run_id: str) -> dict:
         "order": {k: s.get("order", {}).get(k) for k in ("id", "amount")} if s.get("order") else None,
         "files": sorted(p.name for p in run.dir.iterdir() if p.is_file()),
         "working": bool(_workers.get(run.id) and _workers[run.id].is_alive()),
-        "actions": [] if DEMO else orchestrator.allowed_decisions(run),
+        "actions": [] if DEMO else decisions.allowed_decisions(run),
         "status": row.get("status"),
         "latest": narr[0]["text"] if narr else "",
         "created_at": (db.query_one("SELECT created_at FROM runs WHERE id=?", (run.id,)) or {}).get("created_at"),
@@ -472,7 +472,7 @@ class DecideIn(BaseModel):
 @app.post("/api/runs/{run_id}/decide")
 def decide(run_id: str, body: DecideIn):
     try:
-        res = orchestrator.founder_decide(run_id, body.decision, body.reason)
+        res = decisions.founder_decide(run_id, body.decision, body.reason)
     except KeyError:
         raise HTTPException(404, "unknown run") from None
     if res.get("ok"):
@@ -512,7 +512,7 @@ def decide_approval(approval_id: str, body: ApproveIn):
     if body.payload_sha256 != ap.payload_sha256:
         raise HTTPException(409, "the payload you saw does not match the payload awaiting approval")
     res = approval.decide(approval_id, body.approve, via="ui")
-    orchestrator.on_approval_decided(approval_id)
+    decisions.on_approval_decided(approval_id)
     _advance_bg(res.run_id)
     return res.model_dump(mode="json")
 

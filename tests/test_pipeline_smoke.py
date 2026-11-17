@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import re
 
-from proveit import approval, orchestrator, render
+from proveit import approval, decisions, orchestrator, render
 from proveit.log import export
 
 STRONG = (orchestrator.ROOT / "briefs" / "strong.md").read_text(encoding="utf-8")
@@ -19,7 +19,7 @@ def approve_pending(run_id: str) -> None:
     pend = approval.list_approvals(run_id, "pending")
     assert len(pend) == 1
     approval.auto_approve(pend[0].id)
-    orchestrator.on_approval_decided(pend[0].id)
+    decisions.on_approval_decided(pend[0].id)
 
 
 def test_weak_brief_stops(fake_llm, offline_sources):
@@ -58,11 +58,11 @@ def test_strong_brief_full_flow_with_approvals(fake_llm, offline_sources):
     run = orchestrator.load(rid)
     assert run.state["gate2"]["outcome"] == "repeat" and run.state["gate2"]["reason"] == "insufficient_evidence"
     assert run.stage == "await_override"
-    assert orchestrator.founder_decide(rid, "override", "Preview the build for the demo; demand not yet proven")["ok"]
+    assert decisions.founder_decide(rid, "override", "Preview the build for the demo; demand not yet proven")["ok"]
     orchestrator.advance(rid)
     run = orchestrator.load(rid)
     assert run.stage == "await_gate4", run.state.get("error")
-    orchestrator.founder_decide(rid, "gate4_approve")
+    decisions.founder_decide(rid, "gate4_approve")
     orchestrator.advance(rid)
     assert orchestrator.load(rid).stage == "await_approval"  # open_store
     approve_pending(rid)

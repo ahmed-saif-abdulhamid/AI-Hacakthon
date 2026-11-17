@@ -18,7 +18,7 @@ import streamlit as st  # noqa: E402
 
 from agents.intake import parse_brief  # noqa: E402
 from app import hud_component  # noqa: E402
-from proveit import approval, ask, gates, llm, orchestrator, voice  # noqa: E402
+from proveit import approval, ask, decisions, gates, llm, orchestrator, voice  # noqa: E402
 from proveit.log import telemetry  # noqa: E402
 
 st.set_page_config(page_title="ProveIt · developer view", page_icon="✅", layout="wide")
@@ -163,31 +163,31 @@ def run_panel() -> None:
                 unsafe_allow_html=True,
             )
     if run.stage == "await_clarify" and st.button("Confirm: digital product, no advice"):
-        orchestrator.founder_decide(rid, "clarify_ok")
+        decisions.founder_decide(rid, "clarify_ok")
         advance_bg(rid)
     if run.stage in ("await_founder", "await_override"):
         b = st.columns(5)
         if b[0].button("Accept"):
-            orchestrator.founder_decide(rid, "accept")
+            decisions.founder_decide(rid, "accept")
         if run.stage == "await_founder" and b[1].button("Repeat"):
-            orchestrator.founder_decide(rid, "repeat")
+            decisions.founder_decide(rid, "repeat")
             advance_bg(rid)
         if run.stage == "await_founder" and b[2].button("Pivot to next variant"):
-            orchestrator.founder_decide(rid, "pivot")
+            decisions.founder_decide(rid, "pivot")
             advance_bg(rid)
         if b[3].button("Stop"):
-            orchestrator.founder_decide(rid, "stop")
+            decisions.founder_decide(rid, "stop")
         reason = st.text_input("Override reason (required, guard-checked, logged)", key="ovr")
         if b[4].button("Founder override"):
-            res = orchestrator.founder_decide(rid, "override", reason)
+            res = decisions.founder_decide(rid, "override", reason)
             st.error(res["error"]) if not res.get("ok") else advance_bg(rid)
     if run.stage == "await_gate4":
         c1, c2 = st.columns(2)
         if c1.button("Approve price and policies (Gate 4)", type="primary"):
-            orchestrator.founder_decide(rid, "gate4_approve")
+            decisions.founder_decide(rid, "gate4_approve")
             advance_bg(rid)
         if c2.button("Reject (Gate 4)"):
-            orchestrator.founder_decide(rid, "gate4_reject")
+            decisions.founder_decide(rid, "gate4_reject")
     if s.get("debate"):
         a, k = st.columns(2)
         a.markdown(
@@ -210,11 +210,11 @@ def run_panel() -> None:
         c1, c2 = st.columns(2)
         if c1.button("[ APPROVE (HASH-LOCKED) ]", key="ok" + ap.id, type="primary"):
             approval.decide(ap.id, True, via="ui")
-            orchestrator.on_approval_decided(ap.id)
+            decisions.on_approval_decided(ap.id)
             advance_bg(rid)
         if c2.button("[ REJECT ]", key="no" + ap.id):
             approval.decide(ap.id, False, via="ui")
-            orchestrator.on_approval_decided(ap.id)
+            decisions.on_approval_decided(ap.id)
     st.subheader("Evidence ledger")
     claims = sorted(run.claims(), key=lambda c: -c.weight)
     if claims:

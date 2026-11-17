@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from proveit import guard, llm, orchestrator
+from proveit import decisions, guard, llm, orchestrator
 
 WEAK = (orchestrator.ROOT / "tests" / "fixtures" / "weak_brief.md").read_text(
     encoding="utf-8"
@@ -14,8 +14,8 @@ def test_no_override_for_an_excluded_product(fake_llm, offline_sources):
     rid = orchestrator.run_pipeline("Idea: sell CBD gummies online")
     run = orchestrator.load(rid)
     assert run.state["gate1"]["gate"] == "phase1_eligibility"
-    assert "override" not in orchestrator.allowed_decisions(run)
-    res = orchestrator.founder_decide(rid, "override", "It is only a spreadsheet, I accept the risk")
+    assert "override" not in decisions.allowed_decisions(run)
+    res = decisions.founder_decide(rid, "override", "It is only a spreadsheet, I accept the risk")
     assert not res["ok"] and "never for a product type" in res["error"]
     assert orchestrator.load(rid).stage == "stopped"
 
@@ -25,9 +25,9 @@ def test_evidence_stop_allows_search_again_and_override(fake_llm, offline_source
     rid = orchestrator.run_pipeline(WEAK, label="weak")
     run = orchestrator.load(rid)
     assert run.stage == "stopped" and run.state["gate1"]["gate"] == "gate1_evidence"
-    acts = orchestrator.allowed_decisions(run)
+    acts = decisions.allowed_decisions(run)
     assert "repeat" in acts and "override" in acts
-    assert not orchestrator.founder_decide(rid, "override", "short")["ok"]  # a real reason is required
+    assert not decisions.founder_decide(rid, "override", "short")["ok"]  # a real reason is required
 
 
 def test_override_refused_once_past_the_evidence_checkpoint(fake_llm, offline_sources):
@@ -35,7 +35,7 @@ def test_override_refused_once_past_the_evidence_checkpoint(fake_llm, offline_so
     rid = orchestrator.run_pipeline(WEAK, label="weak")
     run = orchestrator.load(rid)
     run.save("done", status="done")
-    res = orchestrator.founder_decide(rid, "override", "I want to carry on with this idea anyway")
+    res = decisions.founder_decide(rid, "override", "I want to carry on with this idea anyway")
     assert not res["ok"] and orchestrator.load(rid).stage == "done"
 
 

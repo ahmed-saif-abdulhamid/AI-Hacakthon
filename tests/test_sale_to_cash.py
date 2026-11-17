@@ -9,7 +9,7 @@ import payments
 import reconcile
 import refunds
 import webhooks
-from proveit import approval
+from proveit import approval, decisions
 
 
 @pytest.fixture
@@ -102,14 +102,12 @@ def test_webhook_endpoint_returns_4xx_not_500():
 
 
 def test_customer_refund_request_runs_once_approved(paid_order):
-    from proveit import orchestrator
-
     oid, _, first = paid_order
     ap = refunds.request("r1", oid)
     assert refunds.request("r1", oid).id == ap.id  # asking twice does not open a second approval
     with pytest.raises(approval.ApprovalRequired):
         refunds.refund(oid, None)
     approval.auto_approve(ap.id)
-    orchestrator.on_approval_decided(ap.id)
+    decisions.on_approval_decided(ap.id)
     with pytest.raises(delivery.AccessDenied):
         delivery.check(first["token"])  # access revoked: the download now returns 403

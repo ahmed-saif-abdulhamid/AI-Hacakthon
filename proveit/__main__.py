@@ -17,7 +17,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import approval, orchestrator, startup
+from . import approval, decisions, orchestrator, startup
 
 
 def _status(run_id: str) -> dict:
@@ -90,10 +90,10 @@ def main(argv: list[str] | None = None) -> int:
                 ap.error("approval id required")
             res = approval.decide(args.id, args.action == "approve", via="cli")
             print(f"{res.id} -> {res.status} (decided_by={res.decided_by})")
-            stage = orchestrator.on_approval_decided(res.id)
+            stage = decisions.on_approval_decided(res.id)
             print(f"run stage: {stage}")
     elif args.cmd == "decide":
-        print(json.dumps(orchestrator.founder_decide(args.run_id, args.decision, args.reason), indent=2))
+        print(json.dumps(decisions.founder_decide(args.run_id, args.decision, args.reason), indent=2))
     elif args.cmd == "ask":
         from . import ask
 
