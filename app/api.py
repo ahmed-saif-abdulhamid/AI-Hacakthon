@@ -50,7 +50,7 @@ STATUS_TABLE = [
 
 
 DEMO_ALLOWED_POSTS = ("/api/ask", "/api/ask/stream", "/api/voice/speak")
-RUN_ID = re.compile(r"r\d{8}-\d{6}-[0-9a-f]{4}")
+RUN_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}")   # no dots or slashes, so it cannot leave the runs folder
 _RUN_PATH = re.compile(r"^/(?:api/runs|p|store)/([^/]+)")
 
 
@@ -166,9 +166,11 @@ def run_view(run_id: str) -> dict:
         "gate1": s.get("gate1"), "gate2": s.get("gate2"), "gate3": s.get("gate3"), "gate4": s.get("gate4"),
         "debate": s.get("debate"), "override": s.get("override"), "clarify": s.get("clarify"),
         "pending_approval": s.get("pending_approval"), "usage": llm.usage(run.id) or s.get("usage"),
-        "error": s.get("error"), "order": {k: s.get("order", {}).get(k) for k in ("id", "amount")} if s.get("order") else None,
+        "error": s.get("error"), "error_message": s.get("error_message"), "order": {k: s.get("order", {}).get(k) for k in ("id", "amount")} if s.get("order") else None,
         "files": sorted(p.name for p in run.dir.iterdir() if p.is_file()),
         "working": bool(_workers.get(run.id) and _workers[run.id].is_alive()),
+        "actions": [] if DEMO else orchestrator.allowed_decisions(run),
+        "status": db.query_one("SELECT status FROM runs WHERE id=?", (run.id,)).get("status"),
     }
 
 
@@ -203,8 +205,14 @@ def get_file(run_id: str, name: str):
 
 @app.post("/api/runs/{run_id}/continue")
 def continue_run(run_id: str):
-    _advance_bg(run_id)
-    return {"ok": True}
+    """Try again after an error (the run keeps its stage, so it picks up where it stopped)."""
+    try:
+        res = orchestrator.retry(run_id)
+    except KeyError:
+        raise HTTPException(404, "unknown run")
+    if res.get("ok"):
+        _advance_bg(run_id)
+    return res
 
 
 class DecideIn(BaseModel):
@@ -214,7 +222,10 @@ class DecideIn(BaseModel):
 
 @app.post("/api/runs/{run_id}/decide")
 def decide(run_id: str, body: DecideIn):
-    res = orchestrator.founder_decide(run_id, body.decision, body.reason)
+    try:
+        res = orchestrator.founder_decide(run_id, body.decision, body.reason[:1000])
+    except KeyError:
+        raise HTTPException(404, "unknown run")
     if res.get("ok"):
         _advance_bg(run_id)
     return res

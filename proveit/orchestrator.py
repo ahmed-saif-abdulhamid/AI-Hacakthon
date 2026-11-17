@@ -155,14 +155,17 @@ def advance(run_id: str) -> str:
             fn(run)
         except llm.LLMError as e:
             run.state["error"] = str(e)[:300]
+            run.state["error_message"] = friendly_error(str(e))
             log_action(run.id, "orchestrator", "stage_failed", stage=run.stage, error=str(e)[:200])
-            emit(run.id, run.state.get("phase", 1), "error", f"Model error at {run.stage}: {str(e)[:160]}")
+            emit(run.id, run.state.get("phase", 1), "error", run.state["error_message"])
             run.save(status="error")
             break
         except Exception as e:  # noqa: BLE001
             run.state["error"] = traceback.format_exc()[-800:]
+            run.state["error_message"] = ("Something went wrong on our side at this step. Your run is saved; "
+                                          "press Try again to pick up where it stopped.")
             log_action(run.id, "orchestrator", "stage_failed", stage=run.stage, error=str(e)[:200])
-            emit(run.id, run.state.get("phase", 1), "error", f"Error at {run.stage}: {str(e)[:160]}")
+            emit(run.id, run.state.get("phase", 1), "error", run.state["error_message"])
             run.save(status="error")
             raise
     run = load(run_id)
@@ -170,6 +173,34 @@ def advance(run_id: str) -> str:
     run.state["usage"] = usage
     run.save()
     return run.stage
+
+
+def friendly_error(raw: str) -> str:
+    """Plain words for a founder; the raw text stays in the run state and the log."""
+    r = raw.lower()
+    if "429" in r or "rate" in r:
+        return ("NVIDIA's free service is busy right now, so I paused. Your run is saved: press Try again in "
+                "a few seconds and I'll pick up where I stopped.")
+    if "api_key" in r or "401" in r or "403" in r:
+        return "The NVIDIA key is missing or not accepted. Add a valid NVIDIA_API_KEY to .env, then press Try again."
+    if "unreachable" in r or "timed out" in r or "timeout" in r or "connect" in r:
+        return ("I couldn't reach NVIDIA's AI service. Check the internet connection, then press Try again; "
+                "your run is saved.")
+    if "invalid json" in r:
+        return "The AI gave an answer I couldn't use. Press Try again and I'll ask it once more."
+    return "The AI service returned an error. Your run is saved; press Try again to pick up where it stopped."
+
+
+def retry(run_id: str) -> dict:
+    """The founder's Try again button after an error: clear it and continue from the same step."""
+    run = load(run_id)
+    if run.state.get("error") is None and db.query_one("SELECT status FROM runs WHERE id=?", (run.id,)).get("status") != "error":
+        return {"ok": False, "error": "Nothing needs retrying."}
+    run.state.pop("error", None)
+    run.state.pop("error_message", None)
+    log_action(run.id, "founder", "retry_after_error", stage=run.stage)
+    run.save(status="running")
+    return {"ok": True, "stage": run.stage}
 
 
 # ---- Phase 1: intake + eligibility ----------------------------------------------------
@@ -500,17 +531,54 @@ def interview_kit_md(run: Run, variant: Variant, dec: GateDecision) -> str:
 
 # ---- founder decisions ------------------------------------------------------------
 
+def _evidence_choice_open(run: Run) -> bool:
+    """After Gate 1 (evidence) and before Gate 2, the founder may search again, try another angle or
+    override with a reason. Never after an eligibility STOP (excluded product categories)."""
+    g1 = run.state.get("gate1") or {}
+    return (run.stage in ("await_founder", "stopped") and g1.get("gate") == "gate1_evidence"
+            and not run.state.get("gate2") and not run.state.get("override"))
+
+
+def allowed_decisions(run: Run) -> list[str]:
+    """What the founder can do right now; the console shows exactly these buttons."""
+    out = []
+    if run.stage == "await_clarify":
+        out.append("clarify_ok")
+    if _evidence_choice_open(run):
+        out += ["repeat", "override"]
+        if run.state.get("variant_n", 1) < len(run.state.get("variants") or []):
+            out.append("pivot")
+        if run.stage == "await_founder":
+            out.append("stop")
+    if run.stage == "await_override":
+        out += ["override", "stop"]
+    if run.stage == "await_gate4":
+        out += ["gate4_approve", "gate4_reject"]
+    return out
+
+
+NOT_ALLOWED = {
+    "override": "You can only carry on against the evidence at the first or second checkpoint, and never for "
+                "a product type ProveIt can't build.",
+    "repeat": "Searching again is only possible right after the first checkpoint.",
+    "pivot": "There is no other angle left to try for this idea.",
+}
+
+
 def founder_decide(run_id: str, decision: str, reason: str = "") -> dict:
     """Founder buttons: accept | stop | override | pivot | repeat | clarify_ok | gate4_approve | gate4_reject."""
     run = load(run_id)
+    if decision in ("override", "repeat", "pivot") and decision not in allowed_decisions(run):
+        log_action(run.id, "orchestrator", "refuse_founder_decision", decision=decision, stage=run.stage)
+        return {"ok": False, "error": NOT_ALLOWED[decision]}
     if decision == "clarify_ok" and run.stage == "await_clarify":
         log_action(run.id, "founder", "confirm_digital_product", approved_by="founder")
         run.state["clarified"] = True
         run.save("intake", status="running")
         return {"ok": True, "stage": "intake"}
     if decision == "override":
-        if not reason.strip():
-            return {"ok": False, "error": "an override needs a reason"}
+        if len(reason.strip()) < 8:
+            return {"ok": False, "error": "Please write a short reason for carrying on; it is saved with the decision."}
         res = guard.check_input(reason, scope="override", use_model=True, run_id=run.id)
         if res.blocked:
             log_action(run.id, "guard", "block_override_reason", rule=res.rule)
@@ -553,13 +621,13 @@ def founder_decide(run_id: str, decision: str, reason: str = "") -> dict:
         run.save("phase5" if ok else ("phase4" if redo else "stopped"),
                  status="running" if ok or redo else "stopped")
         return {"ok": True, "stage": run.stage}
-    if decision == "pivot" and run.stage == "await_founder":
+    if decision == "pivot":
         n = min(run.state.get("variant_n", 1) + 1, len(run.state["variants"]))
         log_action(run.id, "founder", f"pivot_to_variant_{n}", approved_by="founder")
         run.state["variant_n"] = n
         run.save("phase1", status="running")
         return {"ok": True, "stage": "phase1"}
-    if decision == "repeat" and run.stage == "await_founder":
+    if decision == "repeat":
         log_action(run.id, "founder", "repeat_research", approved_by="founder")
         run.state["repeats"] = run.state.get("repeats", 0) + 1
         run.save("phase1", status="running")
@@ -572,7 +640,7 @@ def founder_decide(run_id: str, decision: str, reason: str = "") -> dict:
             run.state[gate_key]["founder_decision"] = "accepted" if decision == "accept" else "stopped"
         run.save("stopped", status="stopped")
         return {"ok": True, "stage": "stopped"}
-    return {"ok": False, "error": f"decision {decision} not valid at stage {run.stage}"}
+    return {"ok": False, "error": "That choice isn't available at this step."}
 
 
 def simple_gate_md(title: str, dec: GateDecision, extra: str = "") -> str:

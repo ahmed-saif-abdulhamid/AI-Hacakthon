@@ -96,10 +96,31 @@ def _strip_reasoning(text: str) -> str:
 OPTIONAL_FIELDS = ("chat_template_kwargs", "response_format")
 
 
+RETRY_STATUSES = (429, 500, 502, 503, 504)
+
+
+def _backoff(attempt: int, r: httpx.Response | None) -> float:
+    """Exponential back-off (2, 4, 8 s), honouring Retry-After when the server sends one (max 20 s)."""
+    if r is not None:
+        try:
+            return min(20.0, float(r.headers.get("retry-after", "")))
+        except ValueError:
+            pass
+    return min(20.0, 2.0 * 2 ** attempt)
+
+
 def _post(body: dict) -> httpx.Response:
-    for _ in range(4):
+    r = None
+    retries = 0
+    for _ in range(8):
         try:
             r = httpx.post(f"{base_url()}/chat/completions", json=body, headers=_headers(), timeout=_timeout())
+        except (httpx.TimeoutException, httpx.NetworkError) as e:
+            if retries >= 2:
+                raise LLMError(f"NVIDIA API unreachable: {e}") from e
+            time.sleep(_backoff(retries, None))
+            retries += 1
+            continue
         except httpx.HTTPError as e:
             raise LLMError(f"NVIDIA API unreachable: {e}") from e
         if r.status_code == 400:
@@ -108,8 +129,9 @@ def _post(body: dict) -> httpx.Response:
                 return r
             body.pop(dropped)
             continue
-        if r.status_code == 429:                      # free-tier rate limit: back off once more
-            time.sleep(6)
+        if r.status_code in RETRY_STATUSES and retries < 3:   # free-tier rate limit or a transient error
+            time.sleep(_backoff(retries, r))
+            retries += 1
             continue
         return r
     return r

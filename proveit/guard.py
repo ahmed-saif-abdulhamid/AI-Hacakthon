@@ -21,7 +21,27 @@ from rapidfuzz import fuzz
 
 ROOT = Path(__file__).resolve().parent.parent
 BRIEF_A_RULES = ("fake_social_proof", "fake_signups", "urgency", "income_promise", "impersonation",
-                 "credentials", "arabic_intent")
+                 "credentials", "arabic_intent", "bypass")
+UNAVAILABLE = "model_check_unavailable"
+
+# The model check names its rule in free text; map it to the same friendly refusal the rules use.
+MODEL_RULE_KEYS = [
+    (r"review|testimon|rating|endorse|quote", "fake_social_proof"),
+    (r"sign-?up|traffic|follower|user|subscriber", "fake_signups"),
+    (r"urgen|scarc|countdown|timer|deadline|limited", "urgency"),
+    (r"income|earn|profit|result|guarant|forecast|revenue", "income_promise"),
+    (r"imperson|pose|posing|voice|brand|pretend|as a customer|as the founder", "impersonation"),
+    (r"password|card|credential|cvv|bank", "credentials"),
+    (r"refund|spend|charge|transfer|money|pay", "money_action"),
+    (r"account", "account_creation"),
+    (r"approv|skip|bypass|jailbreak|ignore", "bypass"),
+]
+MODEL_CATEGORY_KEYS = [
+    (r"physical|goods|merch|inventory", "physical_goods"),
+    (r"financ|crypto|invest|trading|stock|loan|insurance", "financial_crypto"),
+    (r"health|medic|supplement|diet|therap|diagnos", "health_advice"),
+    (r"legal|law|immigration|tax", "legal_advice"),
+]
 INTENTS = ("edit_copy", "explain_decision", "rerun_step", "change_threshold", "approve_request",
            "evaluate_brief", "other")
 
@@ -150,9 +170,28 @@ def model_check(text: str, kind: str = "input", run_id: str | None = None) -> Gu
                    violates=v.violates, tokens_in=meta["tokens_in"], tokens_out=meta["tokens_out"],
                    seconds=meta["seconds"])
     if v.violates:
-        return GuardResult("refuse", "model", f"model:{v.rule[:40]}",
-                           "I can't help with that request. I can help with honest, sourced work instead.")
+        return model_refusal(v.rule, kind)
     return GuardResult("allow", "model")
+
+
+def model_refusal(rule: str, kind: str = "input") -> GuardResult:
+    """Turn the model's free-text rule name into the same specific, friendly refusal the rules give."""
+    low = (rule or "").lower()
+    for pat, cat in MODEL_CATEGORY_KEYS:
+        if re.search(pat, low):
+            label = {"physical_goods": "physical goods", "financial_crypto": "financial or crypto products",
+                     "health_advice": "health advice products", "legal_advice": "legal advice products"}[cat]
+            msg = (f"This looks like {label}, which ProveIt can't help build. It works on digital products such as "
+                   "templates, guides and checklists that give no financial, medical or legal advice.")
+            return GuardResult("stop" if kind == "brief" else "refuse", "model", f"excluded_{cat}", msg,
+                               category=cat)
+    for pat, key in MODEL_RULE_KEYS:
+        if re.search(pat, low):
+            r = rules()["input_intent"][key]
+            return GuardResult("refuse", "model", key, f"{r['refusal']} {r['alternative']}", notes=[key])
+    return GuardResult("refuse", "model", f"model:{low[:40]}",
+                       "I can't help with that one, because it could mislead people or skip your approval. "
+                       "I can help with honest, sourced work instead.")
 
 
 def check_input(text: str, scope: str = "ask", use_model: bool = True, run_id: str | None = None) -> GuardResult:
@@ -165,7 +204,17 @@ def check_input(text: str, scope: str = "ask", use_model: bool = True, run_id: s
         if b.verdict != "allow":
             return b
         if use_model:
-            return model_check(text, "brief", run_id) or GuardResult("allow", notes=["model check unavailable"])
+            res = model_check(text, "brief", run_id)
+            if res is None:                                  # fail closed: one retry, then ask the founder
+                import time
+                time.sleep(3)
+                res = model_check(text, "brief", run_id)
+            if res is None:
+                return GuardResult("clarify", "model", UNAVAILABLE,
+                                   "I couldn't run my safety check just now because the AI service is busy. Please "
+                                   "confirm this is a digital product that gives no financial, medical or legal "
+                                   "advice, and I'll carry on.")
+            return res
         return GuardResult("allow")
     hit = _match_a(text)
     if hit:
@@ -182,7 +231,8 @@ def check_input(text: str, scope: str = "ask", use_model: bool = True, run_id: s
     if use_model:
         res = model_check(text, scope, run_id)
         if res is None:
-            return GuardResult("allow", notes=["model check unavailable"])
+            # Fail closed for generation: the caller answers only from recorded data (no model writing).
+            return GuardResult("allow", notes=[UNAVAILABLE])
         return res
     return GuardResult("allow")
 

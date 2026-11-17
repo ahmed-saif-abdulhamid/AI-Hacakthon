@@ -42,7 +42,8 @@ def line(kind: str, **kw) -> str:
     s = address()
     if kind == "run_started":
         return (f"Right, {s}, let's see if people actually want this. I've locked in the bar the idea has to clear "
-                "before looking at anything, so I can't move the goalposts later. Starting the search now.")
+                "before looking at anything, so I can't move the goalposts later. First, a quick check that it's "
+                "something I can help with.")
     if kind == "variants":
         return f"I've sketched three angles on your idea. I'll start with the first: {kw.get('title', '')}."
     if kind == "sources_done":

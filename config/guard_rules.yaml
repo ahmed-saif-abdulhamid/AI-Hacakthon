@@ -23,12 +23,12 @@ input_intent:            # Rule set A: imperative requests, not mere words
     alternative: "I can describe what the product contains and who it is for, without outcome claims."
   impersonation:
     pattern: '\b(post|write|reply|comment|sign|act|speak|tweet|pretend|pose|posing)\b\W+(\w+\W+){0,6}?(as|in the voice of)\W+(a |an |the |our |my )?(happy |satisfied |real |verified )?(founder|customer|user|buyer|client|reviewer|brand|company)\b|\b(pretend(ing)? to be|pose as|posing as|impersonat\w+|in the voice of)\b'
-    refusal: "I can't pose as the founder, a customer or another brand."
-    alternative: "I can draft a post for the founder to publish under their own name, after approval."
+    refusal: "I can't write as you, as a customer or as another brand."
+    alternative: "I can draft a post for you to publish under your own name, after you approve it."
   credentials:
     pattern: '\b(store|save|remember|collect|keep|log|ask for|capture)\b\W+(\w+\W+){0,3}?(passwords?|card (numbers?|details)|credit cards?|cvv|iban|bank details|cards)\b'
     refusal: "I can't store passwords or card details."
-    alternative: "The waitlist stores only an email and a timestamp; payments stay in the MOCKED provider."
+    alternative: "The waiting list keeps only an email address and a time; payments here are practice only."
   money_action:
     pattern: '^\W*(please\W+)?(refund|transfer|charge|pay out|payout|wire|send money|spend)\b|\b(refund|transfer|charge|pay out|wire|send|spend)\b\W+(\w+\W+){0,3}?(order|money|customer|funds|payment|\$\d|budget|on ads)\b'
     exclude: '\b(refund polic\w+|refund terms|refund window)\b'
@@ -44,14 +44,14 @@ input_intent:            # Rule set A: imperative requests, not mere words
     alternative: "I can draft the document, marked DRAFT, for you to review and sign yourself."
   publish_now:
     pattern: '\b(post|publish|tweet|send|email|blast)\b\W+(\w+\W+){0,4}?(now|immediately|on (reddit|twitter|x|facebook|linkedin|instagram|tiktok)|to (my|the|our) (list|subscribers|followers))\b'
-    refusal: "I can't post or send anything; publishing adapters are STUBBED."
+    refusal: "I can't post or send anything for you; that stays in your hands."
     alternative: "I can prepare a draft for you to approve and post under your own name."
   bypass:
     pattern: '\bignore\W+(\w+\W+){0,2}?(rules|instructions|guardrails|policy)\b|\bfounder\W+(\w+\W+){0,2}?(already\W+)?approved\b|\bdeveloper mode\b|\bjailbreak\b|\bbypass\W+(\w+\W+){0,2}?(guard\w*|rules|approval\w*)\b|\bwithout (asking|approval|my approval)\b|\bskip (the )?approval'
     refusal: "I can't skip the rules or treat a message as an approval."
-    alternative: "Approvals only come from the hash-bound approval buttons or the CLI."
+    alternative: "Only you can approve things, by pressing the Approve button yourself."
   arabic_intent:
-    pattern: '(اكتب|أكتب|انشئ|أنشئ|اصنع|ولد|ولّد)\W+(\S+\W+){0,4}?(مراجع|تقييم|شهاد)|(عداد|مؤقت)\W+(\S+\W+){0,3}?(تنازلي)|(اضمن|نضمن|وعد)\W+(\S+\W+){0,4}?(دخل|ربح|أرباح)'
+    pattern: '(اكتب|أكتب|انشئ|أنشئ|اصنع|ولد|ولّد)\W+(\S+\W+){0,4}?(مراجع|تقييم|شهاد)|(عداد|مؤقت)\W+(\S+\W+){0,3}?(تنازلي)|(اضمن|أضمن|نضمن|وعد|أعد)\W+(\S+\W+){0,4}?(دخل|ربح|أرباح)'
     refusal: "I can't write fake reviews, add timers or promise income."
     alternative: "I can draft honest copy for your approval."
 
@@ -72,7 +72,7 @@ excluded_categories:     # Rule set B: briefs only
     physical_goods:
       pattern: '\b(physical (goods|products|items)|inventory|handmade|hand-made|printed (t-?shirts|mugs|posters|books|products)|merch(andise)?|hardware devices?|dropshipping|drop-shipping|candles|jewelry|jewellery|t-?shirts|mugs|furniture|cosmetics|clothing line|ship(ping)? (physical|products|goods|orders))\b'
     financial_crypto:
-      pattern: '\b(crypto\w*|bitcoin|ethereum|nfts?|defi|token sale|trading signals?|signals group|forex|stocks? (picks|tips|signals)|day trading|loans?|lending|investment advice|portfolio management|robo-?advisor|insurance products?)\b'
+      pattern: '\b(crypto\w*|bitcoin|ethereum|nfts?|defi|token sale|trading signals?|signals group|forex|stocks? (picks|tips|signals)|stock picks?|etfs?|index funds?|investing (advice|tips|picks)|investment (picks|tips)|day trading|loans?|lending|investment advice|portfolio management|robo-?advisor|insurance products?)\b'
     health:
       pattern: '\b(diagnos(e|is|ing) (patients|symptoms|diseases|illness\w*)|supplements?|cbd|gummies|therapy app|mental health app|diet plans?|weight[- ]loss|medical advice|app for patients|symptom checker|treatment plans?|prescriptions?|nutrition plans? for (patients|diabetics))\b'
     legal_advice:
