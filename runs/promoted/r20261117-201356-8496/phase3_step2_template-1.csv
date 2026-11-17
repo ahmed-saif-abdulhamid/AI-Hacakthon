@@ -1,0 +1,4 @@
+Stage,Days Overdue,Subject Line,Template Body,Call to Action,Notes
+Friendly Nudge,3,Quick check-in: Invoice #{{INV_NUM}},"Hi {{CLIENT_NAME}}, just a friendly reminder that invoice #{{INV_NUM}} for ${{AMOUNT}} was due on {{DUE_DATE}}. Let me know if you need anything.",Reply with payment date,Keep tone light
+Firm Reminder,7,Follow-up: Invoice #{{INV_NUM}} overdue,"Hi {{CLIENT_NAME}}, invoice #{{INV_NUM}} (${{AMOUNT}}) is now 7 days past due. This delay affects my project scheduling. Please confirm payment by {{DEADLINE_DATE}}.",Confirm payment date,Add impact statement
+Final Notice,14,Final notice before action: Invoice #{{INV_NUM}},"Hi {{CLIENT_NAME}}, invoice #{{INV_NUM}} (${{AMOUNT}}) is 14 days overdue. If payment isn't received by {{FINAL_DEADLINE}}, a 1.5% late fee will apply and work may be paused.",Pay now or discuss,Include consequences
