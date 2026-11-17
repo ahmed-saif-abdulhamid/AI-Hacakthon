@@ -17,9 +17,9 @@ No revenue projections or scenarios are produced.
 
 ## Rationale
 
-- ASSUMPTION: Pricing tiers are set as assumptions since no verified price points were provided for this product.
-- ASSUMPTION: Competitor C2 offers automated, non-intrusive reminders for overdue payments, supporting the value of automated follow-up features in the Better tier.
-- ASSUMPTION: Competitor C4 provides integrated invoicing and direct payment capabilities, justifying the inclusion of payment processing in the Best tier.
+- ASSUMPTION: Pricing tiers are set as assumptions (good=$19, better=$39, best=$79) because no verified price points were provided for this product.
+- ASSUMPTION: Competitor C9 highlights integrated invoicing and payments that reduce manual follow-ups, a capability that typically justifies premium tiers.
+- ASSUMPTION: Competitor C12 describes automated invoice insights such as overdue payment alerts and anomaly detection, features often reserved for higher-priced plans.
 
 ### Sources
 

@@ -1,19 +1,18 @@
-# Reminder Sequence Builder
+# Deposit Setup & Collection
 
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-This module helps you craft a clear, escalating series of reminders that move clients from a friendly nudge to a firm deadline without damaging the relationship. You will build a reusable sequence you can apply to any overdue invoice.
+This module gives you a repeatable process to request, confirm, and record upfront deposits for every new client project. Follow the steps to ensure cash is secured before work begins and all details are captured in your tracker.
 
 ## Checklist
 
-- [ ] List every invoice that is past due and note the original due date
-- [ ] Define the timing intervals for each reminder (e.g., 3 days, 7 days, 14 days overdue)
-- [ ] Write a friendly first reminder that references the invoice number and amount
-- [ ] Write a second reminder that adds a brief statement of impact on your schedule
-- [ ] Write a third reminder that states a specific payment deadline and next steps
-- [ ] Create a final notice that outlines consequences such as late fees or work pause
-- [ ] Add placeholders for client name, invoice number, amount, and due date in each template
-- [ ] Review all templates for tone consistency and legal compliance
-- [ ] Save each template in your email client or messaging tool as a reusable snippet
-- [ ] Test the sequence by sending the first reminder to a trusted peer for feedback
-- [ ] Document the full sequence in a shared reference sheet for future use
+- [ ] Create a deposit request template with project name, amount, due date, and payment methods
+- [ ] Send the deposit request to the client within 24 hours of proposal acceptance
+- [ ] Confirm receipt of deposit in your payment platform and note transaction ID
+- [ ] Record deposit details in the tracker: client, project, amount, date received, and status
+- [ ] Set a reminder to follow up if deposit is not received within 3 business days
+- [ ] Update project status to "Deposit Received" once funds clear
+- [ ] Attach the signed agreement or proposal to the project record
+- [ ] Notify the project team that the deposit is secured and work can start
+- [ ] Log any deposit disputes or partial payments with notes and resolution steps
+- [ ] Review deposit collection metrics weekly to identify overdue requests

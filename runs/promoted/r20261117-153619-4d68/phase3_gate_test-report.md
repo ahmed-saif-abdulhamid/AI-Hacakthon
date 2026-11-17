@@ -10,6 +10,6 @@
 | no_evaluation_words | yes |  |
 | csv_templates_parse | yes |  |
 | internal_links_resolve | yes | 2 links |
-| module_1_word_count_in_bounds | yes | 183 words |
+| module_1_word_count_in_bounds | yes | 158 words |
 
 All checks are deterministic code (no model). Build attempts: 1.

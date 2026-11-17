@@ -1,12 +1,12 @@
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-# Late-Payment Follow-Up Toolkit: how to use this toolkit
+# Project Deposit & Milestone Tracker: how to use this toolkit
 
-**Who it is for:** Freelance developers and designers who need a repeatable system to send invoice reminders and track overdue payments without awkward conversations.
+**Who it is for:** Freelance developers and designers who need a simple system to secure upfront deposits and monitor milestone payments across multiple client projects.
 
 ## What is inside
 
-1. **Reminder Sequence Builder**: phase3_step2_module-1 (checklist) and phase3_step2_template-1 (CSV)
+1. **Deposit Setup & Collection**: phase3_step2_module-1 (checklist) and phase3_step2_template-1 (CSV)
 
 ## How to use it
 
@@ -16,9 +16,9 @@
 
 ## What this toolkit does not do
 
-- Automated email sending or CRM integration
-- Legal advice or contract drafting service
-- Client payment portal or invoicing software
+- Automated payment processing or gateway integration
+- Full accounting suite (general ledger, tax filing, payroll)
+- Client‑facing portal for self‑service invoice viewing
 
 ## Support
 

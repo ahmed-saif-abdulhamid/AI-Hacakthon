@@ -4,8 +4,8 @@
 
 ## Terms (DRAFT)
 
-- You receive a personal, non-exclusive licence to use the downloaded files for your own business.
-- You may not resell, redistribute, or bundle the files with other products for sale.
+- You receive a personal, non-exclusive licence to use the downloaded files for your own projects.
+- You may not resell, redistribute, or sublicense the toolkit or any part of it.
 - Support is provided by email only; response times are best-effort.
 - We may update these terms at any time; continued use means you accept the changes.
 
@@ -15,14 +15,14 @@ What is stored: an email address and a timestamp for the waitlist; order records
 
 - We store only your email address and a timestamp when you join the waitlist.
 - Order records from our mocked payment test are kept for internal reference.
-- No passwords or credit-card numbers are ever stored on our systems.
-- Data is retained only as long as needed to fulfil your order or manage the waitlist.
+- No passwords, credit card numbers, or other sensitive payment data are stored.
+- We do not share your information with third parties except as needed to deliver the product.
 
 ## Refunds (DRAFT)
 
 Refund window: 14 days (ASSUMPTION, team default). Every refund is approved by the founder.
 
-- You may request a refund within 14 days of purchase.
-- Email the founder with your order number and reason for the request.
-- Every refund is personally reviewed and approved by the founder.
-- Approved refunds are processed back to the original payment method within 5 business days.
+- Refund requests are accepted within 14 days of purchase.
+- Contact the founder by email with your order number to start a refund.
+- Every request is reviewed and approved personally by the founder.
+- Approved refunds are processed back to the original payment method within 5–10 business days.
