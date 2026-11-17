@@ -17,6 +17,7 @@ os.environ["PROVEIT_ENV"] = "test"
 
 from proveit import llm  # noqa: E402
 from proveit.models import Hit, SourceCall  # noqa: E402
+from proveit.pipeline import research  # noqa: E402
 from sources.base import split_sentences  # noqa: E402
 
 FIX = Path(__file__).parent / "fixtures"
@@ -81,7 +82,7 @@ def fixture_gather(name: str):
             )
             by_call[i] = hs
             hits.extend(hs)
-        return hits, calls, by_call, None
+        return research.Gathered(hits, calls, by_call, None)
 
     return gather, data
 
@@ -89,14 +90,14 @@ def fixture_gather(name: str):
 @pytest.fixture
 def offline_sources(monkeypatch):
     """Patch sources + live re-fetch. Pages 'contain' exactly the fixture text."""
-    from proveit import orchestrator, verifier
+    from proveit import verifier
 
     def use(name: str):
         gather, data = fixture_gather(name)
         pages = {h["url"]: h["text"] for c in data["calls"] for h in c["hits"]}
-        monkeypatch.setattr(orchestrator, "gather", gather)
+        monkeypatch.setattr(research, "gather", gather)
         monkeypatch.setattr(
-            orchestrator,
+            research,
             "score_alternatives",
             lambda run, variants, months: [
                 {

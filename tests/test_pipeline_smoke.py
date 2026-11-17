@@ -8,11 +8,10 @@ import re
 
 from proveit import approval, decisions, orchestrator, render
 from proveit.log import export
+from proveit.pipeline.run import ROOT
 
-STRONG = (orchestrator.ROOT / "briefs" / "strong.md").read_text(encoding="utf-8")
-WEAK = (orchestrator.ROOT / "tests" / "fixtures" / "weak_brief.md").read_text(
-    encoding="utf-8"
-)  # matches weak_hits.json
+STRONG = (ROOT / "briefs" / "strong.md").read_text(encoding="utf-8")
+WEAK = (ROOT / "tests" / "fixtures" / "weak_brief.md").read_text(encoding="utf-8")  # matches weak_hits.json
 
 
 def approve_pending(run_id: str) -> None:

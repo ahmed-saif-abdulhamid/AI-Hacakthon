@@ -25,3 +25,6 @@ voices/
 # Built Vercel demo bundle (regenerate with python deploy/build_vercel.py)
 deploy/vercel_site/
 .vercel/
+
+# Local Claude Code state (agent worktrees, settings)
+.claude/

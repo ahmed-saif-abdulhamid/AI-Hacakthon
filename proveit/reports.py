@@ -6,14 +6,17 @@ files in ``outputs/`` read the same whichever stage wrote them.
 
 from __future__ import annotations
 
+import csv
+import io
 import json
+import re
 from typing import TYPE_CHECKING
 
 from . import gates, render, verifier
 from .models import Claim, GateDecision, Statement, Variant
 
 if TYPE_CHECKING:
-    from .orchestrator import Run
+    from .pipeline.run import Run
 
 
 def eligibility_md(dec: GateDecision, res) -> str:
@@ -373,3 +376,224 @@ def preview_banner(run: Run) -> str:
         return ""
     names = " and ".join(g.replace("gate", "Gate ") for g in gates_over)
     return f"> PREVIEW after a founder override against the evidence at {names}: demand not yet proven.\n\n"
+
+
+# ---- Phase 2: validate ----------------------------------------------------------------
+
+GATE2_NOTE = (
+    "Test sign-ups are excluded from every gate while public hosting is STUBBED. "
+    "Continuing past this gate needs a logged founder override; Phases 3-5 are then a preview: "
+    "demand not yet proven.\n"
+)
+
+
+def lean_canvas_md(run: Run, variant: Variant, canvas, cells: list[str], prov: render.Provenance) -> str:
+    fname = "phase2_step1_lean-canvas.md"
+    ledger = run.ledger()
+    used: list[str] = []
+    demand = run.thresholds["gate2_demand"]
+    lines = [
+        "# Phase 2, step 1: Lean Canvas",
+        "",
+        f"Variant: {variant.title}",
+        "",
+        "Each statement cites verified claim IDs or is labelled ASSUMPTION by code.",
+        "",
+    ]
+    for cell in cells:
+        lines += [
+            f"## {cell.replace('_', ' ').title()}",
+            "",
+            render.render_list(getattr(canvas, cell), ledger, used, prov, fname),
+            "",
+        ]
+    lines += [
+        "## Riskiest assumption",
+        "",
+        render.render_list([canvas.riskiest_assumption], ledger, used, prov, fname),
+        "",
+        "## Experiment",
+        "",
+        render.render_list([canvas.experiment], ledger, used, prov, fname),
+        "",
+        f"Pre-registered demand target: {demand['waitlist_target']} waitlist "
+        f"sign-ups in {demand['window_days']} days (team default, ASSUMPTION).",
+        "",
+        render.sources_section(used, ledger),
+    ]
+    return "\n".join(lines)
+
+
+# ---- Phase 3: build ---------------------------------------------------------------------
+
+
+def product_spec_md(spec, preview: str) -> str:
+    lines = (
+        [
+            "# Phase 3, step 1: Product spec",
+            "",
+            preview + f"**Title:** {spec.title}",
+            "",
+            f"**Audience:** {spec.audience}",
+            "",
+            "## Modules",
+            "",
+        ]
+        + [f"{i}. **{m.name}**: {m.purpose}" for i, m in enumerate(spec.modules, start=1)]
+        + ["", "## What the product is not", ""]
+        + [f"- {x}" for x in spec.not_included]
+        + [""]
+    )
+    return render.label_unsourced_factual("\n".join(lines))
+
+
+def module_md(module, preview: str) -> str:
+    label = render.label_unsourced_factual
+    lines = (
+        [f"# {module.title}", "", preview + label(module.intro), "", "## Checklist", ""]
+        + [f"- [ ] {label(step)}" for step in module.steps]
+        + [""]
+    )
+    return "\n".join(lines)
+
+
+def template_csv(module) -> str:
+    """The module's CSV template; short rows are padded and long rows cut to the header's width."""
+    width = len(module.template_columns)
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="\n")
+    writer.writerow(module.template_columns)
+    for row in module.template_rows:
+        writer.writerow((row + [""] * width)[:width])
+    return buf.getvalue()
+
+
+def test_report_md(dec: GateDecision, results: list[dict], attempts: int) -> str:
+    lines = (
+        [
+            "# Phase 3 gate: test report",
+            "",
+            f"## Outcome: {dec.outcome.upper()}",
+            "",
+            "| Check | Passed | Detail |",
+            "|---|---|---|",
+        ]
+        + [f"| {r['name']} | {'yes' if r['passed'] else 'no'} | {r['detail'][:80]} |" for r in results]
+        + ["", f"All checks are deterministic code (no model). Build attempts: {attempts}.", ""]
+    )
+    return "\n".join(lines)
+
+
+# ---- Phase 4: commercial setup ------------------------------------------------------------
+
+EMAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+
+
+def pricing_md(run: Run, tiers: dict, rationale: list[Statement], prov: render.Provenance) -> str:
+    ledger = run.ledger()
+    used: list[str] = []
+    label = "" if tiers["basis"] == "verified_price_points" else "ASSUMPTION: "
+    points = ", ".join(f"${value:g} [{cid}]" for value, cid in tiers["points"]) or "none"
+    lines = [
+        "# Phase 4, step 1: Pricing",
+        "",
+        preview_banner(run),
+        "| Tier | Price (USD, one-time) | Basis |",
+        "|---|---|---|",
+        f"| Good | {label}${tiers['good']:.0f} | {tiers['basis']} |",
+        f"| Better | {label}${tiers['better']:.0f} | {tiers['basis']} |",
+        f"| Best | {label}${tiers['best']:.0f} | {tiers['basis']} |",
+        "",
+        f"Verified price points used: {points}.",
+        "",
+        tiers["note"],
+        "",
+        "No revenue projections or scenarios are produced.",
+        "",
+        "## Rationale",
+        "",
+        render.render_list(rationale, ledger, used, prov, "phase4_step1_pricing.md"),
+        "",
+        render.sources_section(used, ledger),
+    ]
+    return "\n".join(lines)
+
+
+def _policy_line(text: str) -> str:
+    """No invented contact details: the founder fills in their own."""
+    return render.label_unsourced_factual(EMAIL.sub("[founder's support email]", text))
+
+
+def policies_md(policies, stamp: str, issue: str | None) -> str:
+    lines = (
+        ["# Phase 4, step 2: Policy drafts", "", f"**{stamp}**", "", "## Terms (DRAFT)", ""]
+        + [f"- {_policy_line(x)}" for x in policies.terms]
+        + [
+            "",
+            "## Privacy (DRAFT)",
+            "",
+            "What is stored: an email address and a timestamp for the waitlist; order records "
+            "from the MOCKED payment test. No passwords and no card numbers are stored.",
+            "",
+        ]
+        + [f"- {_policy_line(x)}" for x in policies.privacy]
+        + [
+            "",
+            "## Refunds (DRAFT)",
+            "",
+            "Refund window: 14 days (ASSUMPTION, team default). Every refund is approved by the founder.",
+            "",
+        ]
+        + [f"- {_policy_line(x)}" for x in policies.refunds]
+        + [""]
+    )
+    if issue:
+        lines.append(f"Flagged for founder review: {issue}\n")
+    return "\n".join(lines)
+
+
+# ---- Phase 5: launch -----------------------------------------------------------------------
+
+
+def launch_post_md(run: Run, title: str, body: str, issue: str | None) -> str:
+    return (
+        "# DRAFT - NOT POSTED. For the founder to post under their own name.\n\n"
+        + preview_banner(run)
+        + f"## {title}\n\n{render.label_unsourced_factual(body)}\n\n"
+        + (f"Flagged for founder review: {issue}\n\n" if issue else "")
+        + "Posting adapters are STUBBED; publish_post is gated and raises NotEnabled.\n"
+    )
+
+
+def payment_test_log_md(run_id: str, steps: list[str]) -> str:
+    lines = [
+        "# Payment and delivery test log (MOCKED)",
+        "",
+        "Everything below ran through the in-process MockPaymentProvider. No real or sandbox payment was made, "
+        "no card details exist anywhere, and every order is test=true and excluded from every gate.",
+        "",
+        f"Run: `{run_id}`",
+        "",
+        *steps,
+        "",
+    ]
+    return "\n".join(lines)
+
+
+# ---- Phase 6: operate and learn -------------------------------------------------------------
+
+
+def operate_gate_md(outcome: str, reason: str, metrics: dict) -> str:
+    lines = [
+        "# Phase 6 gate: persevere or pivot",
+        "",
+        f"## Outcome: {outcome.upper()}",
+        "",
+        f"- **Reason:** {reason}",
+        "- **Decided by:** code, from real records only (rule in phase6_step3_metrics.md)",
+        f"- **Real sign-ups / real orders / test orders (excluded):** {metrics['real_signups']} / "
+        f"{metrics['real_orders']} / {metrics['test_orders']}",
+        "- **Status:** STUBBED (no live launch in this demo)",
+        "",
+    ]
+    return "\n".join(lines)

@@ -8,15 +8,40 @@ rejected the exact bytes of a gated action.
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 
 from . import approval, db, guard
 from .commerce import refunds
 from .log import log_action, utcnow
-from .models import GateDecision
-from .orchestrator import Run, load, say
+from .models import Approval, GateDecision
+from .pipeline.run import Run, Stage, Status, load
 from .reports import simple_gate_md
 
-# ---- founder decisions ------------------------------------------------------------
+MIN_OVERRIDE_REASON_CHARS = 8
+MAX_REDRAFTS = 2  # a rejected landing page, store page or Gate 4 is redrafted at most twice
+GATE_FILES = {"gate1": "phase1_gate_decision.md", "gate2": "phase2_gate_decision.md"}
+
+NOT_ALLOWED = {
+    "override": "You can only carry on against the evidence at the first or second checkpoint, and never for "
+    "a product type ProveIt can't build.",
+    "repeat": "Searching again is only possible right after the first checkpoint.",
+    "pivot": "There is no other angle left to try for this idea.",
+}
+UNAVAILABLE = "That choice isn't available at this step."
+NOTHING_TO_DECIDE = "There's nothing to decide at this step."
+
+Result = dict
+
+
+def _ok(stage: str) -> Result:
+    return {"ok": True, "stage": stage}
+
+
+def _refused(error: str, **extra) -> Result:
+    return {"ok": False, "error": error, **extra}
+
+
+# ---- what the founder may do ---------------------------------------------------------------
 
 
 def _evidence_choice_open(run: Run) -> bool:
@@ -24,7 +49,7 @@ def _evidence_choice_open(run: Run) -> bool:
     override with a reason. Never after an eligibility STOP (excluded product categories)."""
     g1 = run.state.get("gate1") or {}
     return (
-        run.stage in ("await_founder", "stopped")
+        run.stage in (Stage.AWAIT_FOUNDER, Stage.STOPPED)
         and g1.get("gate") == "gate1_evidence"
         and not run.state.get("gate2")
         and not run.state.get("override")
@@ -34,142 +59,221 @@ def _evidence_choice_open(run: Run) -> bool:
 def allowed_decisions(run: Run) -> list[str]:
     """What the founder can do right now; the console shows exactly these buttons."""
     out = []
-    if run.stage == "await_clarify":
+    if run.stage == Stage.AWAIT_CLARIFY:
         out.append("clarify_ok")
     if _evidence_choice_open(run):
         out += ["repeat", "override"]
         if run.next_variant():
             out.append("pivot")
-        if run.stage == "await_founder":
+        if run.stage == Stage.AWAIT_FOUNDER:
             out.append("stop")
-    if run.stage == "await_override":
+    if run.stage == Stage.AWAIT_OVERRIDE:
         out += ["override", "stop"]
-    if run.stage == "await_gate4":
+    if run.stage == Stage.AWAIT_GATE4:
         out += ["gate4_approve", "gate4_reject"]
     return out
 
 
-NOT_ALLOWED = {
-    "override": "You can only carry on against the evidence at the first or second checkpoint, and never for "
-    "a product type ProveIt can't build.",
-    "repeat": "Searching again is only possible right after the first checkpoint.",
-    "pivot": "There is no other angle left to try for this idea.",
-}
+# ---- one handler per decision -----------------------------------------------------------------
 
 
-def founder_decide(run_id: str, decision: str, reason: str = "") -> dict:
-    """Founder buttons: accept | stop | override | pivot | repeat | clarify_ok | gate4_approve | gate4_reject."""
-    run = load(run_id)
-    if decision in ("override", "repeat", "pivot") and decision not in allowed_decisions(run):
-        log_action(run.id, "orchestrator", "refuse_founder_decision", decision=decision, stage=run.stage)
-        return {"ok": False, "error": NOT_ALLOWED[decision]}
-    if decision == "clarify_ok" and run.stage == "await_clarify":
-        log_action(run.id, "founder", "confirm_digital_product", approved_by="founder")
-        run.state["clarified"] = True
-        run.save("intake", status="running")
-        return {"ok": True, "stage": "intake"}
-    if decision == "override":
-        if len(reason.strip()) < 8:
-            return {"ok": False, "error": "Please write a short reason for carrying on; it is saved with the decision."}
-        res = guard.check_input(reason, scope="override", use_model=True, run_id=run.id)
-        if guard.UNAVAILABLE in (res.notes or []):  # fail closed: no unchecked override
-            return {
-                "ok": False,
-                "error": "I couldn't run the safety check on your reason just now (the AI service "
-                "is busy). Please press it again in a few seconds.",
-            }
-        if res.blocked:
-            log_action(run.id, "guard", "block_override_reason", rule=res.rule)
-            return {"ok": False, "error": res.message, "rule": res.rule}
-        gate = "gate2" if run.stage == "await_override" else "gate1"
-        log_action(
-            run.id,
-            "founder",
-            "founder_override_against_evidence",
-            approved_by="founder",
-            gate=gate,
-            override_reason=reason,
-        )
-        run.state["override"] = {"gate": gate, "reason": reason, "at": utcnow()}
-        run.state.setdefault("overrides", []).append(gate)
-        fname = "phase2_gate_decision.md" if gate == "gate2" else "phase1_gate_decision.md"
-        if (run.dir / fname).exists():
-            txt = (run.dir / fname).read_text(encoding="utf-8")
-            txt = txt.replace(
+def _clarify_ok(run: Run, reason: str) -> Result:
+    log_action(run.id, "founder", "confirm_digital_product", approved_by="founder")
+    run.state["clarified"] = True
+    run.save(Stage.INTAKE, status=Status.RUNNING)
+    return _ok(Stage.INTAKE)
+
+
+def _mark_gate_file_overridden(run: Run, gate: str, reason: str) -> None:
+    text = run.read(GATE_FILES[gate])
+    if text:
+        run.write(
+            GATE_FILES[gate],
+            text.replace(
                 "- **Founder decision:** pending",
                 f"- **Founder decision:** overridden against the evidence (logged). Reason: {reason}",
                 1,
-            )
-            run.write(fname, txt)
-        key = "gate2" if gate == "gate2" else "gate1"
-        if key in run.state:
-            run.state[key]["founder_decision"] = "overridden"
-            run.state[key]["override_reason"] = reason
-        say(run, "override")
-        run.save("phase3" if gate == "gate2" else "phase2", status="running")
-        db.execute("UPDATE runs SET override_reason=? WHERE id=?", (reason, run.id))
-        return {"ok": True, "stage": run.stage}
-    if decision in ("gate4_approve", "gate4_reject") and run.stage == "await_gate4":
-        ok = decision == "gate4_approve"
-        log_action(run.id, "founder", "gate4_approve" if ok else "gate4_reject", approved_by="founder" if ok else None)
-        dec = GateDecision(
-            run_id=run.id,
-            gate="gate4_commercial",
-            outcome="go" if ok else "stop",
-            reason="founder_approved_pricing_and_policies" if ok else "founder_rejected",
-            thresholds={"founder_approval": True},
-            thresholds_sha256=run.sha,
-            rule_fired="g4_founder",
-            founder_decision="accepted" if ok else "stopped",
-            recommendation="Founder approved the price and the policy drafts."
-            if ok
-            else "Founder rejected; revise pricing or policies.",
+            ),
         )
-        run.write(
-            "phase4_gate_decision.md", simple_gate_md("Phase 4 gate: founder approval of price and policies", dec)
+
+
+def _override(run: Run, reason: str) -> Result:
+    if len(reason.strip()) < MIN_OVERRIDE_REASON_CHARS:
+        return _refused("Please write a short reason for carrying on; it is saved with the decision.")
+    res = guard.check_input(reason, scope="override", use_model=True, run_id=run.id)
+    if guard.UNAVAILABLE in (res.notes or []):  # fail closed: no unchecked override
+        return _refused(
+            "I couldn't run the safety check on your reason just now (the AI service "
+            "is busy). Please press it again in a few seconds."
         )
-        run.state["gate4"] = dec.model_dump()
-        rejects = run.state.setdefault("rejections", {})
-        rejects["gate4"] = rejects.get("gate4", 0) + (0 if ok else 1)
-        redo = not ok and rejects["gate4"] <= 2
-        if redo:
-            log_action(run.id, "orchestrator", "redo_phase4_after_founder_rejection")
-        run.save("phase5" if ok else ("phase4" if redo else "stopped"), status="running" if ok or redo else "stopped")
-        return {"ok": True, "stage": run.stage}
-    if decision == "pivot":
-        n = run.next_variant()
-        if n is None:
-            return {"ok": False, "error": "Every angle has already been researched."}
-        log_action(run.id, "founder", f"pivot_to_variant_{n}", approved_by="founder")
-        old = run.dir / "phase1_gate_decision.md"  # keep the verdict on the angle left behind
-        if old.exists():
-            old.replace(run.dir / f"phase1_gate_variant-{run.state.get('variant_n', 1)}.md")
-        run.state["variant_n"] = n
-        run.save("phase1", status="running")
-        return {"ok": True, "stage": "phase1"}
-    if decision == "repeat":
-        log_action(run.id, "founder", "repeat_research", approved_by="founder")
-        run.state["repeats"] = run.state.get("repeats", 0) + 1
-        run.save("phase1", status="running")
-        return {"ok": True, "stage": "phase1"}
-    if decision in ("accept", "stop") and run.stage not in ("await_founder", "await_override", "await_clarify"):
-        return {"ok": False, "error": "There's nothing to decide at this step."}
-    if decision in ("accept", "stop"):
-        gate_key = "gate2" if run.stage == "await_override" else "gate1"
-        log_action(
-            run.id,
-            "founder",
-            f"accept_{gate_key}_recommendation" if decision == "accept" else "stop_run",
-            approved_by="founder",
-        )
-        if gate_key in run.state:
-            run.state[gate_key]["founder_decision"] = "accepted" if decision == "accept" else "stopped"
-        run.save("stopped", status="stopped")
-        return {"ok": True, "stage": "stopped"}
-    return {"ok": False, "error": "That choice isn't available at this step."}
+    if res.blocked:
+        log_action(run.id, "guard", "block_override_reason", rule=res.rule)
+        return _refused(res.message, rule=res.rule)
+    gate = "gate2" if run.stage == Stage.AWAIT_OVERRIDE else "gate1"
+    log_action(
+        run.id,
+        "founder",
+        "founder_override_against_evidence",
+        approved_by="founder",
+        gate=gate,
+        override_reason=reason,
+    )
+    run.state["override"] = {"gate": gate, "reason": reason, "at": utcnow()}
+    run.state.setdefault("overrides", []).append(gate)
+    _mark_gate_file_overridden(run, gate, reason)
+    if gate in run.state:
+        run.state[gate]["founder_decision"] = "overridden"
+        run.state[gate]["override_reason"] = reason
+    run.say("override")
+    run.save(Stage.PHASE3 if gate == "gate2" else Stage.PHASE2, status=Status.RUNNING)
+    db.execute("UPDATE runs SET override_reason=? WHERE id=?", (reason, run.id))
+    return _ok(run.stage)
+
+
+def _count_rejection(run: Run, key: str) -> int:
+    rejects = run.state.setdefault("rejections", {})
+    rejects[key] = rejects.get(key, 0) + 1
+    return rejects[key]
+
+
+def _gate4(run: Run, approved: bool) -> Result:
+    log_action(
+        run.id, "founder", "gate4_approve" if approved else "gate4_reject", approved_by="founder" if approved else None
+    )
+    dec = GateDecision(
+        run_id=run.id,
+        gate="gate4_commercial",
+        outcome="go" if approved else "stop",
+        reason="founder_approved_pricing_and_policies" if approved else "founder_rejected",
+        thresholds={"founder_approval": True},
+        thresholds_sha256=run.sha,
+        rule_fired="g4_founder",
+        founder_decision="accepted" if approved else "stopped",
+        recommendation="Founder approved the price and the policy drafts."
+        if approved
+        else "Founder rejected; revise pricing or policies.",
+    )
+    run.write("phase4_gate_decision.md", simple_gate_md("Phase 4 gate: founder approval of price and policies", dec))
+    run.state["gate4"] = dec.model_dump()
+    if approved:
+        run.save(Stage.PHASE5, status=Status.RUNNING)
+    elif _count_rejection(run, "gate4") <= MAX_REDRAFTS:
+        log_action(run.id, "orchestrator", "redo_phase4_after_founder_rejection")
+        run.save(Stage.PHASE4, status=Status.RUNNING)
+    else:
+        run.save(Stage.STOPPED, status=Status.STOPPED)
+    return _ok(run.stage)
+
+
+def _pivot(run: Run, reason: str) -> Result:
+    n = run.next_variant()
+    if n is None:
+        return _refused("Every angle has already been researched.")
+    log_action(run.id, "founder", f"pivot_to_variant_{n}", approved_by="founder")
+    old = run.dir / GATE_FILES["gate1"]  # keep the verdict on the angle left behind
+    if old.exists():
+        old.replace(run.dir / f"phase1_gate_variant-{run.state.get('variant_n', 1)}.md")
+    run.state["variant_n"] = n
+    run.save(Stage.PHASE1, status=Status.RUNNING)
+    return _ok(Stage.PHASE1)
+
+
+def _repeat(run: Run, reason: str) -> Result:
+    log_action(run.id, "founder", "repeat_research", approved_by="founder")
+    run.state["repeats"] = run.state.get("repeats", 0) + 1
+    run.save(Stage.PHASE1, status=Status.RUNNING)
+    return _ok(Stage.PHASE1)
+
+
+def _accept_or_stop(run: Run, accept: bool) -> Result:
+    gate = "gate2" if run.stage == Stage.AWAIT_OVERRIDE else "gate1"
+    log_action(run.id, "founder", f"accept_{gate}_recommendation" if accept else "stop_run", approved_by="founder")
+    if gate in run.state:
+        run.state[gate]["founder_decision"] = "accepted" if accept else "stopped"
+    run.save(Stage.STOPPED, status=Status.STOPPED)
+    return _ok(Stage.STOPPED)
+
+
+DECISIONS: dict[str, Callable[[Run, str], Result]] = {
+    "clarify_ok": _clarify_ok,
+    "override": _override,
+    "gate4_approve": lambda run, reason: _gate4(run, approved=True),
+    "gate4_reject": lambda run, reason: _gate4(run, approved=False),
+    "pivot": _pivot,
+    "repeat": _repeat,
+    "accept": lambda run, reason: _accept_or_stop(run, accept=True),
+    "stop": lambda run, reason: _accept_or_stop(run, accept=False),
+}
+# Stage preconditions, and the message when the run is elsewhere.
+REQUIRED_STAGES: dict[str, tuple[frozenset[str], str]] = {
+    "clarify_ok": (frozenset({Stage.AWAIT_CLARIFY}), UNAVAILABLE),
+    "gate4_approve": (frozenset({Stage.AWAIT_GATE4}), UNAVAILABLE),
+    "gate4_reject": (frozenset({Stage.AWAIT_GATE4}), UNAVAILABLE),
+    "accept": (frozenset({Stage.AWAIT_FOUNDER, Stage.AWAIT_OVERRIDE, Stage.AWAIT_CLARIFY}), NOTHING_TO_DECIDE),
+    "stop": (frozenset({Stage.AWAIT_FOUNDER, Stage.AWAIT_OVERRIDE, Stage.AWAIT_CLARIFY}), NOTHING_TO_DECIDE),
+}
+
+
+def founder_decide(run_id: str, decision: str, reason: str = "") -> Result:
+    """Founder buttons: accept | stop | override | pivot | repeat | clarify_ok | gate4_approve | gate4_reject."""
+    run = load(run_id)
+    handler = DECISIONS.get(decision)
+    if handler is None:
+        return _refused(UNAVAILABLE)
+    if decision in NOT_ALLOWED and decision not in allowed_decisions(run):
+        log_action(run.id, "orchestrator", "refuse_founder_decision", decision=decision, stage=run.stage)
+        return _refused(NOT_ALLOWED[decision])
+    stages, wrong_stage_message = REQUIRED_STAGES.get(decision, (None, ""))
+    if stages is not None and run.stage not in stages:
+        return _refused(wrong_stage_message)
+    return handler(run, reason)
 
 
 # ---- approvals ----------------------------------------------------------------
+
+REDRAFT_STAGE = {"publish_landing_page": Stage.PHASE2, "open_store": Stage.PHASE5}
+
+
+def _customer_refund(ap: Approval) -> None:
+    """A refund a customer asked for from the store page is not a pipeline step: run it whenever the
+    founder approves it (or just log the rejection), whatever stage the run is at."""
+    order_id = json.loads(approval.blob(ap.payload_sha256)[0]).get("order_id")
+    if ap.status == "approved":
+        refunds.refund(order_id, ap.id)
+        log_action(
+            ap.run_id, "orchestrator", "customer_refund_executed", order_id=order_id, approved_by="founder", test=True
+        )
+    else:
+        log_action(ap.run_id, "orchestrator", "customer_refund_rejected", order_id=order_id)
+
+
+def _on_rejected(run: Run, ap: Approval) -> str:
+    redo = REDRAFT_STAGE.get(ap.action)
+    if redo and _count_rejection(run, ap.action) <= MAX_REDRAFTS:
+        log_action(run.id, "orchestrator", f"regenerate_after_rejected_{ap.action}")
+        run.save(redo, status=Status.RUNNING)
+    elif ap.action == "refund":
+        log_action(run.id, "orchestrator", "refund_not_executed_founder_rejected")
+        run.save(Stage.PHASE6, status=Status.RUNNING)
+    else:
+        log_action(run.id, "orchestrator", f"founder_rejected_{ap.action}")
+        run.save(Stage.STOPPED, status=Status.STOPPED)
+    return run.stage
+
+
+def _on_approved(run: Run, ap: Approval) -> str:
+    run.say("approved", action=ap.action)
+    payload, _ = approval.blob(ap.payload_sha256)
+    if ap.action == "publish_landing_page":
+        approval.publish_landing_page(payload, ap.id, run_id=run.id)
+        run.save(Stage.GATE2, status=Status.RUNNING)
+    elif ap.action == "open_store":
+        approval.open_store(payload, ap.id, run_id=run.id)
+        run.save(Stage.PAYMENT_TEST, status=Status.RUNNING)
+    elif ap.action == "refund":
+        run.state["refund_approval"] = ap.id
+        run.save(Stage.REFUND, status=Status.RUNNING)
+    return run.stage
 
 
 def on_approval_decided(approval_id: str) -> str | None:
@@ -179,52 +283,12 @@ def on_approval_decided(approval_id: str) -> str | None:
         return None
     try:
         run = load(ap.run_id)
-        pending = run.state.get("pending_approval") or {}
     except KeyError:
-        run, pending = None, {}
+        run = None
+    pending = (run.state.get("pending_approval") or {}) if run else {}
     if pending.get("id") != approval_id:
-        # A refund a customer asked for from the store page is not a pipeline step: run it whenever the
-        # founder approves it (or just log the rejection), whatever stage the run is at.
         if ap.action == "refund":
-            order_id = json.loads(approval.blob(ap.payload_sha256)[0]).get("order_id")
-            if ap.status == "approved":
-                refunds.refund(order_id, approval_id)
-                log_action(
-                    ap.run_id,
-                    "orchestrator",
-                    "customer_refund_executed",
-                    order_id=order_id,
-                    approved_by="founder",
-                    test=True,
-                )
-            else:
-                log_action(ap.run_id, "orchestrator", "customer_refund_rejected", order_id=order_id)
+            _customer_refund(ap)
         return run.stage if run else None
-    payload, _ = approval.blob(ap.payload_sha256)
     run.state.pop("pending_approval", None)
-    if ap.status == "rejected":
-        redo = {"publish_landing_page": "phase2", "open_store": "phase5"}.get(ap.action)
-        rejects = run.state.setdefault("rejections", {})
-        rejects[ap.action] = rejects.get(ap.action, 0) + 1
-        if redo and rejects[ap.action] <= 2:
-            log_action(run.id, "orchestrator", f"regenerate_after_rejected_{ap.action}")
-            run.save(redo, status="running")
-            return redo
-        if ap.action == "refund":
-            log_action(run.id, "orchestrator", "refund_not_executed_founder_rejected")
-            run.save("phase6", status="running")
-            return "phase6"
-        log_action(run.id, "orchestrator", f"founder_rejected_{ap.action}")
-        run.save("stopped", status="stopped")
-        return "stopped"
-    say(run, "approved", action=ap.action)
-    if ap.action == "publish_landing_page":
-        approval.publish_landing_page(payload, approval_id, run_id=run.id)
-        run.save("gate2", status="running")
-    elif ap.action == "open_store":
-        approval.open_store(payload, approval_id, run_id=run.id)
-        run.save("payment_test", status="running")
-    elif ap.action == "refund":
-        run.state["refund_approval"] = approval_id
-        run.save("refund", status="running")
-    return run.stage
+    return _on_rejected(run, ap) if ap.status == "rejected" else _on_approved(run, ap)

@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from proveit import decisions, guard, llm, orchestrator
+from proveit.pipeline.run import ROOT
 
-WEAK = (orchestrator.ROOT / "tests" / "fixtures" / "weak_brief.md").read_text(
-    encoding="utf-8"
-)  # matches weak_hits.json
+WEAK = (ROOT / "tests" / "fixtures" / "weak_brief.md").read_text(encoding="utf-8")  # matches weak_hits.json
 
 
 def test_no_override_for_an_excluded_product(fake_llm, offline_sources):

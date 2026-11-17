@@ -9,6 +9,8 @@ import pytest
 import yaml
 
 from proveit import guard
+from proveit.pipeline import research
+from proveit.pipeline.run import Run
 
 EV = Path(__file__).resolve().parent.parent / "evals"
 TRICKS = yaml.safe_load((EV / "trick_prompts.yaml").read_text(encoding="utf-8"))
@@ -53,7 +55,6 @@ def test_model_layer(item):  # pragma: no cover - needs the local model
 
 
 def test_scout_angles_get_the_excluded_category_check_and_are_never_pivoted_to(monkeypatch):
-    from proveit import orchestrator
     from proveit.models import Variant
 
     ok = Variant(
@@ -70,10 +71,10 @@ def test_scout_angles_get_the_excluded_category_check_and_are_never_pivoted_to(m
         job_to_be_done="define payment terms in contracts",
         competitor_query="freelance contract templates",
     )
-    assert orchestrator.excluded_variant(ok) is None
-    assert "legal" in orchestrator.excluded_variant(legal)
+    assert research.excluded_variant(ok) is None
+    assert "legal" in research.excluded_variant(legal)
     monkeypatch.setattr(
-        orchestrator.scorer,
+        research.scorer,
         "rank",
         lambda run_id, brief, vs, months: [
             {
@@ -90,10 +91,10 @@ def test_scout_angles_get_the_excluded_category_check_and_are_never_pivoted_to(m
             for v in vs
         ],
     )
-    run = orchestrator.Run.__new__(orchestrator.Run)
+    run = Run.__new__(Run)
     run.id = "test"
     run.state = {"variants": [ok.model_dump(), legal.model_dump()], "variant_n": 1, "research": {"1": {}}}
-    run.state["ranking"] = orchestrator.score_alternatives(run, [ok, legal], 24)
+    run.state["ranking"] = research.score_alternatives(run, [ok, legal], 24)
     assert [r["n"] for r in run.state["ranking"] if r.get("excluded")] == [2]
     assert run.next_variant() is None
 
