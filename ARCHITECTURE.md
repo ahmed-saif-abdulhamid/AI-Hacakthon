@@ -136,6 +136,32 @@ Every step ends with a check: schema validation of model output (Pydantic, one r
 
 **Gate 2:** while public hosting is STUBBED, every sign-up is `test=true` and excluded, so 0 real sign-ups gives REPEAT `insufficient_evidence`. Continuing needs `founder_override_against_evidence` (reason required, guard-checked, logged with `approved_by: "founder"`), and Phases 3-5 are labelled a preview.
 
+**The gates as a state machine** (each arrow is a code decision or a logged founder action; nothing moves past a gate on the model's word):
+
+```mermaid
+stateDiagram-v2
+    [*] --> Eligibility: founder brief
+    Eligibility --> Stopped: excluded category (no override possible)
+    Eligibility --> Gate1: eligible
+    Gate1 --> Gate1: REPEAT, search again (max 2)
+    Gate1 --> Gate1: PIVOT, next-best angle
+    Gate1 --> Phase2: GO
+    Gate1 --> Phase2: founder override (reason logged)
+    Gate1 --> Stopped: STOP on weak evidence
+    Phase2 --> Gate2: founder approves the landing-page bytes
+    Gate2 --> Phase3: GO (real sign-ups reach the target)
+    Gate2 --> Phase3: founder override (reason logged)
+    Gate2 --> Stopped: founder stops
+    Phase3 --> Phase3: QA fails, rebuild once
+    Phase3 --> Phase4: Gate 3 GO (deterministic QA)
+    Phase4 --> Gate4: price and policy drafts
+    Gate4 --> Phase4: founder rejects, redraft (max 2)
+    Gate4 --> Phase5: founder approves
+    Phase5 --> Gate6: store approved, MOCKED sale, founder-approved refund
+    Gate6 --> [*]: persevere or pivot, from real records only
+    Stopped --> [*]
+```
+
 ## Sale to cash
 
 Everything here is MOCKED: an in-process provider, no real or sandbox payments, no card fields, every order `test=true`.
@@ -216,6 +242,18 @@ Code layout: `proveit/orchestrator.py` is the pipeline's public entry point; `pr
 | Reddit source | STUBBED |
 | Console, J.A.R.V.I.S. assistant, voice | Working |
 | Local Piper voice / faster-whisper fallback | Working when the optional voice packages are installed; otherwise the browser voice is used |
+
+
+### How the stubbed parts would work
+
+Each stub sits behind the same interface and the same approval gate as the working code, so replacing it changes no gate rule:
+
+- **Public hosting (STUBBED):** the approved landing-page blob (the exact SHA-256 bytes the founder approved) is deployed to a static host by the existing `@gated("publish_landing_page")` action. Sign-ups from the public page are stored with `test=0`, and only those count at Gate 2 against the pre-registered waitlist target (100, ASSUMPTION).
+- **Posting and email adapters (STUBBED):** one adapter per channel behind `@gated("publish_post")` or `@gated("send_email")`. The founder approves the exact text, and the adapter posts through an account the founder connects; ProveIt never creates accounts, never stores passwords and never posts as the founder without approval.
+- **Payments (MOCKED):** a payment provider in sandbox/test mode replaces `MockPaymentProvider` behind the same `create_order` / `create_checkout` interface. Its webhooks keep the same signature check, the same idempotency by event and by order, and refunds stay `@gated("refund")`; reconciliation reads the provider's fees and payouts instead of the mock's.
+- **Phase 6 analyst (STUBBED):** after a real launch, the memo and Gate 6 read real sign-ups, orders and refunds (test records excluded, as now), with `days_since_launch` counted from the first real order. The decision rule stays code; the model only drafts the memo from those numbers.
+- **Reddit source (STUBBED):** a `sources.base.Source` subclass using the official API once access is granted, with the same per-run caps, timeout and circuit breaker as the other sources.
+- **Interview-notes analyser (STUBBED):** the founder pastes notes from the five Mom Test interviews; code counts strong signals (past behaviour, money already spent, a current workaround) against weak ones (compliments, hypotheticals) with cue lists like `config/cues.yaml`, and the result is a separate, labelled evidence source for a Gate 1 re-check.
 
 ## Roadmap
 
