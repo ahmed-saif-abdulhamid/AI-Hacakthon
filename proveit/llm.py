@@ -1,9 +1,12 @@
-"""Client for open-weight models hosted by NVIDIA (build.nvidia.com, OpenAI-compatible API).
+"""Client for open-weight models through an OpenAI-compatible API. Two providers:
 
-* Free developer tier: a key from build.nvidia.com (``NVIDIA_API_KEY``), roughly 40 requests a
-  minute per account. Briefs, evidence and questions are sent to NVIDIA.
-* Default model: ``nvidia/nemotron-3-ultra-550b-a55b`` (NVIDIA Nemotron, open weights), with
-  thinking switched off for speed. Override with ``NVIDIA_MODEL``.
+* ``ollama`` (the Docker default): a local model served by Ollama, downloaded on first start by
+  ``docker compose up``. No key, no account, nothing leaves the computer. ``OLLAMA_MODEL``
+  (default ``qwen3:8b``), ``OLLAMA_URL`` (default ``http://localhost:11434``).
+* ``nvidia``: open-weight NVIDIA Nemotron on build.nvidia.com's free developer tier
+  (``NVIDIA_API_KEY``, roughly 40 requests a minute). Override the model with ``NVIDIA_MODEL``.
+
+``LLM_PROVIDER`` picks one; unset, a configured NVIDIA key selects ``nvidia``, otherwise ``ollama``.
 * Structured calls send the Pydantic JSON schema as ``response_format`` (constrained output),
   temperature 0 and a fixed seed; one retry on invalid JSON, then ``LLMError`` (the gate turns
   that into REPEAT/model_failure).
@@ -26,6 +29,8 @@ ROOT = Path(__file__).resolve().parent.parent
 PROMPTS = ROOT / "prompts"
 NVIDIA_URL = "https://integrate.api.nvidia.com/v1"
 DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b"
+OLLAMA_URL = "http://localhost:11434"
+OLLAMA_MODEL = "qwen3:8b"
 
 T = TypeVar("T", bound=BaseModel)
 Backend = Callable[[str, str, dict, str], str]
@@ -56,20 +61,29 @@ _load_dotenv()
 
 
 def provider() -> str:
-    return "nvidia"
+    chosen = os.environ.get("LLM_PROVIDER", "").strip().lower()
+    if chosen in ("ollama", "nvidia"):
+        return chosen
+    return "nvidia" if os.environ.get("NVIDIA_API_KEY", "").strip() else "ollama"
 
 
 def model_name() -> str:
     if _backend is not None:
         return "fake-llm-tests-only"
+    if provider() == "ollama":
+        return os.environ.get("OLLAMA_MODEL") or OLLAMA_MODEL
     return os.environ.get("NVIDIA_MODEL") or DEFAULT_MODEL
 
 
 def base_url() -> str:
+    if provider() == "ollama":
+        return os.environ.get("OLLAMA_URL", OLLAMA_URL).rstrip("/") + "/v1"
     return os.environ.get("NVIDIA_BASE_URL", NVIDIA_URL).rstrip("/")
 
 
 def _headers() -> dict:
+    if provider() == "ollama":
+        return {"Authorization": "Bearer ollama", "Accept": "application/json"}
     key = os.environ.get("NVIDIA_API_KEY", "").strip()
     if not key:
         raise LLMError("NVIDIA_API_KEY is not set: get a free key at build.nvidia.com and put it in .env")
@@ -80,9 +94,19 @@ def _timeout() -> float:
     return float(os.environ.get("LLM_TIMEOUT", "120"))
 
 
+def _quick_timeout() -> float:
+    """Guard checks wait 10 s for the hosted model; a local model on a CPU needs longer."""
+    return 45.0 if provider() == "ollama" else 10.0
+
+
 def _no_model() -> bool:
     """The hosted demo answers from recorded data unless an NVIDIA key is configured there."""
     return os.environ.get("PROVEIT_DEMO") == "1" and not os.environ.get("NVIDIA_API_KEY")
+
+
+def _no_think(text: str) -> str:
+    """Qwen3's switch for answering without a reasoning block (faster on a local CPU)."""
+    return text + " /no_think" if "qwen3" in model_name().lower() else text
 
 
 def _strip_reasoning(text: str) -> str:
@@ -154,16 +178,16 @@ def _post(body: dict, quick: bool = False) -> httpx.Response:
         try:
             with _limiter:
                 r = httpx.post(f"{base_url()}/chat/completions", json=body, headers=_headers(),
-                               timeout=10.0 if quick else _timeout())
+                               timeout=_quick_timeout() if quick else _timeout())
         except (httpx.TimeoutException, httpx.NetworkError) as e:
             _note("unreachable")
             if quick or retries >= 2:
-                raise LLMError(f"NVIDIA API unreachable: {e}") from e
+                raise LLMError(f"{provider()} model API unreachable: {e}") from e
             time.sleep(_backoff(retries, None))
             retries += 1
             continue
         except httpx.HTTPError as e:
-            raise LLMError(f"NVIDIA API unreachable: {e}") from e
+            raise LLMError(f"{provider()} model API unreachable: {e}") from e
         if r.status_code == 400:
             dropped = next((f for f in OPTIONAL_FIELDS if f in body), None)
             if dropped is None:
@@ -187,14 +211,14 @@ def _complete(system: str, user: str, schema: dict, num_predict: int, quick: boo
         "model": model_name(),
         "messages": [{"role": "system", "content": system + "\n\nReturn only a JSON object matching this JSON "
                       "schema, with no other text:\n" + json.dumps(schema)},
-                     {"role": "user", "content": user}],
+                     {"role": "user", "content": _no_think(user)}],
         "temperature": 0, "seed": 7, "max_tokens": max(num_predict, 256) * 2, "stream": False,
         "response_format": {"type": "json_schema", "json_schema": {"name": "output", "schema": schema}},
         "chat_template_kwargs": {"enable_thinking": False},
     }
     r = _post(body, quick)
     if r.status_code != 200:
-        raise LLMError(f"NVIDIA API returned {r.status_code}: {r.text[:200]}")
+        raise LLMError(f"{provider()} model API returned {r.status_code}: {r.text[:200]}")
     data = r.json()
     usage = data.get("usage") or {}
     content = data["choices"][0]["message"].get("content") or ""
@@ -282,6 +306,8 @@ def chat_stream(system: str, messages: list[dict], *, run_id: str | None = None,
         return
     if _no_model():
         raise LLMError("no model in the hosted demo")
+    if messages and messages[-1].get("role") == "user":
+        messages = messages[:-1] + [{**messages[-1], "content": _no_think(messages[-1]["content"])}]
     body = {"model": model_name(), "messages": [{"role": "system", "content": system}] + messages,
             "stream": True, "temperature": 0.3, "max_tokens": num_predict * 3,
             "stream_options": {"include_usage": True}, "chat_template_kwargs": {"enable_thinking": False}}
@@ -324,7 +350,7 @@ def chat_stream(system: str, messages: list[dict], *, run_id: str | None = None,
                             yield chunk
                 return
     except httpx.HTTPError as e:
-        raise LLMError(f"NVIDIA API unreachable: {e}") from e
+        raise LLMError(f"{provider()} model API unreachable: {e}") from e
     finally:
         _add_usage(run_id, tin, tout, time.time() - t0)
 
@@ -351,8 +377,23 @@ def status() -> dict:
         return {"state": "ready", "model": model_name()}
     if _no_model():
         return {"state": "not attached in this demo", "model": model_name()}
+    if provider() == "ollama":
+        return _ollama_status()
     if not os.environ.get("NVIDIA_API_KEY"):
         return {"state": "missing NVIDIA_API_KEY", "model": model_name(), "provider": "nvidia"}
     # Based on the most recent real call (no extra requests): busy or unreachable for 90 s after a failure.
     state = _health["state"] if time.time() - _health["at"] < 90 else "ready"
     return {"state": state, "model": model_name(), "provider": "NVIDIA build (hosted, free tier)"}
+
+
+def _ollama_status() -> dict:
+    """Local model: ready once Ollama answers and the model has finished downloading."""
+    base = {"model": model_name(), "provider": "Ollama (local, open weights)"}
+    try:
+        r = httpx.get(os.environ.get("OLLAMA_URL", OLLAMA_URL).rstrip("/") + "/api/tags", timeout=2)
+        names = {m.get("name", "") for m in r.json().get("models", [])}
+    except (httpx.HTTPError, ValueError):
+        return {"state": "unreachable", **base}
+    want = model_name()
+    have = want in names or f"{want}:latest" in names
+    return {"state": "ready" if have else "downloading the local model", **base}

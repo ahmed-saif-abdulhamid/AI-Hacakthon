@@ -1,9 +1,30 @@
 # One-command setup: docker compose up  ->  open http://localhost:8000 (the ProveIt console).
 # A developer view (Streamlit) is also served on http://localhost:8501.
-# Works without any key: the committed runs load on first start. To test new ideas, set NVIDIA_API_KEY
-# in .env (free key from build.nvidia.com; docker compose reads .env itself).
+# Works on any computer with no key and no account: the AI model is an open-weight model (qwen3:8b)
+# served by Ollama in its own container and downloaded into a volume on first start (about 5 GB, once).
+# The committed runs load immediately, so the console is usable while the model downloads.
+# Optional: LLM_PROVIDER=nvidia plus NVIDIA_API_KEY in .env uses NVIDIA's hosted free tier instead.
 # Ports are bound to 127.0.0.1 only, so nobody on the local network can press Approve.
 services:
+  ollama:
+    image: ollama/ollama:0.40.10
+    volumes: ["ollama-models:/root/.ollama"]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  model:
+    # One-shot: downloads the local model into the shared volume, then exits. Skipped when already present.
+    image: ollama/ollama:0.40.10
+    environment:
+      OLLAMA_HOST: "http://ollama:11434"
+    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-qwen3:8b}"]
+    depends_on:
+      ollama: { condition: service_healthy }
+    restart: "no"
+
   searxng:
     image: searxng/searxng:2026.10.29-c15647b5a
     environment:
@@ -23,11 +44,14 @@ services:
       SECRET_KEY: "${SECRET_KEY:-}"
       GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
       SE_KEY: "${SE_KEY:-}"
-      # The model is NVIDIA Nemotron (open weights) on NVIDIA's free hosted tier.
+      # Local open-weight model by default; set LLM_PROVIDER=nvidia and NVIDIA_API_KEY for the hosted tier.
+      LLM_PROVIDER: "${LLM_PROVIDER:-ollama}"
+      OLLAMA_URL: "http://ollama:11434"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-qwen3:8b}"
       NVIDIA_API_KEY: "${NVIDIA_API_KEY:-}"
       NVIDIA_MODEL: "${NVIDIA_MODEL:-nvidia/nemotron-3-ultra-550b-a55b}"
       NVIDIA_BASE_URL: "${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}"
-      LLM_TIMEOUT: "${LLM_TIMEOUT:-120}"
+      LLM_TIMEOUT: "${LLM_TIMEOUT:-600}"   # a local model on a CPU can take minutes per call
       LLM_RPM: "${LLM_RPM:-30}"
       ASSISTANT_NAME: "${ASSISTANT_NAME:-J.A.R.V.I.S.}"
       WAKE_WORD: "${WAKE_WORD:-Jarvis}"
@@ -37,6 +61,7 @@ services:
     ports: ["127.0.0.1:8000:8000"]
     depends_on:
       searxng: { condition: service_started }
+      ollama: { condition: service_healthy }
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/model', timeout=3)"]
       interval: 10s
@@ -55,4 +80,4 @@ services:
     depends_on:
       api: { condition: service_healthy }
 
-volumes: { proveit-data: {} }
+volumes: { proveit-data: {}, ollama-models: {} }

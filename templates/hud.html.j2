@@ -173,7 +173,7 @@
         <select id="runmode"><option value="live">One angle (about a minute)</option><option value="full">Three angles (a few minutes)</option></select></label>
     </details>
     <div class="dlgfoot">
-      <small>Your idea is sent to NVIDIA's hosted AI model, and searches go to public forums. Free.</small>
+      <small>With Docker your idea stays on this computer (a local open-weight model); searches go to public forums. Free.</small>
       <div style="display:flex;gap:8px"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary" id="startbtn">Start</button></div>
     </div>
   </form>
@@ -184,7 +184,7 @@
     <button class="x" type="button" data-close aria-label="Close">×</button>
     <h2 id="priv-h">Where your information goes</h2>
     <ul>
-      <li><b>Your idea and your questions</b> are sent to NVIDIA's hosted AI model (build.nvidia.com) to write search queries and answers.</li>
+      <li><b>Your idea and your questions</b> go to the AI model that writes search queries and answers: by default a local open-weight model on this computer (Ollama), or NVIDIA's hosted free tier if you set an NVIDIA key.</li>
       <li><b>Searches</b> derived from your idea go to Hacker News, Stack Exchange, GitHub and Wikipedia. Don't put confidential details in an idea.</li>
       <li><b>Runs, quotes and decisions</b> are stored on this computer (the <code>runs/</code> and <code>data/</code> folders), not in any cloud.</li>
       <li><b>Spoken replies</b> use Piper, which runs on this computer. If it isn't installed, your browser's own voice is used.</li>

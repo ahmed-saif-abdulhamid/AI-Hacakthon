@@ -120,7 +120,7 @@ async function loadPreset(name) {
   catch (e) { showAnswer("I couldn't load that example: " + e.message, "err"); }
 }
 function openNew() {
-  if (DEMO) { showAnswer("This online demo only shows saved results. To test your own idea, run ProveIt on your own computer: clone the repository, add a free NVIDIA key and run docker compose up.", "plain"); return; }
+  if (DEMO) { showAnswer("This online demo only shows saved results. To test your own idea, run ProveIt on your own computer: clone the repository and run docker compose up (a local AI model downloads on first start).", "plain"); return; }
   openDialog("newdlg"); setTimeout(() => $("f-idea").focus(), 30);
 }
 async function startRun(ev) {
@@ -222,7 +222,7 @@ async function sysStatus() {
     const m = await api("/api/model");
     const st = m.state || "unknown"; const dot = $("modelDot");
     const words = {ready: "AI model ready", busy: "AI model busy, retrying", unreachable: "AI model not answering",
-      "missing NVIDIA_API_KEY": "Add your NVIDIA key", "not attached in this demo": "Saved results only (demo)"}[st] || ("AI model: " + st);
+      "missing NVIDIA_API_KEY": "Add your NVIDIA key", "downloading the local model": "Downloading the local AI model", "not attached in this demo": "Saved results only (demo)"}[st] || ("AI model: " + st);
     $("modelState").textContent = words;
     $("modelState").title = m.model || "";
     dot.className = "status-dot " + (st === "ready" ? "ok" : (st === "busy" || st.startsWith("not attached") ? "warn" : "bad"));

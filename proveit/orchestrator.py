@@ -200,13 +200,14 @@ def friendly_error(raw: str) -> str:
     """Plain words for a founder; the raw text stays in the run state and the log."""
     r = raw.lower()
     if "429" in r or "rate" in r:
-        return ("NVIDIA's free service is busy right now, so I paused. Your run is saved: press Try again in "
+        return ("The AI service is busy right now, so I paused. Your run is saved: press Try again in "
                 "a few seconds and I'll pick up where I stopped.")
     if "api_key" in r or "401" in r or "403" in r:
-        return "The NVIDIA key is missing or not accepted. Add a valid NVIDIA_API_KEY to .env, then press Try again."
+        return ("The NVIDIA key is missing or not accepted. Add a valid NVIDIA_API_KEY to .env, or set "
+                "LLM_PROVIDER=ollama to use the local model, then press Try again.")
     if "unreachable" in r or "timed out" in r or "timeout" in r or "connect" in r:
-        return ("I couldn't reach NVIDIA's AI service. Check the internet connection, then press Try again; "
-                "your run is saved.")
+        return ("I couldn't reach the AI model. With Docker the local model may still be downloading; "
+                "otherwise check the connection. Then press Try again; your run is saved.")
     if "invalid json" in r:
         return "The AI gave an answer I couldn't use. Press Try again and I'll ask it once more."
     return "The AI service returned an error. Your run is saved; press Try again to pick up where it stopped."

@@ -42,6 +42,7 @@ def test_nvidia_provider_sends_schema_and_parses_json(monkeypatch):
 
 
 def test_nvidia_without_key_fails_clearly(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "nvidia")
     monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
     with pytest.raises(llm.LLMError, match="NVIDIA_API_KEY"):
         llm.chat_json(Out, "s", "u")
@@ -62,5 +63,20 @@ def test_option_rejected_with_400_is_dropped_and_retried(monkeypatch):
     assert out.answer == "fine" and len(calls) == 2 and "response_format" in calls[1]
 
 
-def test_no_local_model_is_used():
+def test_provider_defaults_to_the_local_model_without_a_key(monkeypatch):
+    monkeypatch.delenv("LLM_PROVIDER", raising=False)
+    monkeypatch.delenv("NVIDIA_API_KEY", raising=False)
+    assert llm.provider() == "ollama" and llm.base_url() == "http://localhost:11434/v1"
+    assert llm.model_name() == llm.OLLAMA_MODEL and "Authorization" in llm._headers()
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-key-not-real")
     assert llm.provider() == "nvidia" and llm.base_url().startswith("https://integrate.api.nvidia.com")
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
+    assert llm.provider() == "ollama"
+
+
+def test_qwen3_is_asked_to_answer_without_a_reasoning_block(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "ollama")
+    monkeypatch.setenv("OLLAMA_MODEL", "qwen3:8b")
+    assert llm._no_think("hello").endswith("/no_think")
+    monkeypatch.setenv("OLLAMA_MODEL", "llama3.2")
+    assert llm._no_think("hello") == "hello"
