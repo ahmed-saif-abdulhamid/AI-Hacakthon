@@ -79,10 +79,20 @@ def coverage(calls: list[SourceCall], hits_by_call: dict[int, list], variant: Va
     return round(sum(r["covered"] for r in rows) / len(rows), 2), rows
 
 
+def _one_per_comment(claims: list) -> list:
+    """Several sentences from the same comment are one person's complaint: count it once (highest weight)."""
+    best: dict = {}
+    for c in claims:
+        key = c.hit_id or c.url or c.id
+        if key not in best or c.weight > best[key].weight:
+            best[key] = c
+    return list(best.values())
+
+
 def compute_metrics(claims: list[Claim], brief: FounderBrief, cov: float, th: dict) -> dict:
     g = th["gate1_evidence"]
     counted = [c for c in claims if c.weight > 0]
-    pain = [c for c in counted if c.kind == "pain"]
+    pain = _one_per_comment([c for c in counted if c.kind == "pain"])
     recent = [c for c in pain if is_recent(c, g["max_age_months"])]
     fit, fit_parts = founder_fit(brief)
     return {
@@ -96,6 +106,7 @@ def compute_metrics(claims: list[Claim], brief: FounderBrief, cov: float, th: di
         "founder_fit_parts": fit_parts,
         "coverage": cov,
         "claims_total": len(claims),
+        "claims_on_topic": sum(1 for c in claims if c.on_topic),
         "claims_verified_live": sum(1 for c in claims if c.status == "verified_live"),
         "claims_archived": sum(1 for c in claims if c.status == "archived_match"),
         "claims_unverified": sum(1 for c in claims if c.status == "unverified"),

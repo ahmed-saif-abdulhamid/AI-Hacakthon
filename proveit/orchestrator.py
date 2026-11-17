@@ -265,7 +265,7 @@ def gather(run: Run, variant: Variant, caps: dict, limits: dict, broaden: bool =
     from concurrent.futures import ThreadPoolExecutor
     with ThreadPoolExecutor(max_workers=8) as ex:
         results = list(ex.map(lambda j: j[0].search(j[1], **j[2]), jobs))
-    wiki = wikipedia.context(variant.segment, variant.language)
+    wiki = wikipedia.context(variant.segment, variant.language, topic=verifier.topic_keywords(variant))
     hits, calls, by_call, seen = [], [], {}, set()
     for i, (hs, call) in enumerate(results):
         calls.append(call)
@@ -515,7 +515,17 @@ def interview_kit_md(run: Run, variant: Variant, dec: GateDecision) -> str:
     lines = ["# Phase 1, step 4: Mom Test interview kit", "",
              f"For: {seg}. Questions are about past behaviour only (no hypotheticals, no pitching).", "",
              "## Questions", ""] + [f"{i}. {q}" for i, q in enumerate(qs, start=1)]
-    lines += ["", "## Notes template", "", "| Interviewee profile | Date | Last time it happened | Workaround used | "
+    lines += ["", "## Who to talk to (screener)", "",
+              f"- They are one of: {seg}.",
+              f"- They had to {job.lower().rstrip('.')} at least once in the past three months.",
+              "- They are not a friend or family member (polite answers are not evidence).", "",
+              "## How to decide after five conversations", "",
+              "- **Strong signal:** 3 or more of 5 describe a recent, specific time it went wrong AND already spend "
+              "money or real time on a workaround. Carry on to the waiting-list test.",
+              "- **Weak signal:** 1-2 of 5 do. Try another angle (a different segment or job).",
+              "- **No signal:** nobody can name a recent instance. Stop here; it saved you the build.",
+              "- Ask about the past only. Compliments and \"I would buy that\" don't count.", ""]
+    lines += ["## Notes template", "", "| Interviewee profile | Date | Last time it happened | Workaround used | "
               "Money/time spent | Strong signal? |", "|---|---|---|---|---|---|", "| | | | | | |", ""]
     if dec.outcome == "repeat" and dec.reason == "insufficient_evidence" or dec.next_step == "mom_test_interviews":
         market = run.brief.target_market if "unspecified" not in run.brief.target_market else "your target region"

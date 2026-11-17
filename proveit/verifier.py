@@ -5,8 +5,9 @@ Statuses and weights:
   verified_live   quote found on the live public page               1.0
   archived_match  verbatim from the API record, not confirmed live  0.5 (HN / SE / GitHub), 0 (web)
   unverified      quote could not be built                          0   (label ASSUMPTION)
-A claim keeps its weight only if code confirms it is on topic (>= 2 shared stemmed keywords
-with the variant's segment + job) and, for pain / wtp / price claims, contains a matching cue.
+A claim keeps its weight only if code confirms it is on topic (at least two specific stemmed
+keywords shared with the variant's segment + job, at least one about the job, generic business
+words excluded) and, for pain / wtp / price claims, contains a matching cue.
 """
 from __future__ import annotations
 
@@ -40,8 +41,31 @@ def match_cue(kind: str, text: str) -> str | None:
     return m.group(0) if m else None
 
 
-def topic_keywords(variant: Variant) -> set[str]:
-    return keywords(f"{variant.segment} {variant.job_to_be_done}")
+# Words that appear in almost any business text: they must not make a comment "on topic" by themselves.
+GENERIC = keywords(
+    "small new client clients customer customers business businesses people person user users team teams "
+    "company companies owner owners form forms track tracking record records online simple easy tool tools "
+    "app apps software digital template templates kit pack guide guides checklist checklists work working "
+    "time day week month year help manage management process system service services product products "
+    "free first need needs want get make use using local independent professional professionals "
+    "freelance freelancer freelancers us uk usa world")
+
+
+class Topic(set):
+    """The variant's keywords, split into who (segment) and what (job to be done)."""
+    def __init__(self, segment: set[str], job: set[str]):
+        super().__init__(segment | job)
+        self.segment, self.job = segment, job
+
+
+def topic_keywords(variant: Variant) -> Topic:
+    seg = keywords(variant.segment) - GENERIC
+    job = keywords(variant.job_to_be_done) - GENERIC
+    if not seg:                                 # a segment made only of generic words: fall back to its words
+        seg = keywords(variant.segment)
+    if not job:
+        job = keywords(variant.job_to_be_done)
+    return Topic(seg, job)
 
 
 def overlap(text: str, topic: set[str]) -> list[str]:
@@ -49,7 +73,13 @@ def overlap(text: str, topic: set[str]) -> list[str]:
 
 
 def is_on_topic(text: str, topic: set[str], need: int = 2) -> bool:
-    return len(keywords(text) & topic) >= need
+    """On topic = at least ``need`` specific (non-generic) topic words, at least one of them about the
+    job to be done, so a comment that only shares words like "small", "clients" or "forms" never counts."""
+    words = keywords(text)
+    if isinstance(topic, Topic):
+        shared = words & topic
+        return len(shared) >= need and bool(shared & topic.job)
+    return len(words & topic) >= need
 
 
 def contiguous_run(ids: list[int]) -> list[int]:
@@ -153,7 +183,7 @@ def apply_relevance(claims: list[Claim], variant: Variant, max_age_months: int =
         # On topic: the quote read together with its thread title (a single sentence rarely repeats
         # the segment's words). The pain / payment cue must still be in the quote itself.
         c.keyword_overlap = overlap(c.quote + " " + c.hit_title, topic)
-        c.on_topic = len(c.keyword_overlap) >= 2
+        c.on_topic = is_on_topic(c.quote + " " + c.hit_title, topic)
         base = 1.0 if c.status == "verified_live" else ARCHIVE_WEIGHT.get(c.source, 0.0) \
             if c.status == "archived_match" else 0.0
         c.label = "SOURCED"
