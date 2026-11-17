@@ -138,6 +138,14 @@ def _backoff(attempt: int, r: httpx.Response | None) -> float:
     return min(20.0, 3.0 * 2 ** attempt)
 
 
+_health = {"state": "ready", "at": 0.0}
+
+
+def _note(state: str) -> None:
+    """Remember how the last real call went, so the console can say "busy" or "not answering" honestly."""
+    _health.update(state=state, at=time.time())
+
+
 def _post(body: dict) -> httpx.Response:
     r = None
     retries = 0
@@ -146,6 +154,7 @@ def _post(body: dict) -> httpx.Response:
             with _limiter:
                 r = httpx.post(f"{base_url()}/chat/completions", json=body, headers=_headers(), timeout=_timeout())
         except (httpx.TimeoutException, httpx.NetworkError) as e:
+            _note("unreachable")
             if retries >= 2:
                 raise LLMError(f"NVIDIA API unreachable: {e}") from e
             time.sleep(_backoff(retries, None))
@@ -160,9 +169,11 @@ def _post(body: dict) -> httpx.Response:
             body.pop(dropped)
             continue
         if r.status_code in RETRY_STATUSES and retries < 5:   # free-tier rate limit or a transient error
+            _note("busy" if r.status_code == 429 else "unreachable")
             time.sleep(_backoff(retries, r))
             retries += 1
             continue
+        _note("ready" if r.status_code == 200 else ("busy" if r.status_code == 429 else "unreachable"))
         return r
     return r
 
@@ -340,4 +351,6 @@ def status() -> dict:
         return {"state": "not attached in this demo", "model": model_name()}
     if not os.environ.get("NVIDIA_API_KEY"):
         return {"state": "missing NVIDIA_API_KEY", "model": model_name(), "provider": "nvidia"}
-    return {"state": "ready", "model": model_name(), "provider": "NVIDIA build (hosted, free tier)"}
+    # Based on the most recent real call (no extra requests): busy or unreachable for 90 s after a failure.
+    state = _health["state"] if time.time() - _health["at"] < 90 else "ready"
+    return {"state": state, "model": model_name(), "provider": "NVIDIA build (hosted, free tier)"}
