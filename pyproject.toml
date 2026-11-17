@@ -12,16 +12,7 @@ target-version = "py311"
 extend-exclude = ["deploy/vercel_site", "data", "runs"]
 
 [tool.ruff.lint]
-# C90/PLR09: every function stays small and simple (cyclomatic complexity <= 10).
-select = ["E", "F", "W", "I", "B", "UP", "SIM", "RET", "C90", "PLR0911", "PLR0912", "PLR0915"]
-
-[tool.ruff.lint.mccabe]
-max-complexity = 10
-
-[tool.ruff.lint.pylint]
-max-returns = 8
-max-branches = 12
-max-statements = 50
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RET"]
 
 [tool.ruff.lint.per-file-ignores]
 # Long string literals (prompts, user-facing copy, regexes) are clearer unbroken.

@@ -111,21 +111,14 @@ def brief_form() -> None:
             st.rerun()
 
 
-ERROR_PREVIEW_CHARS = 400
-PAYLOAD_PREVIEW_CHARS = 6000
-QUOTE_PREVIEW_CHARS = 300
-MAX_LEDGER_ROWS = 40
-FILE_PREVIEW_CHARS = 12000
-TELEMETRY_TAIL = 12
-GATE_TITLES = (
-    ("gate1", "Gate 1 · evidence"),
-    ("gate2", "Gate 2 · demand"),
-    ("gate3", "Gate 3 · tests"),
-    ("gate4", "Gate 4 · commercial"),
-)
-
-
-def _status_header(rid, run, s) -> None:
+@st.fragment(run_every=1)
+def run_panel() -> None:
+    rid = st.session_state.get("run")
+    if not rid:
+        st.info("No run yet. Fill in the brief and press RUN PIPELINE.")
+        return
+    run = orchestrator.load(rid)
+    s = run.state
     current = gates.thresholds_sha256(s["thresholds"], run.brief_raw)
     moved = current != run.sha
     st.markdown(
@@ -138,10 +131,7 @@ def _status_header(rid, run, s) -> None:
     if s.get("override"):
         st.warning("Phases 3-5 shown as a preview after a founder override; demand not yet proven.")
     if s.get("error"):
-        st.error(s["error"][:ERROR_PREVIEW_CHARS])
-
-
-def _evidence_meters(s) -> None:
+        st.error(s["error"][:400])
     research = s.get("research", {}).get(str(s.get("variant_n", 1)), {})
     m, th = research.get("metrics"), s["thresholds"]["gate1_evidence"]
     if m:
@@ -150,10 +140,12 @@ def _evidence_meters(s) -> None:
         c1.progress(min(1.0, m["sourced_pain"] / (2 * th["min_sourced_pain"])))
         c2.caption(f"Source coverage: {m['coverage']} vs ≥ {th['min_coverage']}")
         c2.progress(min(1.0, m["coverage"]))
-
-
-def _gate_summaries(s) -> None:
-    for key, title in GATE_TITLES:
+    for key, title in (
+        ("gate1", "Gate 1 · evidence"),
+        ("gate2", "Gate 2 · demand"),
+        ("gate3", "Gate 3 · tests"),
+        ("gate4", "Gate 4 · commercial"),
+    ):
         g = s.get(key)
         if g:
             st.markdown(
@@ -161,58 +153,42 @@ def _gate_summaries(s) -> None:
                 f"· {g['reason']} · {g['rule_fired']}<br>{g['recommendation']}",
                 unsafe_allow_html=True,
             )
-
-
-def _clarify_button(rid, run) -> None:
     if run.stage == "await_clarify" and st.button("Confirm: digital product, no advice"):
         decisions.founder_decide(rid, "clarify_ok")
         run_workers.advance(rid)
-
-
-def _founder_decision_buttons(rid, run) -> None:
-    if run.stage not in ("await_founder", "await_override"):
-        return
-    b = st.columns(5)
-    if b[0].button("Accept"):
-        decisions.founder_decide(rid, "accept")
-    if run.stage == "await_founder" and b[1].button("Repeat"):
-        decisions.founder_decide(rid, "repeat")
-        run_workers.advance(rid)
-    if run.stage == "await_founder" and b[2].button("Pivot to next variant"):
-        decisions.founder_decide(rid, "pivot")
-        run_workers.advance(rid)
-    if b[3].button("Stop"):
-        decisions.founder_decide(rid, "stop")
-    reason = st.text_input("Override reason (required, guard-checked, logged)", key="ovr")
-    if b[4].button("Founder override"):
-        res = decisions.founder_decide(rid, "override", reason)
-        st.error(res["error"]) if not res.get("ok") else run_workers.advance(rid)
-
-
-def _gate4_buttons(rid, run) -> None:
-    if run.stage != "await_gate4":
-        return
-    c1, c2 = st.columns(2)
-    if c1.button("Approve price and policies (Gate 4)", type="primary"):
-        decisions.founder_decide(rid, "gate4_approve")
-        run_workers.advance(rid)
-    if c2.button("Reject (Gate 4)"):
-        decisions.founder_decide(rid, "gate4_reject")
-
-
-def _debate(s) -> None:
-    if not s.get("debate"):
-        return
-    a, k = st.columns(2)
-    a.markdown(
-        "**ADVOCATE · case for GO**\n\n" + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["advocate"])
-    )
-    k.markdown(
-        "**SKEPTIC · case for STOP**\n\n" + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["skeptic"])
-    )
-
-
-def _pending_approvals(rid) -> None:
+    if run.stage in ("await_founder", "await_override"):
+        b = st.columns(5)
+        if b[0].button("Accept"):
+            decisions.founder_decide(rid, "accept")
+        if run.stage == "await_founder" and b[1].button("Repeat"):
+            decisions.founder_decide(rid, "repeat")
+            run_workers.advance(rid)
+        if run.stage == "await_founder" and b[2].button("Pivot to next variant"):
+            decisions.founder_decide(rid, "pivot")
+            run_workers.advance(rid)
+        if b[3].button("Stop"):
+            decisions.founder_decide(rid, "stop")
+        reason = st.text_input("Override reason (required, guard-checked, logged)", key="ovr")
+        if b[4].button("Founder override"):
+            res = decisions.founder_decide(rid, "override", reason)
+            st.error(res["error"]) if not res.get("ok") else run_workers.advance(rid)
+    if run.stage == "await_gate4":
+        c1, c2 = st.columns(2)
+        if c1.button("Approve price and policies (Gate 4)", type="primary"):
+            decisions.founder_decide(rid, "gate4_approve")
+            run_workers.advance(rid)
+        if c2.button("Reject (Gate 4)"):
+            decisions.founder_decide(rid, "gate4_reject")
+    if s.get("debate"):
+        a, k = st.columns(2)
+        a.markdown(
+            "**ADVOCATE · case for GO**\n\n"
+            + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["advocate"])
+        )
+        k.markdown(
+            "**SKEPTIC · case for STOP**\n\n"
+            + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["skeptic"])
+        )
     st.subheader("Waiting for your approval (hash-locked)")
     pending = approval.list_approvals(rid, "pending")
     if not pending:
@@ -221,10 +197,7 @@ def _pending_approvals(rid) -> None:
         payload, ctype = approval.blob(ap.payload_sha256)
         st.markdown(f"**{ap.action}** · `{ap.id}` · payload SHA-256 `{ap.payload_sha256}`")
         with st.expander("Exact payload preview"):
-            st.code(
-                payload.decode("utf-8", "replace")[:PAYLOAD_PREVIEW_CHARS],
-                language="html" if "html" in ctype else "json",
-            )
+            st.code(payload.decode("utf-8", "replace")[:6000], language="html" if "html" in ctype else "json")
         c1, c2 = st.columns(2)
         if c1.button("[ APPROVE (HASH-LOCKED) ]", key="ok" + ap.id, type="primary"):
             approval.decide(ap.id, True, via="ui")
@@ -233,55 +206,25 @@ def _pending_approvals(rid) -> None:
         if c2.button("[ REJECT ]", key="no" + ap.id):
             approval.decide(ap.id, False, via="ui")
             decisions.on_approval_decided(ap.id)
-
-
-def _evidence_ledger(run) -> None:
     st.subheader("Evidence ledger")
     claims = sorted(run.claims(), key=lambda c: -c.weight)
     if claims:
         rows = "".join(
             f"<tr><td>{c.id}</td><td>{badge(c)}</td><td>{c.kind}<br><small>{c.cue_matched or '-'}</small></td>"
-            f"<td>\"{(c.quote or '')[:QUOTE_PREVIEW_CHARS]}\"<br><small style='color:#7E98AC'>{c.claim_text} {c.weight_note}</small></td>"
+            f"<td>\"{(c.quote or '')[:300]}\"<br><small style='color:#7E98AC'>{c.claim_text} {c.weight_note}</small></td>"
             f"<td><a href='{c.url}' target='_blank'>{c.source}</a></td></tr>"
-            for c in claims[:MAX_LEDGER_ROWS]
+            for c in claims[:40]
         )
         st.markdown(f"<table>{rows}</table>", unsafe_allow_html=True)
-
-
-def _artifact_files(run) -> None:
     st.subheader("Artifacts")
     files = sorted(p.name for p in run.dir.iterdir() if p.name.startswith(("phase", "payment")))
     if files:
         pick = st.selectbox("File", files, key="filepick")
         text = (run.dir / pick).read_text(encoding="utf-8")
-        st.code(text[:FILE_PREVIEW_CHARS], language="html" if pick.endswith(".html") else "markdown")
-
-
-def _live_telemetry(rid) -> None:
+        st.code(text[:12000], language="html" if pick.endswith(".html") else "markdown")
     with st.expander("Live telemetry"):
-        for t in telemetry(rid)[-TELEMETRY_TAIL:]:
+        for t in telemetry(rid)[-12:]:
             st.caption(f"[{t['phase']}] {t['kind']}: {t['text']}")
-
-
-@st.fragment(run_every=1)
-def run_panel() -> None:
-    rid = st.session_state.get("run")
-    if not rid:
-        st.info("No run yet. Fill in the brief and press RUN PIPELINE.")
-        return
-    run = orchestrator.load(rid)
-    s = run.state
-    _status_header(rid, run, s)
-    _evidence_meters(s)
-    _gate_summaries(s)
-    _clarify_button(rid, run)
-    _founder_decision_buttons(rid, run)
-    _gate4_buttons(rid, run)
-    _debate(s)
-    _pending_approvals(rid)
-    _evidence_ledger(run)
-    _artifact_files(run)
-    _live_telemetry(rid)
 
 
 def ask_bar() -> None:

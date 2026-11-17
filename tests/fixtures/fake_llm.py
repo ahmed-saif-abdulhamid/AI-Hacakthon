@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable
 
 PAIN = re.compile(r"tedious|waste|nightmare|hate|manual|frustrat|wish", re.I)
 WTP = re.compile(r"paid|\$\d", re.I)
@@ -79,124 +78,123 @@ def _statements(user: str, n: int = 2) -> list[dict]:
     return sts[:3]
 
 
-CANVAS_CELLS = (
-    "problem",
-    "customer_segments",
-    "unique_value_proposition",
-    "solution",
-    "channels",
-    "revenue_streams",
-    "cost_structure",
-    "key_metrics",
-    "unfair_advantage",
-)
-INTAKE = {
-    "idea": "test idea",
-    "skills": "ASSUMPTION: unspecified",
-    "budget": "ASSUMPTION: unspecified",
-    "hours_per_week": "ASSUMPTION: unspecified",
-    "target_market": "ASSUMPTION: unspecified",
-    "values": "ASSUMPTION: unspecified",
-    "language": "en",
-}
-LANDING = {
-    "headline": "Onboard clients without the chaos",
-    "subheadline": "Checklists and templates for your next client.",
-    "benefits": [
-        "An intake questionnaire you can copy",
-        "A content-collection checklist",
-        "A kickoff template",
-    ],
-    "faq": [{"q": "What format is it?", "a": "Markdown and CSV files."}],
-}
-SPEC = {
-    "title": "Client Onboarding Toolkit",
-    "audience": "Freelance web designers.",
-    "modules": [
-        {"name": "Intake", "purpose": "Collect project details"},
-        {"name": "Content", "purpose": "Collect content"},
-    ],
-    "not_included": ["Legal contracts", "Payment processing", "Project management software"],
-}
-MODULE = {
-    "title": "Client intake",
-    "intro": "Use this checklist for each new client. It keeps the first week organised and calm for you and the client.",
-    "steps": [
-        "Send the welcome email",
-        "Share the intake questionnaire",
-        "Schedule the kickoff call",
-        "Collect logins securely",
-        "Confirm the content deadline",
-        "Create the project folder",
-        "Review the brief with the client",
-        "Record decisions in the tracker",
-    ],
-    "template_columns": ["Client", "Item", "Owner", "Due", "Status"],
-    "template_rows": [["Client name", "Logo files", "Client", "Day 3", "Open"]],
-}
-POLICIES = {
-    "terms": ["You may use the files in your own client work.", "You may not resell the files."],
-    "privacy": ["We store your email and a timestamp.", "We never store card numbers."],
-    "refunds": ["Ask for a refund within 14 days by email.", "The founder reviews every refund."],
-}
-STORE = {
-    "product_name": "Client Onboarding Toolkit",
-    "tagline": "Checklists and templates for new clients",
-    "description": "A set of checklists and templates for onboarding web design clients.",
-    "includes": ["Intake questionnaire", "Content checklist"],
-    "who_it_is_for": "Freelance web designers.",
-    "who_it_is_not_for": "Large agencies with a project management team.",
-}
-POST = {
-    "title": "I built a client onboarding toolkit",
-    "body": "I made the checklists I use with my own clients into a toolkit. Feedback welcome.",
-}
-ASSISTANT_ANSWER = (
-    "Gate 1 stopped this run. The weighted pain signals were below the threshold. Ask me about the quotes."
-)
-
-
-def _canvas(user: str) -> dict:
-    cell = _statements(user, 1)[:1]
-    data = {k: cell for k in CANVAS_CELLS}
-    data["channels"] = [{"text": "Share the toolkit in freelance design communities.", "claim_ids": []}]
-    data["riskiest_assumption"] = {
-        "text": "Designers will pay for a toolkit instead of free templates.",
-        "claim_ids": [],
-    }
-    data["experiment"] = {"text": "Run a waitlist landing page for 14 days.", "claim_ids": []}
-    return data
-
-
-# Agents that answer differently per prompt mode ("MODE: canvas" in the user prompt -> "strategist:canvas").
-AGENT_MODES = {"strategist": "canvas", "builder": "spec", "launcher": "store"}
-REPLIES: dict[str, Callable[[str], dict]] = {
-    "guard": lambda user: {"violates": False, "rule": "none"},
-    "intake": lambda user: INTAKE,
-    "scout": lambda user: {"variants": _variants(user)},
-    "researcher": _researcher,
-    "advocate": lambda user: {"statements": _statements(user)},
-    "skeptic": lambda user: {"statements": _statements(user)},
-    "strategist:canvas": _canvas,
-    "strategist": lambda user: LANDING,
-    "builder:spec": lambda user: SPEC,
-    "builder": lambda user: MODULE,
-    "pricer": lambda user: {"rationale": [{"text": "Prices sit near the verified price points.", "claim_ids": []}]},
-    "policy_drafter": lambda user: POLICIES,
-    "launcher:store": lambda user: STORE,
-    "launcher": lambda user: POST,
-}
-
-
-def _route(agent: str, user: str) -> str:
-    mode = AGENT_MODES.get(agent)
-    return f"{agent}:{mode}" if mode and f"MODE: {mode}" in user else agent
-
-
 def backend(system: str, user: str, schema: dict, agent: str) -> str:
+    if agent == "guard":
+        return json.dumps({"violates": False, "rule": "none"})
+    if agent == "intake":
+        return json.dumps(
+            {
+                "idea": "test idea",
+                "skills": "ASSUMPTION: unspecified",
+                "budget": "ASSUMPTION: unspecified",
+                "hours_per_week": "ASSUMPTION: unspecified",
+                "target_market": "ASSUMPTION: unspecified",
+                "values": "ASSUMPTION: unspecified",
+                "language": "en",
+            }
+        )
+    if agent == "scout":
+        return json.dumps({"variants": _variants(user)})
+    if agent == "researcher":
+        return json.dumps(_researcher(user))
+    if agent in ("advocate", "skeptic"):
+        return json.dumps({"statements": _statements(user)})
+    if agent == "strategist" and "MODE: canvas" in user:
+        sts = _statements(user, 1)
+        cell = sts[:1]
+        data = {
+            k: cell
+            for k in (
+                "problem",
+                "customer_segments",
+                "unique_value_proposition",
+                "solution",
+                "channels",
+                "revenue_streams",
+                "cost_structure",
+                "key_metrics",
+                "unfair_advantage",
+            )
+        }
+        data["channels"] = [{"text": "Share the toolkit in freelance design communities.", "claim_ids": []}]
+        data["riskiest_assumption"] = {
+            "text": "Designers will pay for a toolkit instead of free templates.",
+            "claim_ids": [],
+        }
+        data["experiment"] = {"text": "Run a waitlist landing page for 14 days.", "claim_ids": []}
+        return json.dumps(data)
+    if agent == "strategist":
+        return json.dumps(
+            {
+                "headline": "Onboard clients without the chaos",
+                "subheadline": "Checklists and templates for your next client.",
+                "benefits": [
+                    "An intake questionnaire you can copy",
+                    "A content-collection checklist",
+                    "A kickoff template",
+                ],
+                "faq": [{"q": "What format is it?", "a": "Markdown and CSV files."}],
+            }
+        )
+    if agent == "builder" and "MODE: spec" in user:
+        return json.dumps(
+            {
+                "title": "Client Onboarding Toolkit",
+                "audience": "Freelance web designers.",
+                "modules": [
+                    {"name": "Intake", "purpose": "Collect project details"},
+                    {"name": "Content", "purpose": "Collect content"},
+                ],
+                "not_included": ["Legal contracts", "Payment processing", "Project management software"],
+            }
+        )
+    if agent == "builder":
+        return json.dumps(
+            {
+                "title": "Client intake",
+                "intro": "Use this checklist for each new client. It keeps the first week organised and calm for you and the client.",
+                "steps": [
+                    "Send the welcome email",
+                    "Share the intake questionnaire",
+                    "Schedule the kickoff call",
+                    "Collect logins securely",
+                    "Confirm the content deadline",
+                    "Create the project folder",
+                    "Review the brief with the client",
+                    "Record decisions in the tracker",
+                ],
+                "template_columns": ["Client", "Item", "Owner", "Due", "Status"],
+                "template_rows": [["Client name", "Logo files", "Client", "Day 3", "Open"]],
+            }
+        )
+    if agent == "pricer":
+        return json.dumps({"rationale": [{"text": "Prices sit near the verified price points.", "claim_ids": []}]})
+    if agent == "policy_drafter":
+        return json.dumps(
+            {
+                "terms": ["You may use the files in your own client work.", "You may not resell the files."],
+                "privacy": ["We store your email and a timestamp.", "We never store card numbers."],
+                "refunds": ["Ask for a refund within 14 days by email.", "The founder reviews every refund."],
+            }
+        )
+    if agent == "launcher" and "MODE: store" in user:
+        return json.dumps(
+            {
+                "product_name": "Client Onboarding Toolkit",
+                "tagline": "Checklists and templates for new clients",
+                "description": "A set of checklists and templates for onboarding web design clients.",
+                "includes": ["Intake questionnaire", "Content checklist"],
+                "who_it_is_for": "Freelance web designers.",
+                "who_it_is_not_for": "Large agencies with a project management team.",
+            }
+        )
+    if agent == "launcher":
+        return json.dumps(
+            {
+                "title": "I built a client onboarding toolkit",
+                "body": "I made the checklists I use with my own clients into a toolkit. Feedback welcome.",
+            }
+        )
     if agent == "assistant":
-        return ASSISTANT_ANSWER
-    reply = REPLIES.get(_route(agent, user))
-    if reply is None:
-        raise AssertionError(f"fake LLM has no answer for agent {agent}")
-    return json.dumps(reply(user))
+        return "Gate 1 stopped this run. The weighted pain signals were below the threshold. Ask me about the quotes."
+    raise AssertionError(f"fake LLM has no answer for agent {agent}")

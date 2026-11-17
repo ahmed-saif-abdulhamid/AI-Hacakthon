@@ -23,7 +23,6 @@ import re
 import tempfile
 import threading
 import wave
-from collections.abc import Callable
 from functools import lru_cache
 from pathlib import Path
 
@@ -84,123 +83,65 @@ def line(kind: str, **kw) -> str:
     return tidy(_line(kind, **kw))
 
 
-def _run_started(s: str, kw: dict) -> str:
-    return (
-        f"Right, {s}, let's see if people actually want this. I've locked in the bar the idea has to clear "
-        "before looking at anything, so I can't move the goalposts later. First, a quick check that it's "
-        "something I can help with."
-    )
-
-
-def _sources_done(s: str, kw: dict) -> str:
-    unavailable = kw.get("unavailable") or []
-    tail = f" {', '.join(unavailable)} didn't answer, so I've left it out." if unavailable else ""
-    return f"I've read {kw.get('hits', 0)} public posts and discussions about this.{tail}"
-
-
-def _approval_needed(s: str, kw: dict) -> str:
-    what = kw.get("action", "").replace("_", " ")
-    return (
-        f"{s}, the {what} is ready for you to look over. Nothing goes out until you press Approve, "
-        "and what you approve is exactly what gets used."
-    )
-
-
-# One narrator per run event: (form of address, event fields) -> the sentence spoken aloud.
-NARRATORS: dict[str, Callable[[str, dict], str]] = {
-    "run_started": _run_started,
-    "variants": lambda s,
-    kw: f"I've sketched three angles on your idea. I'll start with the first: {kw.get('title', '')}.",
-    "sources_done": _sources_done,
-    "verifying": lambda s, kw: "Now I'm double-checking that every quote is really on the page it came from.",
-    "verified": lambda s, kw: (
-        f"Done checking. {kw.get('counted', 0)} comments are genuinely about this problem, "
-        "and those are the ones I'll count."
-    ),
-    "debate": lambda s,
-    kw: f"The optimist's view: {kw.get('advocate', '')} The sceptic's view: {kw.get('skeptic', '')}",
-    "gate": lambda s, kw: _gate_line(**kw),
-    "refusal": lambda s, kw: _refusal_line(kw.get("rule") or "", kw.get("message", "")),
-    "approval_needed": _approval_needed,
-    "approved": lambda s, kw: (
-        f"Thank you, {s}. Going ahead with the {kw.get('action', '').replace('_', ' ')} exactly as you approved it."
-    ),
-    "override": lambda s, kw: (
-        f"Understood, {s}. I'll carry on as you asked, but please treat what follows as a preview: "
-        "we haven't yet shown that people want this."
-    ),
-    "phase": lambda s, kw: f"Moving on to step {kw.get('n')}: {str(kw.get('name', '')).lower()}.",
-    "payment": lambda s, kw: (
-        "I ran a practice purchase: the buyer got their download once, even when the payment message "
-        "arrived twice. No real money was involved."
-    ),
-    "refund_done": lambda s, kw: (
-        "The practice refund went through with your approval, and the buyer's download link no longer works."
-    ),
-    "done": lambda s, kw: f"That's every step finished, {s}. Everything I made is in the Files tab.",
-}
-
-
 def _line(kind: str, **kw) -> str:
     """What the assistant says aloud during a run: plain business language, real numbers, no jargon."""
-    narrator = NARRATORS.get(kind)
-    return narrator(address(), kw) if narrator else kw.get("text", "")
+    s = address()
+    if kind == "run_started":
+        return (
+            f"Right, {s}, let's see if people actually want this. I've locked in the bar the idea has to clear "
+            "before looking at anything, so I can't move the goalposts later. First, a quick check that it's "
+            "something I can help with."
+        )
+    if kind == "variants":
+        return f"I've sketched three angles on your idea. I'll start with the first: {kw.get('title', '')}."
+    if kind == "sources_done":
+        unavailable = kw.get("unavailable") or []
+        tail = f" {', '.join(unavailable)} didn't answer, so I've left it out." if unavailable else ""
+        return f"I've read {kw.get('hits', 0)} public posts and discussions about this.{tail}"
+    if kind == "verifying":
+        return "Now I'm double-checking that every quote is really on the page it came from."
+    if kind == "verified":
+        return (
+            f"Done checking. {kw.get('counted', 0)} comments are genuinely about this problem, "
+            "and those are the ones I'll count."
+        )
+    if kind == "debate":
+        return f"The optimist's view: {kw.get('advocate', '')} The sceptic's view: {kw.get('skeptic', '')}"
+    if kind == "gate":
+        return _gate_line(**kw)
+    if kind == "refusal":
+        return _refusal_line(kw.get("rule") or "", kw.get("message", ""))
+    if kind == "approval_needed":
+        what = kw.get("action", "").replace("_", " ")
+        return (
+            f"{s}, the {what} is ready for you to look over. Nothing goes out until you press Approve, "
+            "and what you approve is exactly what gets used."
+        )
+    if kind == "approved":
+        return (
+            f"Thank you, {s}. Going ahead with the {kw.get('action', '').replace('_', ' ')} exactly as you approved it."
+        )
+    if kind == "override":
+        return (
+            f"Understood, {s}. I'll carry on as you asked, but please treat what follows as a preview: "
+            "we haven't yet shown that people want this."
+        )
+    if kind == "phase":
+        return f"Moving on to step {kw.get('n')}: {str(kw.get('name', '')).lower()}."
+    if kind == "payment":
+        return (
+            "I ran a practice purchase: the buyer got their download once, even when the payment message "
+            "arrived twice. No real money was involved."
+        )
+    if kind == "refund_done":
+        return "The practice refund went through with your approval, and the buyer's download link no longer works."
+    if kind == "done":
+        return f"That's every step finished, {s}. Everything I made is in the Files tab."
+    return kw.get("text", "")
 
 
 def gate_line(*a, **kw) -> str:
     return tidy(_gate_line(*a, **kw))
-
-
-def _demand_verdict(s: str, outcome: str, reason: str, m: dict, t: dict, next_step: str | None) -> str:
-    return (
-        f"{s}, so far {m.get('real_signups', 0)} real people have joined the waiting list, and we were "
-        f"aiming for {t.get('waitlist_target')}. The page isn't public yet, so we can't say people want "
-        "this until real visitors sign up."
-    )
-
-
-def _tests_verdict(s: str, outcome: str, reason: str, m: dict, t: dict, next_step: str | None) -> str:
-    return f"I've checked the product files: {m.get('passed')} of {m.get('total')} quality checks pass."
-
-
-def _evidence_verdict(s: str, outcome: str, reason: str, m: dict, t: dict, next_step: str | None) -> str:
-    pain, thr = _n(m.get("sourced_pain")), _n(t.get("min_sourced_pain"))
-    if outcome == "stop" and reason == "excluded_category":
-        return (
-            f"{s}, this is a kind of product I'm not able to help build, such as physical goods, financial "
-            "products, or health or legal advice. My advice is to stop here."
-        )
-    if outcome == "repeat" and reason in ("model_failure", "model_suspect"):
-        return (
-            f"{s}, my research didn't come back clean this time, so I won't base a verdict on it. "
-            "Let's run the search again."
-        )
-    by_outcome = {
-        "stop": (
-            f"Honestly, {s}, I'd stop here. People do talk about this, but I found only {pain} real complaints "
-            f"about the problem, and I'd want to see at least {thr} before saying it's worth building. "
-            "Better to know now than after months of work."
-        ),
-        "go": (
-            f"Good news, {s}. I found {pain} real complaints about this problem from "
-            f"{m.get('distinct_sources')} different places, which clears the bar of {thr}. I think it's worth "
-            "taking to the next step."
-        ),
-        "pivot": (
-            f"{s}, the problem looks real, but this version of the idea doesn't quite fit it. "
-            f"I'd try a different angle{': ' + next_step if next_step else ''}."
-        ),
-    }
-    if outcome == "repeat" and reason == "insufficient_evidence":
-        return (
-            f"{s}, I couldn't find enough people talking about this online to call it either way. That doesn't "
-            "mean nobody wants it. The best next step is to talk to five people who have this problem; I've "
-            "prepared the questions for you."
-        )
-    return by_outcome.get(outcome, f"{s}, my recommendation is: {_word(outcome)}.")
-
-
-GATE_VERDICTS = {"gate1_evidence": _evidence_verdict, "gate2_demand": _demand_verdict, "gate3_tests": _tests_verdict}
 
 
 def _gate_line(
@@ -213,10 +154,52 @@ def _gate_line(
     **_,
 ) -> str:
     """The verdict at each checkpoint, said the way you would say it to a business owner."""
-    verdict = GATE_VERDICTS.get(gate)
-    if verdict is None:
+    s, m, t = address(), metrics or {}, thresholds or {}
+    if gate == "gate2_demand":
+        return (
+            f"{s}, so far {m.get('real_signups', 0)} real people have joined the waiting list, and we were "
+            f"aiming for {t.get('waitlist_target')}. The page isn't public yet, so we can't say people want "
+            "this until real visitors sign up."
+        )
+    if gate == "gate3_tests":
+        return f"I've checked the product files: {m.get('passed')} of {m.get('total')} quality checks pass."
+    if gate != "gate1_evidence":
         return f"This checkpoint says: {_word(outcome)}."
-    return verdict(address(), outcome, reason, metrics or {}, thresholds or {}, next_step)
+    pain, thr = _n(m.get("sourced_pain")), _n(t.get("min_sourced_pain"))
+    if outcome == "stop" and reason == "excluded_category":
+        return (
+            f"{s}, this is a kind of product I'm not able to help build, such as physical goods, financial "
+            "products, or health or legal advice. My advice is to stop here."
+        )
+    if outcome == "stop":
+        return (
+            f"Honestly, {s}, I'd stop here. People do talk about this, but I found only {pain} real complaints "
+            f"about the problem, and I'd want to see at least {thr} before saying it's worth building. "
+            "Better to know now than after months of work."
+        )
+    if outcome == "go":
+        return (
+            f"Good news, {s}. I found {pain} real complaints about this problem from "
+            f"{m.get('distinct_sources')} different places, which clears the bar of {thr}. I think it's worth "
+            "taking to the next step."
+        )
+    if outcome == "repeat" and reason == "insufficient_evidence":
+        return (
+            f"{s}, I couldn't find enough people talking about this online to call it either way. That doesn't "
+            "mean nobody wants it. The best next step is to talk to five people who have this problem; I've "
+            "prepared the questions for you."
+        )
+    if outcome == "repeat" and reason in ("model_failure", "model_suspect"):
+        return (
+            f"{s}, my research didn't come back clean this time, so I won't base a verdict on it. "
+            "Let's run the search again."
+        )
+    if outcome == "pivot":
+        return (
+            f"{s}, the problem looks real, but this version of the idea doesn't quite fit it. "
+            f"I'd try a different angle{': ' + next_step if next_step else ''}."
+        )
+    return f"{s}, my recommendation is: {_word(outcome)}."
 
 
 def _n(x) -> str:

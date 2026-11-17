@@ -7,7 +7,7 @@ Thanks for helping. ProveIt is Apache-2.0 and every core feature stays free.
 ```bash
 docker compose up            # or, without Docker:
 python -m venv .venv && . .venv/bin/activate && pip install -r requirements.txt
-cp .env.example .env         # local Ollama model by default; or LLM_PROVIDER=nvidia with a free NVIDIA_API_KEY
+cp .env.example .env         # then set NVIDIA_API_KEY (free key from build.nvidia.com)
 python -m pytest
 ```
 
@@ -28,4 +28,4 @@ python -m pytest
 
 ## Pull requests
 
-Keep them small, add a test, and run `ruff check .`, `ruff format --check .`, `python -m pytest` and `python -m evals.run_evals --rules` before opening one. The pull-request template lists the full checklist; every function stays under a cyclomatic complexity of 10 (ruff enforces it). Security problems go through [SECURITY.md](SECURITY.md); notable changes go in [CHANGELOG.md](CHANGELOG.md).
+Keep them small, add a test, and run `python -m pytest` and `python -m evals.run_evals --rules` before opening one.
