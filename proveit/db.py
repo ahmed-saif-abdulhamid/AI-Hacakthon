@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import sqlite3
 import threading
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
@@ -60,7 +61,10 @@ CREATE TABLE IF NOT EXISTS telemetry (
 CREATE TABLE IF NOT EXISTS refunds (
     order_id TEXT PRIMARY KEY, approval_id TEXT, amount REAL, created_at TEXT
 );
+CREATE TABLE IF NOT EXISTS run_locks (run_id TEXT PRIMARY KEY, locked_at REAL);
 """
+# A run lock older than this is treated as left behind by a crashed process and may be taken over.
+RUN_LOCK_TTL_SECONDS = 300.0
 
 _lock = threading.RLock()
 _memory_conn: sqlite3.Connection | None = None
@@ -122,6 +126,31 @@ def query(sql: str, params: tuple = ()) -> list[dict]:
 def query_one(sql: str, params: tuple = ()) -> dict | None:
     rows = query(sql, params)
     return rows[0] if rows else None
+
+
+def acquire_run_lock(run_id: str, ttl_s: float = RUN_LOCK_TTL_SECONDS) -> bool:
+    """Take the lock on one run for this process; False when another holder has it.
+
+    Atomic across processes: ``BEGIN IMMEDIATE`` takes SQLite's write lock before the stale row is
+    removed and the new one inserted, so two processes can never both see the row missing.
+    """
+    now = time.time()
+    with connect() as c:
+        if c.in_transaction:
+            c.commit()
+        c.execute("BEGIN IMMEDIATE")
+        try:
+            c.execute("DELETE FROM run_locks WHERE run_id=? AND locked_at < ?", (run_id, now - ttl_s))
+            taken = c.execute("INSERT OR IGNORE INTO run_locks (run_id, locked_at) VALUES (?, ?)", (run_id, now))
+            acquired = taken.rowcount == 1
+        except BaseException:
+            c.rollback()
+            raise
+    return acquired
+
+
+def release_run_lock(run_id: str) -> None:
+    execute("DELETE FROM run_locks WHERE run_id=?", (run_id,))
 
 
 def reset_memory() -> None:

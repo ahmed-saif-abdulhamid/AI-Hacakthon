@@ -6,10 +6,12 @@ page is published only after the founder approves its exact bytes. Gate 2 counts
 
 from __future__ import annotations
 
+import re
+
 from agents import strategist
 
-from ... import db, gates, render
-from ...log import emit
+from ... import db, gates, guard, render
+from ...log import emit, log_action
 from ...reports.common import simple_gate_md
 from ...reports.validate import GATE2_NOTE, lean_canvas_md
 from ...templates import render_page
@@ -18,6 +20,19 @@ from ..copy_guard import drop_blocked, flag_for_founder, guarded, is_blocked
 from ..run import PHASE_NAMES, Run, Stage, Status, log_gate
 
 LANDING_FILE = "phase2_step2_landing-page.html"
+LEGAL_RULE = "legal_documents"
+# Non-legal operational wording for each kind of legal-document phrase the guard's rule matches.
+LEGAL_REWRITES: tuple[tuple[str, str], ...] = (
+    (r"\bdeposit agreement(s?)\b", r"deposit checklist\1"),
+    (r"\b(?:contract|agreement)s? template(s?)\b", r"payment-terms checklist\1"),
+    (
+        r"\btemplates? for (?:your |my |client |deposit |service )?(?:own )?(?:contracts?|agreements?)\b",
+        "payment-terms checklists",
+    ),
+    (r"\bfor (my|your) (?:own )?contracts\b", r"for \1 payment schedules"),
+    (r"\benforce payment terms\b", "follow up on payment schedules"),
+)
+LEGAL_FALLBACK = (r"\b(?:contract|agreement)(s?)\b", r"payment schedule\1")
 
 
 def _landing_text(copy) -> str:
@@ -52,11 +67,48 @@ def _remove_blocked_copy(run: Run, fields: dict, issue: str) -> None:
         flag_for_founder(run, "landing_copy", "landing_issue", issue)
 
 
+def _rewrite_legal_text(text: str) -> str:
+    """Replace legal-document phrases with operational ones; any match left gets the plain fallback."""
+    for pattern, repl in LEGAL_REWRITES:
+        text = re.sub(pattern, _keep_case(repl), text, flags=re.I)
+    if guard.rx(guard.rules()["output_copy"][LEGAL_RULE]).search(text):
+        pattern, repl = LEGAL_FALLBACK
+        text = re.sub(pattern, _keep_case(repl), text, flags=re.I)
+    return text
+
+
+def _keep_case(repl: str):
+    """A replacement that keeps the capital letter of a phrase that starts a sentence."""
+
+    def sub(match: re.Match) -> str:
+        out = match.expand(repl)
+        return out[:1].upper() + out[1:] if match.group(0)[:1].isupper() else out
+
+    return sub
+
+
+def rewrite_legal_terms(run_id: str, canvas) -> list[str]:
+    """Analysis artifacts skip the outward copy guard, so the canvas is checked here against the legal
+    documents rule and every matching statement is rewritten in place. Returns the rewritten originals."""
+    legal = guard.rx(guard.rules()["output_copy"][LEGAL_RULE])
+    changed = []
+    for name in strategist.CELLS + ("riskiest_assumption", "experiment"):
+        cell = getattr(canvas, name, None)
+        for statement in cell if isinstance(cell, list) else [cell] if cell is not None else []:
+            if legal.search(statement.text):
+                changed.append(statement.text)
+                statement.text = _rewrite_legal_text(statement.text)
+    if changed:
+        log_action(run_id, "guard", "rewrite_legal_terms", model=None, cost=0, rule=LEGAL_RULE, count=len(changed))
+    return changed
+
+
 def stage_phase2(run: Run) -> None:
     run.progress(2, "Phase 2: Validate")
     run.say("phase", n=2, name=PHASE_NAMES[2])
     variant = run.variant()
     canvas = strategist.canvas(run.id, run.brief, variant, run.variant_claims())
+    rewrite_legal_terms(run.id, canvas)
     prov = render.Provenance()
     run.write("phase2_step1_lean-canvas.md", lean_canvas_md(run, variant, canvas, strategist.CELLS, prov))
 

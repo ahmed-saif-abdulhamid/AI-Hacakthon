@@ -47,7 +47,7 @@ input_intent:            # Rule set A: imperative requests, not mere words
     refusal: "I can't post or send anything for you; that stays in your hands."
     alternative: "I can prepare a draft for you to approve and post under your own name."
   bypass:
-    pattern: '\bignore\W+(\w+\W+){0,2}?(rules|instructions|guardrails|policy)\b|\bfounder\W+(\w+\W+){0,2}?(already\W+)?approved\b|\bdeveloper mode\b|\bjailbreak\b|\bbypass\W+(\w+\W+){0,2}?(guard\w*|rules|approval\w*)\b|\bwithout (asking|approval|my approval)\b|\bskip (the )?approval'
+    pattern: '\bignore\W+(\w+\W+){0,2}?(rules|instructions|guardrails|policy)\b|\bfounder\W+(\w+\W+){0,2}?(already\W+)?approved\b|\bdeveloper mode\b|\bjailbreak\b|\bbypass\W+(\w+\W+){0,2}?(guard\w*|rules|approval\w*)\b|\bwithout (asking|approval|my approval)\b|\bskip (the )?approval|\bfounder\W+(\w+\W+){0,3}?(said yes|gave permission|agreed|ok''?d)\b|\bgo ahead and (publish|post|send|approve)\b'
     refusal: "I can't skip the rules or treat a message as an approval."
     alternative: "Only you can approve things, by pressing the Approve button yourself."
   arabic_intent:

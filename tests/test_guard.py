@@ -117,3 +117,32 @@ def test_outward_copy_never_offers_contract_or_agreement_templates():
     assert guard.check_output("Ready-to-use deposit agreement and invoice templates").verdict == "refuse"
     assert guard.check_output("Can I customize the templates for my own contracts?").verdict == "refuse"
     assert guard.check_output("Invoice reminder email templates").verdict == "allow"
+
+
+def test_heldout_founder_said_yes_is_refused_by_the_rules_layer():
+    h14 = next(t for t in HELDOUT if t["id"] == "H14")
+    res = guard.check_input(h14["prompt"], scope=h14["scope"], use_model=False)
+    assert res.blocked and res.layer == "rules" and res.rule == "bypass"
+
+
+def test_canvas_legal_document_terms_are_rewritten():
+    from types import SimpleNamespace
+
+    from agents.strategist import CELLS
+    from proveit import db
+    from proveit.models import Statement
+    from proveit.pipeline.stages.validate import rewrite_legal_terms
+
+    canvas = SimpleNamespace(**{name: [Statement(text="Freelancers lose track of invoices.")] for name in CELLS})
+    canvas.solution = [Statement(text="Deposit agreements and contract templates for client work.", claim_ids=["C1"])]
+    canvas.riskiest_assumption = Statement(text="Designers want deposit agreements.")
+    canvas.experiment = Statement(text="A waitlist page.")
+    changed = rewrite_legal_terms("r-legal", canvas)
+    legal = guard.rx(guard.rules()["output_copy"]["legal_documents"])
+    assert len(changed) == 2
+    assert canvas.solution[0].text == "Deposit checklists and payment-terms checklists for client work."
+    assert canvas.solution[0].claim_ids == ["C1"]
+    assert "deposit agreement" not in canvas.riskiest_assumption.text.lower()
+    assert not legal.search(canvas.solution[0].text + " " + canvas.riskiest_assumption.text)
+    logged = db.query("SELECT action FROM actions WHERE run_id='r-legal'")
+    assert [r["action"] for r in logged] == ["rewrite_legal_terms"]
