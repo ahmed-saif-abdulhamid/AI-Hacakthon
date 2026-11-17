@@ -99,22 +99,52 @@ OPTIONAL_FIELDS = ("chat_template_kwargs", "response_format")
 RETRY_STATUSES = (429, 500, 502, 503, 504)
 
 
+class _RateLimiter:
+    """Client-side pacing for the shared free tier: at most ``LLM_RPM`` requests in any 60 s window and
+    ``LLM_MAX_CONCURRENCY`` in flight, so a run spreads its calls instead of tripping HTTP 429."""
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._times: list[float] = []
+        self._sem = threading.BoundedSemaphore(max(1, int(os.environ.get("LLM_MAX_CONCURRENCY", "2"))))
+
+    def __enter__(self):
+        self._sem.acquire()
+        rpm = max(1, int(os.environ.get("LLM_RPM", "30")))
+        while True:
+            with self._lock:
+                now = time.time()
+                self._times = [t for t in self._times if now - t < 60]
+                if len(self._times) < rpm:
+                    self._times.append(now)
+                    return self
+                wait = 60 - (now - self._times[0]) + 0.05
+            time.sleep(min(wait, 5))
+
+    def __exit__(self, *exc):
+        self._sem.release()
+
+
+_limiter = _RateLimiter()
+
+
 def _backoff(attempt: int, r: httpx.Response | None) -> float:
-    """Exponential back-off (2, 4, 8 s), honouring Retry-After when the server sends one (max 20 s)."""
+    """Exponential back-off (3, 6, 12, 20, 20 s: about a minute in all), honouring Retry-After."""
     if r is not None:
         try:
-            return min(20.0, float(r.headers.get("retry-after", "")))
+            return min(30.0, float(r.headers.get("retry-after", "")))
         except ValueError:
             pass
-    return min(20.0, 2.0 * 2 ** attempt)
+    return min(20.0, 3.0 * 2 ** attempt)
 
 
 def _post(body: dict) -> httpx.Response:
     r = None
     retries = 0
-    for _ in range(8):
+    for _ in range(10):
         try:
-            r = httpx.post(f"{base_url()}/chat/completions", json=body, headers=_headers(), timeout=_timeout())
+            with _limiter:
+                r = httpx.post(f"{base_url()}/chat/completions", json=body, headers=_headers(), timeout=_timeout())
         except (httpx.TimeoutException, httpx.NetworkError) as e:
             if retries >= 2:
                 raise LLMError(f"NVIDIA API unreachable: {e}") from e
@@ -129,7 +159,7 @@ def _post(body: dict) -> httpx.Response:
                 return r
             body.pop(dropped)
             continue
-        if r.status_code in RETRY_STATUSES and retries < 3:   # free-tier rate limit or a transient error
+        if r.status_code in RETRY_STATUSES and retries < 5:   # free-tier rate limit or a transient error
             time.sleep(_backoff(retries, r))
             retries += 1
             continue
@@ -245,11 +275,15 @@ def chat_stream(system: str, messages: list[dict], *, run_id: str | None = None,
     tin = tout = 0
     in_think = False
     try:
-        for _ in range(2):
-            with httpx.stream("POST", f"{base_url()}/chat/completions", json=body, headers=_headers(),
-                              timeout=_timeout()) as r:
+        for attempt in range(4):
+            with _limiter, httpx.stream("POST", f"{base_url()}/chat/completions", json=body, headers=_headers(),
+                                        timeout=_timeout()) as r:
                 if r.status_code == 400 and "chat_template_kwargs" in body:
                     body.pop("chat_template_kwargs")
+                    continue
+                if r.status_code in RETRY_STATUSES and attempt < 3:
+                    r.read()
+                    time.sleep(_backoff(attempt, r))
                     continue
                 if r.status_code != 200:
                     r.read()

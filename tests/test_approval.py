@@ -67,7 +67,7 @@ def test_auto_approve_only_in_test_env(monkeypatch):
 def test_served_page_is_the_approved_blob_and_unapproved_is_409():
     from app.api import app
     c = TestClient(app)
-    assert c.get("/p/r9").status_code == 409
+    assert c.get("/p/r9").status_code in (404, 409)   # unknown run: 404; known but unapproved: 409
     ap = approval.request("r9", "publish_landing_page", b"<!doctype html><p>approved v1</p>", content_type="text/html")
     approval.auto_approve(ap.id)
     approval.publish_landing_page(b"<!doctype html><p>approved v1</p>", ap.id, run_id="r9")

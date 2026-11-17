@@ -33,11 +33,32 @@ class VoiceUnavailable(Exception):
 
 # ---- persona lines --------------------------------------------------------------
 
+def assistant_name() -> str:
+    """The assistant's name, shown in the console and used as the wake word (one setting)."""
+    return (os.environ.get("ASSISTANT_NAME") or "Verity").strip()
+
+
 def address() -> str:
-    return os.environ.get("JARVIS_ADDRESS", "Sir")
+    """How the assistant addresses the founder: their first name if set (FOUNDER_NAME), otherwise nothing.
+    No gendered default such as "Sir"."""
+    return (os.environ.get("FOUNDER_NAME") or "").strip()
+
+
+def tidy(text: str) -> str:
+    """Remove the gaps an empty address leaves ("Thank you, ." -> "Thank you.") and fix capitals."""
+    t = re.sub(r",\s*,", ",", text or "")
+    t = re.sub(r"\s*,\s*([.?!;:])", r"\1", t)
+    t = re.sub(r"^\s*,\s*", "", t)
+    t = re.sub(r"([.?!]\s+),\s*", r"\1", t)
+    t = re.sub(r"\s{2,}", " ", t).strip()
+    return t[:1].upper() + t[1:] if t else t
 
 
 def line(kind: str, **kw) -> str:
+    return tidy(_line(kind, **kw))
+
+
+def _line(kind: str, **kw) -> str:
     """What J.A.R.V.I.S. says aloud during a run: plain business language, real numbers, no jargon."""
     s = address()
     if kind == "run_started":
@@ -58,9 +79,9 @@ def line(kind: str, **kw) -> str:
     if kind == "debate":
         return f"The optimist's view: {kw.get('advocate', '')} The sceptic's view: {kw.get('skeptic', '')}"
     if kind == "gate":
-        return gate_line(**kw)
+        return _gate_line(**kw)
     if kind == "refusal":
-        return refusal_line(kw.get("rule") or "", kw.get("message", ""))
+        return _refusal_line(kw.get("rule") or "", kw.get("message", ""))
     if kind == "approval_needed":
         what = kw.get("action", "").replace("_", " ")
         return (f"{s}, the {what} is ready for you to look over. Nothing goes out until you press Approve, "
@@ -82,7 +103,11 @@ def line(kind: str, **kw) -> str:
     return kw.get("text", "")
 
 
-def gate_line(outcome: str = "", reason: str = "", metrics: dict | None = None, thresholds: dict | None = None,
+def gate_line(*a, **kw) -> str:
+    return tidy(_gate_line(*a, **kw))
+
+
+def _gate_line(outcome: str = "", reason: str = "", metrics: dict | None = None, thresholds: dict | None = None,
               gate: str = "gate1_evidence", next_step: str | None = None, **_) -> str:
     """The verdict at each checkpoint, said the way you would say it to a business owner."""
     s, m, t = address(), metrics or {}, thresholds or {}
@@ -147,6 +172,10 @@ REFUSAL_LEADS = {
 
 
 def refusal_line(rule: str, message: str, all_rules: list[str] | None = None) -> str:
+    return tidy(_refusal_line(rule, message, all_rules))
+
+
+def _refusal_line(rule: str, message: str, all_rules: list[str] | None = None) -> str:
     """Said when the guard refuses. The UI marks these in red as Protocol 0; the words stay friendly."""
     s = address()
     if all_rules and {"fake_social_proof", "urgency"} <= set(all_rules):

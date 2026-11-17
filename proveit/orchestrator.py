@@ -251,9 +251,13 @@ def gather(run: Run, variant: Variant, caps: dict, limits: dict, broaden: bool =
     jobs: list[tuple] = []
     hn, se, gh, sx = HackerNews(), StackExchange(), GitHub(), SearXNG()
     for q in queries[: caps["hn"]]:
-        jobs.append((hn, q, {"since_ts": since, "timeout": timeout}))
+        jobs.append((hn, q, {"since_ts": since, "timeout": timeout, "tags": "comment"}))
     # Stack Exchange full-text search needs short queries: use the 2-3 word job query first.
-    se_queries = [variant.competitor_query] + [" ".join(q.split()[:2]) for q in queries]
+    from sources.base import stopwords
+    def _short(q: str) -> str:                       # 2-3 content words ("clients pay invoices late" -> "clients pay invoices")
+        words = [w for w in q.split() if w.lower() not in stopwords() and len(w) > 2]
+        return " ".join(words[:3]) or q
+    se_queries = [variant.competitor_query] + [_short(q) for q in queries]
     for q in se_queries[: caps["stackexchange"]]:
         jobs.append((se, q, {"site": variant.se_site, "timeout": timeout}))
     for q in [variant.competitor_query][: caps["github"]]:
@@ -292,9 +296,21 @@ def research_variant(run: Run, variant: Variant, broaden: bool = False) -> dict:
     unavailable = sorted({c.source for c in calls if not c.ok})
     say(run, "sources_done", hits=len(hits), calls=len(calls), unavailable=unavailable)
     topic = verifier.topic_keywords(variant)
-    ranked = sorted(hits, key=lambda h: (-len(verifier.overlap(h.title + " " + h.text, topic)),
-                                         -(h.engagement or 0)))
-    shown = [h for h in ranked if verifier.is_on_topic(h.title + " " + h.text, topic, 1)][: limits["max_hits_shown"]]
+    # People describing the problem come first (a pain or payment cue in their own words), then other
+    # on-topic posts; GitHub repositories are competitor evidence only, so at most three take a slot.
+    def rank(h):
+        cue = bool(verifier.match_cue("pain", h.text) or verifier.match_cue("wtp", h.text))
+        return (-cue, h.source == "github", -len(verifier.overlap(h.title + " " + h.text, topic)), -(h.engagement or 0))
+    ranked = sorted((h for h in hits if verifier.is_on_topic(h.title + " " + h.text, topic, 1)), key=rank)
+    shown, n_github = [], 0
+    for h in ranked:
+        if h.source == "github":
+            if n_github >= 3:
+                continue
+            n_github += 1
+        shown.append(h)
+        if len(shown) >= limits["max_hits_shown"]:
+            break
     start_n = len(run.state.get("hit_counter", [])) + 1
     for i, h in enumerate(shown, start=start_n):
         h.id = f"H{i}"

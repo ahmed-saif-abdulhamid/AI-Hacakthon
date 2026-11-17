@@ -12,10 +12,13 @@ class HackerNews(Source):
     name = "hn"
     pain_capable = True
 
-    def search(self, query: str, since_ts: int = 0, per_page: int = 20, timeout: float = 8.0, **kw):
+    def search(self, query: str, since_ts: int = 0, per_page: int = 20, timeout: float = 8.0,
+               tags: str = "(story,comment)", **kw):
+        """Pain queries search comments only: people describe their problems in replies, while stories are
+        mostly product launches (which are competitor evidence, found via GitHub and story search)."""
         t0 = time.time()
         # optionalWords: rank records matching the most words first (Algolia otherwise needs all words).
-        params = {"query": query, "tags": "(story,comment)", "hitsPerPage": per_page, "optionalWords": query}
+        params = {"query": query, "tags": tags, "hitsPerPage": per_page, "optionalWords": query}
         if since_ts:
             params["numericFilters"] = f"created_at_i>{since_ts}"
         try:

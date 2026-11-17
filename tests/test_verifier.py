@@ -61,6 +61,10 @@ def test_unreachable_web_page_gets_zero_weight():
 
 
 def test_model_suspect_counts_missed_qualified_sentences():
-    h = make_hit()
+    text = ("Onboarding new clients is tedious for me as a freelance web designer. I use email. "
+            "Collecting content from my clients is a nightmare. "
+            "Our app alerts you when onboarding new clients gets tedious, try it free at https://x.example.")
+    h = Hit(id="H1", source="hn", url="https://news.ycombinator.com/item?id=1", text=text,
+            sentences=split_sentences(text), published_at=datetime.now(timezone.utc))
     missed = verifier.missed_qualified({"H1": h}, {"H1": [1, 2, 3, 4]}, [], V)
-    assert missed == ["H1.S1", "H1.S3"]
+    assert missed == ["H1.S1", "H1.S3"]          # first-person complaints count; product copy does not

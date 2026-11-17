@@ -39,6 +39,8 @@ class MockPaymentProvider:
         event = {"event_id": "evt_" + uuid.uuid4().hex[:12], "type": "payment.succeeded", "order_id": order_id,
                  "amount": amount, "fee": fee, "net": round(amount - fee, 2),
                  "payout_id": "po_" + uuid.uuid4().hex[:8], "test": True}
+        import webhooks
+        event["signature"] = webhooks.sign(event)          # the webhook refuses unsigned or altered events
         log_action(order["run_id"], "payments", "mock_checkout_succeeded", order_id=order_id,
                    event_id=event["event_id"], amount=amount, fee=fee, test=True)
         return event

@@ -30,7 +30,7 @@ def numbered_block(hits: list[Hit], shown_ids: dict[str, list[int]]) -> str:
     return "\n".join(lines)
 
 
-BATCH = 4  # threads per call: a small model selects far more reliably from short lists
+BATCH = 7  # threads per call (a 4B model needed 4; the hosted 550B model handles 7 reliably)
 
 
 def run(run_id: str, variant: Variant, hits: list[Hit], shown_ids: dict[str, list[int]]) -> list[dict]:

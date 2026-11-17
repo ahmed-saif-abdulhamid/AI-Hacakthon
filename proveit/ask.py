@@ -27,6 +27,14 @@ APP_FACTS = (
 )
 
 
+def current_claims(run) -> list:
+    """Claims of the variant currently on screen, with the persisted IDs the console and files show."""
+    s = run.state
+    hits = (s.get("research", {}).get(str(s.get("variant_n", 1)), {}) or {}).get("hits", {})
+    claims = run.claims()
+    return [c for c in claims if c.hit_id in hits] if hits else claims
+
+
 def run_context(run) -> str:
     """A compact, factual summary of one run for the assistant (no invented fields)."""
     if run is None:
@@ -57,7 +65,7 @@ def run_context(run) -> str:
     if s.get("override"):
         out.append(f"The founder overrode the evidence: {str(s['override'].get('reason', ''))[:200]}. "
                    "Later phases are a preview.")
-    counted = sorted([c for c in run.claims() if c.weight > 0], key=lambda c: -c.weight)[:4]
+    counted = sorted([c for c in current_claims(run) if c.weight > 0], key=lambda c: -c.weight)[:6]
     for c in counted:
         out.append(f"Evidence {c.id} ({c.kind}, weight {c.weight}, {c.source}): \"{(c.quote or '')[:180]}\"")
     if not counted and s.get("claims"):
@@ -98,21 +106,27 @@ def _messages(text: str, history: list[dict] | None) -> list[dict]:
     return msgs
 
 
-def _system(run) -> str:
+def _system(run, screen: list[str] | None = None) -> str:
     """System prompt for the assistant. Identical across turns of one run, so the model caches it."""
-    return (llm.fill(llm.load_prompt("assistant"), address=voice.address())
-            + f"\n\nAPP FACTS:\n{APP_FACTS}\n\nRUN CONTEXT:\n{run_context(run)}")
+    shown = ("\n\nBUTTONS ON THE FOUNDER'S SCREEN RIGHT NOW: " + "; ".join(screen[:12])) if screen else ""
+    return (llm.fill(llm.load_prompt("assistant"), address=voice.address() or "the founder",
+                     name=voice.assistant_name())
+            + f"\n\nAPP FACTS:\n{APP_FACTS}\n\nRUN CONTEXT:\n{run_context(run)}{shown}")
 
 
-def converse_stream(text: str, run, history: list[dict] | None = None):
+LIST_ITEM = re.compile(r"^\s*(\d+[.)]|first|second|third|fourth|fifth)\b", re.I)
+
+
+def converse_stream(text: str, run, history: list[dict] | None = None, screen: list[str] | None = None):
     """Grounded free-form answer from the local model, yielded one checked sentence at a time.
 
     Each sentence passes rule set C (minus money words) before it is yielded, so nothing is
     spoken that the guard would block. Raises llm.LLMError when the model is unavailable.
     """
-    system = _system(run)
+    system = _system(run, screen)
     rid = run.id if run else None
     t0, buf, said = __import__("time").time(), "", []
+    dropped = []
 
     def clean(s: str) -> str | None:
         s = re.sub(r"[*#`]+", "", s).replace("_", " ").strip()
@@ -120,9 +134,15 @@ def converse_stream(text: str, run, history: list[dict] | None = None):
             return None
         if guard.check_output(s, "policy").blocked:
             log_action(rid, "guard", "assistant_sentence_blocked", model=None, cost=0)
+            dropped.append(s)
             return None
         said.append(s)
         return s
+
+    def full() -> bool:
+        # A numbered list ("1. ... 2. ...") may finish its items; everything else stops at the cap.
+        listing = sum(1 for x in said if LIST_ITEM.match(x))
+        return len(said) >= MAX_SENTENCES + min(listing, 3)
 
     try:
         for chunk in llm.chat_stream(system, _messages(text, history), run_id=rid, num_predict=200):
@@ -132,16 +152,20 @@ def converse_stream(text: str, run, history: list[dict] | None = None):
                 s = clean(done)
                 if s:
                     yield s
-                if len(said) >= MAX_SENTENCES:      # spoken answers stay short for a founder
+                if full():                          # spoken answers stay short for a founder
                     buf = ""
                     break
             else:
                 buf = parts[-1]
                 continue
             break
-        s = clean(buf) if len(said) < MAX_SENTENCES else None
+        s = clean(buf) if not full() else None
         if s:
             yield s
+        if dropped:                                     # never leave a silent gap in the answer
+            note = "I left one point out because I couldn't put it without overstating the evidence."
+            said.append(note)
+            yield note
     except llm.LLMError as e:
         log_action(rid, "assistant", "answer_failed", model=llm.model_name(), cost=0, error=str(e)[:120])
         if not said:
@@ -181,6 +205,29 @@ def offline_answer(text: str, run) -> str:
     return voice.gate_line(**g) + tail
 
 
+QUOTE_QUESTION = re.compile(r"\b(quotes?|what (did|do|does) (people|they|users|customers|anyone|folks) (say|said|write|wrote)|"
+                            r"what are people saying|complain\w*|show me (the )?evidence|who (said|complained))\b", re.I)
+KIND_WORDS = {"pain": "a complaint", "wtp": "someone saying they'd pay", "price_point": "a price",
+              "competitor": "an existing tool"}
+
+
+def quote_answer(run) -> dict:
+    """Quotes are read back verbatim by code (with the IDs on screen), never paraphrased by the model."""
+    counted = sorted([c for c in current_claims(run) if c.weight > 0], key=lambda c: (c.kind != "pain", -c.weight))
+    pains = [c for c in counted if c.kind == "pain"]
+    if not counted:
+        msg = "I didn't find anyone clearly describing this problem in the places I searched."
+        return {"intent": "quotes", "text": msg, "spoken": msg}
+    pick = (pains or counted)[:2]
+    places = {"hn": "Hacker News", "stackexchange": "Stack Exchange", "github": "GitHub", "web": "the web"}
+    spoken = (f"I counted {len(pains)} {'complaint' if len(pains) == 1 else 'complaints'} about the problem. "
+              if pains else "Nobody described the problem as a complaint, but here is what counted. ")
+    spoken += " ".join(f"On {places.get(c.source, c.source)}, {KIND_WORDS.get(c.kind, 'someone')} "
+                       f"({c.id}): \"{(c.quote or '')[:180]}\"" for c in pick)
+    text = spoken + "\n\nAll counted quotes are in the Evidence tab, each linked to its source."
+    return {"intent": "quotes", "text": text, "spoken": spoken}
+
+
 def converse(text: str, run, history: list[dict] | None = None, use_model: bool = True) -> str | None:
     """The whole answer as one string. None when the model is unavailable or said nothing."""
     if not use_model:
@@ -216,7 +263,16 @@ def _gate_summary(run) -> dict:
 
 
 def handle(text: str, run_id: str | None = None, use_model: bool = True,
-           history: list[dict] | None = None, stream: bool = False) -> dict:
+           history: list[dict] | None = None, stream: bool = False, screen: list[str] | None = None) -> dict:
+    res = _handle(text, run_id, use_model, history, stream, screen)
+    for k in ("spoken", "text"):
+        if isinstance(res.get(k), str):
+            res[k] = voice.tidy(res[k]) if k == "spoken" else res[k]
+    return res
+
+
+def _handle(text: str, run_id: str | None, use_model: bool, history: list[dict] | None, stream: bool,
+            screen: list[str] | None) -> dict:
     from . import orchestrator
     text = strip_wake(text)
     if not text:
@@ -231,6 +287,8 @@ def handle(text: str, run_id: str | None = None, use_model: bool = True,
         return {"intent": "refused", "refused": True, "rule": res.rule, "layer": res.layer, "text": res.message,
                 "spoken": spoken, "alert": "crimson"}
     intent = guard.route_intent(text)
+    if QUOTE_QUESTION.search(text) and intent in ("explain_decision", "other"):
+        intent = "quotes"
     run = None
     if run_id:
         try:
@@ -238,6 +296,11 @@ def handle(text: str, run_id: str | None = None, use_model: bool = True,
         except KeyError:
             run = None
     log_action(run_id, "ask", f"ask_{intent}", model=None, cost=0)
+    if intent == "quotes":
+        if run is None:
+            return {"intent": intent, "text": "Open an idea on the left first.",
+                    "spoken": "Which idea do you mean? Open it on the left and ask me again."}
+        return quote_answer(run)
     if intent == "explain_decision":
         if run is None:
             return {"intent": intent, "text": "Open an idea on the left first.",

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} · ProveIt</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/fonts/fonts.css">
+<meta name="theme-color" content="#EDF0F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1420" media="(prefers-color-scheme: dark)">
+<style>
+:root{--ground:#EDF0F3;--surface:#fff;--ink:#141B2D;--ink-2:#4A5468;--ink-3:#5E6779;--rule:#D8DDE4;--accent:#3A35C9;--go:#17784A;--stop:#B3261E;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--ground:#0F1420;--surface:#161C2B;--ink:#E6EAF2;--ink-2:#A9B2C5;--ink-3:#8D97AD;--rule:#283149;--accent:#8F8BFF;--go:#5BC48C;--stop:#F07167;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:var(--ground);color:var(--ink);font:16px/1.55 "Instrument Sans","Segoe UI",system-ui,sans-serif;padding:24px}
+main{max-width:520px;width:100%;background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:36px 34px}
+.mark{display:flex;align-items:center;gap:10px;font:700 18px "Bricolage Grotesque","Segoe UI",sans-serif;margin-bottom:28px;color:var(--ink);text-decoration:none}
+.mark svg{width:28px;height:28px}
+.code{font-size:13px;color:var(--ink-3);margin:0 0 6px}
+h1{font:700 30px/1.15 "Bricolage Grotesque","Segoe UI",sans-serif;letter-spacing:-.02em;margin:0 0 10px}
+.ok h1{color:var(--go)}
+p{color:var(--ink-2);margin:0 0 24px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+a.btn,button.btn{display:inline-flex;align-items:center;border-radius:8px;padding:10px 16px;font:500 15px inherit;font-family:inherit;text-decoration:none;cursor:pointer;border:1px solid var(--rule);background:var(--surface);color:var(--ink)}
+a.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme:dark){a.btn.primary{color:#0F1420}}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+form{margin:0}
+</style>
+</head>
+<body>
+<main class="{{ tone }}">
+  <a class="mark" href="/hud" aria-label="ProveIt home"><svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#3A35C9"/><path d="M18 33.5l9 9L46 22" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>ProveIt</a>
+  {% if status >= 400 %}<p class="code">Error {{ status }}</p>{% endif %}
+  <h1>{{ title }}</h1>
+  <p>{{ body }}</p>
+  <div class="row">
+    {% for a in actions or [] %}<a class="btn primary" href="{{ a.href }}">{{ a.label }}</a>{% endfor %}
+    <a class="btn{{ '' if actions else ' primary' }}" href="{{ back }}">{{ back_label }}</a>
+    {% if refund_order %}<form method="post" action="/orders/{{ refund_order }}/refund-request"><button class="btn" type="submit">Request a refund (needs the founder's approval)</button></form>{% endif %}
+  </div>
+</main>
+</body>
+</html>

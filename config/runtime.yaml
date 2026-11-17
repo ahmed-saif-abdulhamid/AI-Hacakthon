@@ -4,14 +4,14 @@ live:
   variants_researched: 1
   auto_rerun: false
   modules: 1
-  caps: {hn: 2, stackexchange: 1, github: 1, searxng: 2, searxng_fetch: 4, wikipedia: 2, verify: 8}
+  caps: {hn: 3, stackexchange: 2, github: 1, searxng: 2, searxng_fetch: 4, wikipedia: 2, verify: 10}
 full:
   variants_researched: 3
   auto_rerun: true
   modules: 3
   caps: {hn: 4, stackexchange: 2, github: 2, searxng: 3, searxng_fetch: 6, wikipedia: 2, verify: 25}
 limits:
-  max_hits_shown: 12
+  max_hits_shown: 20
   max_sentences_per_hit: 6
   source_timeout_s: 12
   verify_timeout_s: 5

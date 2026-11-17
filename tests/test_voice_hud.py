@@ -21,7 +21,7 @@ def test_repeat_line_is_not_a_stop():
 
 def test_refusal_line_protocol0():
     line = voice.refusal_line("fake_social_proof", "I can't write reviews.")
-    assert "reviews" in line and "Sir" in line
+    assert "reviews" in line and "Sir" not in line   # no gendered default address
 
 
 def test_console_has_both_modes_and_ask_bar():

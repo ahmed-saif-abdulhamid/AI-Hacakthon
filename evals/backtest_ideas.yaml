@@ -1,0 +1,45 @@
+# Gate 1 calibration set. "expected" was written BEFORE the runs, from public knowledge of how much
+# people complain about each problem on developer and freelancer forums. It is an ASSUMPTION, not a
+# ground truth: the point is to see whether the code-decided gate agrees with an informed prior,
+# and where it does not, why. Thresholds (config/gates.yaml) are never changed for this set.
+ideas:
+  - id: late-payments
+    expected: go
+    idea: "A late-payment follow-up toolkit for freelance developers and designers: invoice reminder email templates, a payment-terms checklist and an overdue-invoice tracker."
+    target_market: freelance developers and designers
+  - id: soc2
+    expected: go
+    idea: "A SOC 2 readiness template pack for early-stage SaaS startups: policy templates, an evidence-collection checklist and a vendor questionnaire tracker."
+    target_market: seed-stage B2B SaaS founders and CTOs
+  - id: heroku-migration
+    expected: go
+    idea: "A step-by-step guide and checklist for small teams migrating a web app off Heroku to a cheaper host."
+    target_market: small software teams and indie developers
+  - id: interview-prep
+    expected: go
+    idea: "A 6-week study plan and checklist for experienced software engineers preparing for coding interviews."
+    target_market: software engineers changing jobs
+  - id: k8s-costs
+    expected: repeat
+    idea: "A Kubernetes cost-reduction checklist and spreadsheet for startups with small platform teams."
+    target_market: startup platform engineers
+  - id: wallpapers
+    expected: stop
+    idea: "100 motivational quote phone wallpapers sold as a digital download."
+    target_market: smartphone users
+  - id: quotes-ebook
+    expected: stop
+    idea: "An ebook of 500 inspirational quotes for entrepreneurs."
+    target_market: aspiring entrepreneurs
+  - id: crosswords
+    expected: repeat
+    idea: "A printable crossword puzzle pack for retirees, delivered as a PDF."
+    target_market: retirees in the UK
+  - id: plant-tracker
+    expected: repeat
+    idea: "A Notion template for tracking houseplant watering and care."
+    target_market: houseplant owners
+  - id: dog-groomers
+    expected: repeat
+    idea: "A checklist pack for independent dog groomers: client intake form, vaccination record tracker and a no-show reminder script."
+    target_market: independent dog groomers in the US and UK

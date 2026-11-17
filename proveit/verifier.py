@@ -25,7 +25,9 @@ from .models import Claim, Hit, Variant
 
 ARCHIVE_WEIGHT = {"hn": 0.5, "stackexchange": 0.5, "github": 0.5, "web": 0.0}
 CUE_KINDS = {"pain": "pain", "wtp": "wtp", "price_point": "price_point"}
-STRONG_WTP = re.compile(r"(paid|would pay|pay for|paying for|bought)|[$€£]\s?\d", re.I)
+FIRST_PERSON = re.compile(r"\b(i|i'm|i've|i'd|me|my|we|we're|we've|our|us)\b", re.I)
+URLISH = re.compile(r"https?://|www\.|#\w")
+STRONG_WTP = re.compile(r"\b(paid|would pay|pay for|paying for|bought)\b|[$€£]\s?\d", re.I)
 
 
 @lru_cache(maxsize=8)
@@ -127,7 +129,33 @@ def build_claims(run_id: str, hits: dict[str, Hit], items: list[dict], start: in
     return claims
 
 
+_SE_URL = re.compile(r"https?://(?:(?P<sub>[a-z0-9-]+)\.stackexchange\.com|(?P<so>stackoverflow|superuser|serverfault"
+                     r"|askubuntu)\.com)/questions/(?P<qid>\d+)")
+
+
+def _fetch_stackexchange(m: re.Match, timeout: float) -> str | None:
+    """Stack Exchange web pages sit behind a bot challenge, so re-read the same public post (question and
+    answers, current version) through the official API instead of the HTML page."""
+    import os
+    site = m.group("sub") or m.group("so")
+    params = {"site": site, "filter": "withbody"}
+    if os.environ.get("SE_KEY"):
+        params["key"] = os.environ["SE_KEY"]
+    base = "https://api.stackexchange.com/2.3/questions/" + m.group("qid")
+    try:
+        q = httpx.get(base, params=params, headers={"User-Agent": USER_AGENT}, timeout=timeout).json()
+        a = httpx.get(base + "/answers", params=params, headers={"User-Agent": USER_AGENT}, timeout=timeout).json()
+    except Exception:  # noqa: BLE001
+        return None
+    bodies = [i.get("title", "") + " " + i.get("body", "") for i in q.get("items", [])]
+    bodies += [i.get("body", "") for i in a.get("items", [])]
+    return normalize(" ".join(bodies)) if bodies else None
+
+
 def _fetch(url: str, timeout: float) -> str | None:
+    m = _SE_URL.match(url or "")
+    if m:
+        return _fetch_stackexchange(m, timeout)
     try:
         r = httpx.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout, follow_redirects=True)
         return normalize(r.text) if r.status_code == 200 else None
@@ -234,9 +262,12 @@ def missed_qualified(hits: dict[str, Hit], shown_ids: dict[str, list[int]], clai
             if (hid, i) in selected:
                 continue
             s = h.sentences[i - 1]
-            # Proxy for "evidence the model should have picked": declarative prose only (no questions,
-            # no product-feature bullets), on topic, with a pain cue or a strong payment cue.
-            if s.rstrip().endswith("?") or s.lstrip().startswith(("-", "*", "•")):
+            # Proxy for "evidence the model should have picked": a person's own experience (first person,
+            # declarative, no links or hashtags: product copy talks to "you"), on topic, with a pain cue
+            # or a strong payment cue.
+            if s.rstrip().endswith("?") or s.lstrip().startswith(("-", "*", "•")) or URLISH.search(s):
+                continue
+            if not FIRST_PERSON.search(s):
                 continue
             if is_on_topic(s, topic) and (match_cue("pain", s) or STRONG_WTP.search(s)):
                 missed.append(f"{hid}.S{i}")
