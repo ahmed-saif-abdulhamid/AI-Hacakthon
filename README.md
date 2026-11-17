@@ -13,7 +13,7 @@
 **What the committed runs show** ([outputs/](outputs/), [decision_log.json](decision_log.json)):
 
 1. **It says "don't launch this".** A weak idea (an ebook of inspirational quotes) gets **STOP** in about a minute: too few people complain about the problem in public ([outputs/phase1_gate_decision-weak.md](outputs/phase1_gate_decision-weak.md)).
-2. **It refuses to judge on broken research.** The first search for a stronger idea (a late-payment toolkit for freelancers) came back unusable, so the gate said REPEAT rather than "weak idea". The wider second search found real complaints, but not enough on the sources it can read, so it said **look again** and produced a Mom Test interview kit ([outputs/phase1_step4_interview-kit-strong.md](outputs/phase1_step4_interview-kit-strong.md)).
+2. **It refuses to give a verdict on broken research.** The first search for a stronger idea (a late-payment toolkit for freelancers) came back unusable, so the gate said REPEAT rather than "weak idea". The wider second search found real complaints, but not enough on the sources it can read, so it said **look again** and produced a Mom Test interview kit ([outputs/phase1_step4_interview-kit-strong.md](outputs/phase1_step4_interview-kit-strong.md)).
 3. **The founder stays in charge, and it stays on the record.** The founder carried on against the evidence with a logged reason, so phases 2-6 ran as a labelled preview: Lean Canvas, landing page, a tested MVP toolkit, pricing and draft policies, store page, then a MOCKED sale, automatic delivery and an approved refund that revoked access. The founder rejected a launch-post draft that invented their own experience, and it was redrafted.
 
 ## Quickstart
