@@ -1181,13 +1181,32 @@ def stage_refund(run: Run) -> None:
 
 def stage_phase6(run: Run) -> None:
     progress(run, 6, "Phase 6: Operate and learn (STUBBED)")
-    real = db.query_one("SELECT COUNT(*) n FROM signups WHERE run_id=? AND test=0", (run.id,))["n"]
-    test_orders = db.query_one("SELECT COUNT(*) n FROM orders WHERE run_id=? AND test=1", (run.id,))["n"]
-    refunds_n = db.query_one("SELECT COUNT(*) n FROM refunds r JOIN orders o ON o.id=r.order_id WHERE o.run_id=?",
-                             (run.id,))["n"]
-    memo = analyst.memo({"real_signups": real, "real_orders": 0, "test_orders": test_orders, "refunds": refunds_n},
-                        run.state["thresholds"])
-    run.write("phase6_step1_memo.md", memo)
+    th = dict(run.state["thresholds"])
+    th.setdefault("gate6_operate", gates.load_thresholds()["gate6_operate"])
+    one = lambda sql: db.query_one(sql, (run.id,))["n"]  # noqa: E731
+    metrics = {
+        "real_signups": one("SELECT COUNT(*) n FROM signups WHERE run_id=? AND test=0"),
+        "real_orders": one("SELECT COUNT(*) n FROM orders WHERE run_id=? AND test=0"),
+        "test_orders": one("SELECT COUNT(*) n FROM orders WHERE run_id=? AND test=1"),
+        "real_refunds": one("SELECT COUNT(*) n FROM refunds r JOIN orders o ON o.id=r.order_id WHERE o.run_id=? AND o.test=0"),
+        "days_since_launch": 0,
+    }
+    outcome, reason = analyst.decide(metrics, th)
+    run.write("phase6_step1_memo.md", analyst.memo(metrics, th))
     log_action(run.id, "analyst", "operate_and_learn_memo", model=None, cost=0, status="STUBBED")
+    read = lambda name: (run.dir / name).read_text(encoding="utf-8") if (run.dir / name).exists() else ""  # noqa: E731
+    run.write("phase6_step2_support-answers.md",
+              analyst.support_faq(run.state.get("product") or {}, run.state.get("pricing") or {},
+                                  read("phase4_step2_policies.md"), read("phase3_step3_user-docs.md")))
+    log_action(run.id, "support", "draft_support_answers", model=None, cost=0, sent=False)
+    run.write("phase6_step3_metrics.md", analyst.metrics_plan(metrics, th))
+    log_action(run.id, "analyst", "metrics_plan", model=None, cost=0)
+    run.write("phase6_gate_decision.md", "\n".join([
+        "# Phase 6 gate: persevere or pivot", "", f"## Outcome: {outcome.upper()}", "",
+        f"- **Reason:** {reason}", "- **Decided by:** code, from real records only (rule in phase6_step3_metrics.md)",
+        f"- **Real sign-ups / real orders / test orders (excluded):** {metrics['real_signups']} / "
+        f"{metrics['real_orders']} / {metrics['test_orders']}", "- **Status:** STUBBED (no live launch in this demo)", ""]))
+    log_action(run.id, "gatekeeper", "operate_gate", model=None, cost=0, outcome=outcome, reason=reason)
+    emit(run.id, 6, "gate", outcome, gate="gate6_operate", reason=reason)
     say(run, "done")
     run.save("done", status="done")

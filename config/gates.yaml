@@ -21,3 +21,9 @@ gate2_demand:
   min_conversion: 0.10
 gate3_tests:
   all_required_pass: true
+gate6_operate:
+  # Persevere-or-pivot after launch; read only from real (test=false) records.
+  window_days: 30
+  min_real_orders: 5             # ASSUMPTION (team default): orders in the first 30 days to persevere
+  max_refund_rate: 0.10          # ASSUMPTION (team default): refunds / real orders
+  stop_below_share: 0.3          # real sign-ups under 30% of the waitlist target after the window -> stop
