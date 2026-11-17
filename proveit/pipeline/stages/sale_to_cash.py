@@ -8,7 +8,7 @@ the download, and reconciliation matches orders, payments, fees and payouts.
 from __future__ import annotations
 
 from ... import approval
-from ...commerce import delivery, payments, reconcile, refunds, webhooks
+from ...commerce import checkout, delivery, payments, reconcile, refunds, webhooks
 from ...reports.launch import payment_test_log_md
 from ..approvals import wait_for_approval
 from ..run import Run, Stage, Status
@@ -34,10 +34,8 @@ def stage_payment_test(run: Run) -> None:
     """Purchase -> webhook -> delivery -> replay -> refund needs approval."""
     run.progress(5, "Sale to cash (MOCKED)")
     price = float(run.state["pricing"]["better"])
-    provider = payments.MockPaymentProvider()
-    order_id = provider.create_order(run.id, price)
-    event = provider.create_checkout(order_id, price)
-    first = webhooks.handle(event)
+    sale = checkout.purchase(run.id, price)
+    order_id, event, first = sale.order_id, sale.event, sale.result
     replay = webhooks.handle(event)
     token = first.get("token")
     downloadable = _can_download(token)

@@ -18,7 +18,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from app.errors import error_response
 from app.templates import status_page
 from proveit import approval, db, metrics, orchestrator
-from proveit.commerce import delivery, payments, refunds, webhooks
+from proveit.commerce import checkout, delivery, refunds, webhooks
 from proveit.log import utcnow
 from proveit.startup import runs_dir
 
@@ -93,9 +93,8 @@ def buy(run_id: str) -> HTMLResponse:
     _require_published(run_id, STORE, "store not approved")
     run = orchestrator.load(run_id)
     price = float(run.state.get("pricing", {}).get("better", DEFAULT_PRICE))
-    provider = payments.MockPaymentProvider()
-    order_id = provider.create_order(run_id, price)
-    result = webhooks.handle(provider.create_checkout(order_id, price))
+    sale = checkout.purchase(run_id, price)
+    order_id, result = sale.order_id, sale.result
     metrics.increment("checkout_completed")
     return status_page(
         200,
