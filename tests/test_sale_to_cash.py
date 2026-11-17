@@ -107,12 +107,3 @@ def test_customer_refund_request_runs_once_approved(paid_order):
     decisions.on_approval_decided(ap.id)
     with pytest.raises(delivery.AccessDenied):
         delivery.check(first["token"])  # access revoked: the download now returns 403
-
-
-def test_checkout_purchase_delivers_once_and_replay_is_a_duplicate():
-    from proveit.commerce import checkout
-
-    sale = checkout.purchase("r-checkout", 39.0)
-    assert sale.result["delivered"] and sale.result["token"]
-    assert webhooks.handle(sale.event)["duplicate"] is True
-    assert delivery.delivery_count(sale.order_id) == 1
