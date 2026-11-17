@@ -88,6 +88,10 @@ output_copy:             # Rule set C: outward-facing copy only
   urgency: '\bonly \d+\W+(\w+\W+){0,2}?(left|remain\w*)|\blast chance\b|\bends (today|soon|in)\b|\bcount-?down\b|\bhurry\b|\blimited[- ]time\b'
   income: '\bguarantee(d)?\W+(\w+\W+){0,2}?(results|income|success|earnings)\b|\bpays? for itself\b|\b(make|earn|making|earning)\W+(\w+\W+){0,2}?\$\d|\bpassive income\b|\bget rich\b|\bwill (succeed|grow your)\b'
   customer_voice: '\b(as a (customer|user|buyer)|I (bought|used|tried) this)\b'
+  # Counts of deliverables are promises; landing copy is written before the product is built.
+  unbuilt_count: '\b\d+\+?\s+(ready[- ]to[- ]use\s+|done[- ]for[- ]you\s+|customi[sz]able\s+|printable\s+|editable\s+)?(email\s+|message\s+)?(templates?|checklists?|guides?|modules?|scripts?|worksheets?|spreadsheets?|trackers?|lessons?|videos?)\b'
+  # The founder's own experience is theirs to state, never the system's to invent.
+  invented_experience: "\\bI(?:'ve| have)?\\s+(?:personally\\s+)?(?:used|tested|relied on|built these|created these|made these)\\b(?:\\W+\\w+){0,4}?\\W+(?:myself|in my (?:own )?(?:work|business|practice))"
 money_rule_names: [income]   # dropped for policy drafts (they may say "refund", "payment")
 
 refusal_scope: "Protocol 0"

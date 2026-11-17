@@ -46,8 +46,17 @@ def tiers(claims: list[Claim]) -> dict:
             "note": "Tiers at the lower quartile, median and upper quartile of verified price points."}
 
 
+def _price_sentence(c: Claim) -> Claim:
+    """Only the sentence that states the price (a long quote about a tool's tech stack is not a price)."""
+    import re as _re
+    parts = _re.split(r"(?<=[.!?])\s+", c.quote or "")
+    hit = next((p for p in parts if PRICE.search(p) or _re.search(r"per month|/mo\b|/month|one.time", p, _re.I)), None)
+    return c.model_copy(update={"quote": hit}) if hit else c
+
+
 def rationale(run_id: str, claims: list[Claim], t: dict) -> list[Statement]:
-    rel = [c for c in claims if c.kind in ("price_point", "competitor", "wtp") and c.weight > 0]
+    rel = [_price_sentence(c) for c in claims if c.kind in ("price_point", "wtp") and c.weight > 0]
+    rel += [c for c in claims if c.kind == "competitor" and c.weight > 0][:3]
     user = (f"TIERS: good={t['good']} better={t['better']} best={t['best']} basis={t['basis']}\n"
             f"CLAIMS:\n{claims_table(rel, 10)}")
     return llm.agent_call(run_id, "pricer", "pricing_rationale", PricingOut, user, num_predict=260,
