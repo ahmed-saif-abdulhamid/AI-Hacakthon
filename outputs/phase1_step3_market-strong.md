@@ -1,13 +1,16 @@
 # Phase 1, step 3: Market definition
 
-**Segment:** freelance developers (from the Scout variant; a research target, not a market claim)
+**Segment:** freelance developers and designers (from the Scout variant; a research target, not a market claim)
 
-**Job to be done:** follow up on late payments after sending invoices
+**Job to be done:** send invoice reminders and track overdue payments
 
 ## Alternatives and competitors (verified claims only)
 
-- [C92] "After speaking with 50+ freelancers, we saw a clear gap: despite issues like high fees and account freezes, many still rely on Payoneer because no alternative offers the same experience." (https://news.ycombinator.com/item?id=48012653)
-- [C94] "What we're building: - Virtual USD accounts - Payment links for clients - Virtual cards - P2P transfers - Access to global stocks & ETFs We're still early, but the waitlist is live." (https://news.ycombinator.com/item?id=48012653)
+- [C3] "Integrated Invoicing & Payments: Beyond project tracking, clients can pay invoices directly through the platform. This reduces the need for manual follow-ups or switching between tools, making it easier for freelancers to get paid on time." (https://news.ycombinator.com/item?id=42914012)
+- [C5] "Bills can change, Splitify tracks costs each billing cycle using your bank account and then sends out a request with latest amount via email AND text. Plus it sends reminders until you get paid." (https://news.ycombinator.com/item?id=45431193)
+- [C6] "I'm building PayPrompt, a simple but powerful tool for freelancers and solopreneurs to automate invoice creation and payment reminders. One of the biggest struggles I hear from independent workers is late or forgotten payments, and existing invoicing tools often feel too bloated or expensive." (https://news.ycombinator.com/item?id=43381182)
+- [C12] "It currently supports: • fast invoice creation • client and project management • scheduled and recurring invoices • automatic chasing of overdue invoices • clear tracking of paid vs outstanding The goal is not to replace accounting software, but to be the "background invoicing engine" for people running small operations." (https://news.ycombinator.com/item?id=46771990)
+- [C18] "For example, when creating an invoice, the system can tell you that the client has overdue payments or that the new invoice is 40% above their usual average." (https://news.ycombinator.com/item?id=47427522)
 
 ## Visible prices
 
@@ -19,6 +22,6 @@ ASSUMPTION: no source in the ledger states a market size, so no TAM/SAM figure i
 
 ## Context (Wikipedia, context only, never evidence)
 
-Freelancer is a 2003 space trading and combat simulation video game developed by Digital Anvil and published by Microsoft Game Studios. It is a chronological sequel to Digital Anvil's Starlancer, a combat flight simulator released in 2000. The game was initially announced by Chris Roberts in 1999, and following many production schedule mishaps and a buyout of Digital Anvil by Microsoft, it was eventually released in March 2003.
+Graphic design careers include creative director, art director, art production manager, brand identity developer, illustrator and layout artist.
 
-Source: https://en.wikipedia.org/wiki/Freelancer_(video_game)
+Source: https://en.wikipedia.org/wiki/Graphic_design_occupations

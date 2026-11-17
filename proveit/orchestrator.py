@@ -457,6 +457,29 @@ def claim_table(claims: list[Claim]) -> str:
     return "\n".join(rows)
 
 
+def plain_summary(dec: GateDecision) -> str:
+    """One founder-readable sentence at the top of every gate file (the exact figures follow below)."""
+    m, g = dec.metrics or {}, dec.thresholds or {}
+    pain, need = m.get("sourced_pain"), g.get("min_sourced_pain")
+    if dec.outcome == "go":
+        return "Enough people describe this problem in their own words, from more than one place. Worth taking further."
+    if dec.reason in ("model_failure", "model_suspect"):
+        return "The research didn't come back clean, so no verdict was given on the idea. Search again."
+    if dec.outcome == "repeat" and dec.reason == "insufficient_evidence":
+        return ("The public forums searched can't see this market well enough to call it either way. That is not "
+                "proof nobody wants it: the next step is five short conversations (see the interview kit).")
+    if dec.outcome == "repeat":
+        return "Close to the bar. A wider search could tip it either way."
+    if dec.outcome == "pivot":
+        return "The problem looks real, but this version of the idea doesn't fit it. Try another angle."
+    if pain is not None and need is not None:
+        n = int(round(pain))
+        found = "no one clearly describing the problem" if n == 0 else f"{n} real complaint{'s' if n != 1 else ''}"
+        return (f"People discuss this topic, but ProveIt found {found}, against the {need} it set as the bar before "
+                "searching. Recommendation: don't build this as it stands.")
+    return dec.recommendation
+
+
 def gate1_md(run: Run, dec: GateDecision, claims: list[Claim], args: dict, prov: render.Provenance) -> str:
     ledger = run.ledger()
     used: list[str] = []
@@ -471,6 +494,7 @@ def gate1_md(run: Run, dec: GateDecision, claims: list[Claim], args: dict, prov:
             ("coverage", m.get("coverage"), f">= {g['min_coverage']}")]
     out = [f"# Phase 1 gate: evidence decision", "",
            f"## Outcome: {dec.outcome.upper()}", "",
+           f"> **In plain words:** {plain_summary(dec)}", "",
            f"- **Reason:** {dec.reason}", f"- **Rule fired:** {dec.rule_fired}",
            f"- **Next step:** {dec.next_step or '-'}", f"- **Recommendation:** {dec.recommendation}",
            f"- **Variant researched:** {run.variant().n}. {run.variant().title}",

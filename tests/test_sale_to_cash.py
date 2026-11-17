@@ -66,3 +66,30 @@ def test_no_card_fields_anywhere():
     for f in list((root / "templates").glob("*.j2")) + [root / "app" / "ui.py"]:
         text = f.read_text(encoding="utf-8").lower()
         assert "cardnumber" not in text.replace(" ", "") and "cvv" not in text and 'type="card' not in text
+
+
+def test_forged_or_altered_event_is_refused(paid_order):
+    oid, event, _ = paid_order
+    forged = dict(event, event_id="evt_forged", amount=0)          # signature no longer matches
+    with pytest.raises(webhooks.BadEvent) as e:
+        webhooks.handle(forged)
+    assert e.value.status == 401
+    with pytest.raises(webhooks.BadEvent):
+        webhooks.handle({"event_id": "x"})                          # malformed: 400, never a 500
+
+
+def test_a_paid_order_is_never_paid_or_delivered_twice(paid_order):
+    oid, event, _ = paid_order
+    second = dict(event, event_id="evt_second_payment")
+    second["signature"] = webhooks.sign(second)                    # validly signed, but the order is already paid
+    res = webhooks.handle(second)
+    assert res["delivered"] is False and delivery.delivery_count(oid) == 1
+
+
+def test_webhook_endpoint_returns_4xx_not_500():
+    from fastapi.testclient import TestClient
+
+    from app.api import app
+    c = TestClient(app)
+    assert c.post("/webhooks/mock", json={}).status_code == 400
+    assert c.post("/webhooks/mock", content=b"not json", headers={"content-type": "application/json"}).status_code == 400

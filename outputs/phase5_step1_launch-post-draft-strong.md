@@ -2,8 +2,8 @@
 
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-## Sharing my Late Payment Follow-Up Toolkit
+## Built a repeatable system for chasing late invoices without the awkwardness
 
-I’ve been building the Late Payment Follow-Up Toolkit for freelance developers like you—people who send invoices and want to follow up without sounding pushy or damaging client relationships. It’s a simple collection of templates and checklists I’ve used myself, designed to help you stay consistent and professional. I’m sharing it now to get your feedback on what works and what might be missing. What would you add or change? I’m listening.
+I put together a toolkit of email templates, a tracking spreadsheet, and a step-by-step escalation guide so freelance developers and designers can follow up on overdue payments consistently and professionally. [Add one sentence about why you made this.] It’s a downloadable set of files you can adapt to your own workflow — no software to install. Would love your feedback on what’s missing or what you’d change.
 
 Posting adapters are STUBBED; publish_post is gated and raises NotEnabled.

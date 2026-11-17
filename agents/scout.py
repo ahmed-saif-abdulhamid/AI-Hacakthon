@@ -10,10 +10,10 @@ from proveit.models import FounderBrief, Variant
 
 # Stack Exchange communities where non-engineers ask practical questions too (excluded categories left out).
 SE_SITES = {"stackoverflow", "superuser", "webapps", "workplace", "freelancing", "ux", "graphicdesign",
-            "softwareengineering", "pm", "academia", "writers", "webmasters", "softwarerecs", "photo",
+            "softwareengineering", "pm", "academia", "writing", "webmasters", "softwarerecs", "photo",
             "english", "interpersonal", "pets", "cooking", "parenting", "diy", "gardening", "travel", "music",
             "crafts", "woodworking", "outdoors", "bicycles", "boardgames", "rpg", "gamedev", "video",
-            "sound", "expatriates", "languagelearning", "matheducators", "cseducators", "productivity",
+            "sound", "expatriates", "languagelearning", "matheducators", "cseducators",
             "lifehacks", "salesforce", "wordpress", "drupal", "sharepoint", "blender", "arduino", "anime",
             "movies", "scifi", "literature", "genealogy", "sustainability", "politics"}
 _TRAILING = {"for", "of", "to", "and", "or", "the", "a", "an", "with", "in", "on", "at", "my", "our", "your", "by"}

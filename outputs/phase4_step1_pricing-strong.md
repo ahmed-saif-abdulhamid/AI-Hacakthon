@@ -9,17 +9,17 @@
 | Better | ASSUMPTION: $39 | ASSUMPTION |
 | Best | ASSUMPTION: $79 | ASSUMPTION |
 
-Verified price points used: $9 [C26].
+Verified price points used: none.
 
-Only 1 verified price point(s); tiers are an illustrative ASSUMPTION.
+Only 0 verified price point(s); tiers are an illustrative ASSUMPTION.
 
 No revenue projections or scenarios are produced.
 
 ## Rationale
 
-- ASSUMPTION: The 'good' tier at $19.0 is justified by the verified price point C51, which confirms support for fast invoice creation, client and project management, and automatic chasing of overdue invoices, aligning with the core functionality of adaptive reminders and CRM features.
-- ASSUMPTION: The 'better' tier at $39.0 is supported by the verified tech stack details in C26 and C53, which include Next.js 14, Prisma, PostgreSQL (Neon), Stripe Connect, and LemonSqueezy, indicating a robust and scalable infrastructure that justifies a higher tier for enhanced features.
-- ASSUMPTION: The 'best' tier at $79.0 is based on the assumption that comprehensive features like advanced overdue invoice recovery (as seen in C59 and C65) and a full B2B SaaS solution (as described in C94) require a premium price, though no direct verified price point exists for this tier.
+- ASSUMPTION: Pricing tiers are set as assumptions (good=$19, better=$39, best=$79) because no verified price points were provided for this product.
+- ASSUMPTION: Competitor C3 highlights integrated invoicing and payments, suggesting a value anchor for the better tier that includes payment collection features.
+- ASSUMPTION: Competitor C5 emphasizes automated bill tracking and multi-channel payment requests, supporting the best tier's premium for advanced automation.
 
 ### Sources
 

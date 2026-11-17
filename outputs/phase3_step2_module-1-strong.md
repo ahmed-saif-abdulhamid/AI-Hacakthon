@@ -1,20 +1,18 @@
-# Email Sequence Builder
+# Reminder Sequence Planner
 
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-The Email Sequence Builder helps freelance developers craft a thoughtful, stage-based email sequence to follow up on late payments. Each email is tailored to the length of delay and the client’s likely motivation, balancing professionalism with relationship preservation.
+This module helps you design a clear, escalating reminder schedule so every overdue invoice gets timely follow‑up without manual guesswork. You will map out dates, channels, and message tone for each stage of the collection process.
 
 ## Checklist
 
-- [ ] Identify the client’s payment history and the number of days past due.
-- [ ] Categorize the client into one of three types: urgent, routine, or occasional based on past behavior.
-- [ ] Draft a subject line that is clear, polite, and includes the number of days overdue.
-- [ ] Write the first email body with a friendly tone, referencing the original invoice and the due date.
-- [ ] Include a concise reminder of the payment amount and due date in the email body.
-- [ ] Add a sentence offering flexibility, such as a late fee waiver or payment extension request.
-- [ ] Send the first email within 24 hours of identifying the delay.
-- [ ] After 3 days, send a second email that acknowledges the client’s situation and reiterates the payment request.
-- [ ] If the client has not responded, send a third email that expresses appreciation for their business and gently reiterates the overdue amount.
-- [ ] Include a clear call-to-action, such as 'Pay now' or 'Contact me to discuss payment options'.
-- [ ] Track all emails sent and the client’s responses in a shared spreadsheet.
-- [ ] After the sequence ends, schedule a follow-up call or message if the payment remains unpaid.
+- [ ] List all outstanding invoices with due dates and client contacts
+- [ ] Define reminder intervals (e.g., 3 days before due, due date, 7 days overdue, 14 days overdue, 30 days overdue)
+- [ ] Choose communication channel for each interval (email, SMS, phone call, client portal)
+- [ ] Draft polite message templates for each stage, escalating firmness gradually
+- [ ] Set up calendar events or automation triggers for each reminder date
+- [ ] Assign responsibility if you work with a virtual assistant or accountant
+- [ ] Create a tracking spreadsheet with columns for invoice, stage, sent date, and response
+- [ ] Test the sequence with one client to verify timing and tone
+- [ ] Document the finalized sequence in a shared reference document
+- [ ] Review and adjust intervals quarterly based on payment patterns

@@ -7,8 +7,8 @@ Components: skills_match_idea=1.0, hours_per_week_ge_5=1.0, budget_stated=1.0, t
 
 | # | Variant | Segment | Job to be done | Pain queries | Competitor query | SE site |
 |---|---|---|---|---|---|---|
-| 1 | Late Payment Follow-Up Toolkit | freelance developers | follow up on late payments after sending invoices | chasing clients for payment; late payments never come; payment follow up mess | invoice follow up | freelancing |
-| 2 | Client Onboarding Checklist Kit | freelance designers | collect client details and project scope at the start of a project | onboarding clients slow; client onboarding mess; client details never collected | client onboarding checklist | freelancing |
-| 3 | Invoice Tracker Micro-Tool | freelance web developers | track which invoices are overdue and when they are due | invoices never tracked; overdue invoices slow; payment tracker manual | invoice tracker tool | webapps |
+| 1 | Late-Payment Follow-Up Toolkit | freelance developers and designers | send invoice reminders and track overdue payments | clients pay invoices late; chasing overdue payments; forgot to send reminder | invoice reminder templates | freelancing |
+| 2 | Client Payment Terms Pack | freelance web developers | define clear payment terms in proposals and contracts | clients dispute payment terms; scope creep no extra pay; proposal payment schedule unclear | freelance contract templates | freelancing |
+| 3 | Project Invoice Tracker | freelance designers | monitor invoice status across multiple client projects | lost track of unpaid invoices; multiple clients payment status; manual invoice tracking spreadsheet | invoice tracking spreadsheet | freelancing |
 
 Variants are proposals from the Scout model and are research targets, not market claims. In live mode only variant 1 is researched.

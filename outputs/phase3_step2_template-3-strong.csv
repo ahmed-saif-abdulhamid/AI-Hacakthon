@@ -1,4 +1,4 @@
-Client Name,"Communication Style (e.g., formal, casual, urgent)","Preferred Channel (e.g., email, phone)","Past Payment Behavior (e.g., on-time, delayed, inconsistent)",Project Reference Point,Message Tone Adjustment,Next Step Suggested
-Sarah Chen,casual,email,delayed,Project launch: UI redesign,friendly and upbeat,Can we chat briefly about the next phase?
-David Kim,formal,email,on-time,API integration completed,professional and respectful,Would you like to review the final invoice?
-Lena Patel,urgent,phone,inconsistent,Mobile app development,direct and concise,Can we connect soon to confirm payment?
+Client Name,Invoice Number,Demand Letter Date,Late Fee Applied,Action Taken,Outcome
+Acme Corp,INV-2024-001,2024-03-15,$150,Sent certified demand letter,Payment received 2024-03-28
+Bright Designs,INV-2024-007,2024-04-02,$75,Filed small‑claims case,Judgment awarded 2024-05-10
+CodeWorks LLC,INV-2024-012,2024-05-20,$200,Engaged collections agency,Partial recovery 2024-06-15
