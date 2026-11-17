@@ -69,3 +69,12 @@ def test_scout_angles_get_the_excluded_category_check_and_are_never_pivoted_to(m
     run.state["ranking"] = orchestrator.score_alternatives(run, [ok, legal], 24)
     assert [r["n"] for r in run.state["ranking"] if r.get("excluded")] == [2]
     assert run.next_variant() is None
+
+
+def test_outward_copy_never_invents_the_founders_reason_or_experience():
+    from proveit import guard
+    for text in ["I made this because keeping tabs on which invoices are sent was eating up my week.",
+                 "I built this toolkit because I kept chasing clients.",
+                 "After 7 years as a freelancer I know the pain."]:
+        assert guard.check_output(text).verdict == "refuse", text
+    assert guard.check_output("Made for freelance designers who track invoices across clients.").verdict == "allow"
