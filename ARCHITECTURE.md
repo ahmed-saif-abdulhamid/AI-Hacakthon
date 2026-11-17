@@ -149,6 +149,21 @@ Every step ends with a check: schema validation of model output (Pydantic, one r
 
 **Gate 2:** while public hosting is STUBBED, every sign-up is `test=true` and excluded, so 0 real sign-ups gives REPEAT `insufficient_evidence`. Continuing needs `founder_override_against_evidence` (reason required, guard-checked, logged with `approved_by: "founder"`), and Phases 3-5 are labelled a preview.
 
+### Founder control: each rule, the code that enforces it, and the test that proves it
+
+| Rule | Enforced in code by | Proven by |
+|---|---|---|
+| Nothing is published, sent, spent or signed without the founder | `@gated(action)` in `proveit/approval.py`, bound to the SHA-256 of the exact bytes the founder saw; spend, sign and account creation always raise | `tests/test_approval.py` (`test_blocked_without_approval`, `test_one_changed_byte_voids_the_approval`, `test_spend_sign_create_account_always_raise`) |
+| Never hold, move or refund money on its own | Payments are MOCKED; `refunds.refund` is `@gated("refund")` and revokes the download | `tests/test_sale_to_cash.py` (`test_refund_without_approval_raises`, `test_refund_with_approval_revokes_download`) |
+| Never store passwords or card details | No card field exists in any template, table or API; guard rule `credentials` refuses such requests | `tests/test_sale_to_cash.py::test_no_card_fields_anywhere`, `tests/test_guard.py::test_rules_only_must_refuse` |
+| Never promise income or guarantee success | Guard rule set A `income_promise` (requests) and rule set C `income` (outward copy) | `tests/test_guard.py::test_rules_only_must_refuse`, `tests/test_guard_scope.py::test_store_price_is_not_an_income_claim` |
+| No fake reviews, testimonials, sign-ups or countdown timers | Rules `fake_social_proof`, `fake_signups`, `urgency`; templates have no slots for reviews, ratings, counters or timers; sign-ups on the local page are `test=true` and never count | `tests/test_guard.py::test_rules_only_must_refuse`, `tests/test_guard_scope.py::test_landing_copy_with_social_proof_is_blocked` |
+| Never pose as the founder, a customer or a brand | Rules `impersonation`, `customer_voice`, `invented_experience`; posting adapters are STUBBED and gated | `tests/test_guard.py::test_outward_copy_never_invents_the_founders_reason_or_experience` |
+| A message is never an approval | Rule `bypass` ("ignore the rules", "the founder already approved", "skip approval") | `tests/test_guard.py::test_heldout_founder_said_yes_is_refused_by_the_rules_layer` |
+| Market claims are sourced or labelled ASSUMPTION | Quotes cut by code and re-checked live (`proveit/verifier.py`); `proveit/render.py` keeps a citation only when the quote supports it, otherwise labels ASSUMPTION | `tests/test_pipeline_smoke.py` (`test_statement_artifacts_sourced`, `test_no_unsourced_market_claims_in_prose`) |
+| Recommend STOP when the evidence is weak; never STOP on silence | Gate 1 rules 2, 3 and 7 in `proveit/gates.py` | `tests/test_gates.py`, `tests/test_pipeline_smoke.py::test_weak_brief_stops` |
+| Excluded products (physical, financial, health, legal advice) never proceed | Guard rule set B at intake, the same check on every Scout angle; the founder cannot override it | `tests/test_pipeline_smoke.py::test_excluded_category_stops_at_eligibility`, `tests/test_guard.py::test_scout_angles_get_the_excluded_category_check_and_are_never_pivoted_to` |
+
 **The gates as a state machine** (each arrow is a code decision or a logged founder action; nothing moves past a gate on the model's word):
 
 ```mermaid
