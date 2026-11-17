@@ -35,14 +35,17 @@ MIN_WEEKLY_HOURS = 5
 
 
 def canonical_json(obj) -> str:
+    """Deterministic JSON (sorted keys, no spaces), so equal data always hashes the same."""
     return json.dumps(obj, sort_keys=True, separators=(",", ":"), ensure_ascii=False, default=str)
 
 
 def load_thresholds(path: Path | None = None) -> dict:
+    """The gate thresholds from ``config/gates.yaml`` (or the given path)."""
     return yaml.safe_load((path or ROOT / "config" / "gates.yaml").read_text(encoding="utf-8"))
 
 
 def thresholds_sha256(thresholds: dict, brief: dict) -> str:
+    """The pre-registration hash of the thresholds and the brief, logged before any search."""
     return hashlib.sha256(canonical_json({"gates": thresholds, "brief": brief}).encode()).hexdigest()
 
 
@@ -110,6 +113,7 @@ def _one_per_comment(claims: list) -> list:
 
 
 def compute_metrics(claims: list[Claim], brief: FounderBrief, cov: float, th: dict) -> dict:
+    """Gate 1 metrics computed by code from the counted claims, the brief and the source coverage."""
     g = th["gate1_evidence"]
     counted = [c for c in claims if c.weight > 0]
     pain = _one_per_comment([c for c in counted if c.kind == "pain"])
@@ -141,6 +145,7 @@ def _checks(m: dict, g: dict) -> dict[str, tuple[bool, float]]:
     lo, hi = g["competitor_band"]
 
     def frac(v, t):
+        """Share of the target reached, capped at 1."""
         return 1.0 if t == 0 else min(1.0, v / t)
 
     comp_ok = lo <= m["competitors"] <= hi
@@ -336,6 +341,7 @@ GATE1_RULES = (
 def evaluate_gate2(
     run_id: str, thresholds: dict, registered_sha: str, real_signups: int, test_signups: int, visits: int = 0
 ) -> GateDecision:
+    """Gate 2 (demand): real sign-ups against the pre-registered target; test sign-ups never count."""
     g = thresholds["gate2_demand"]
     metrics = {
         "real_signups": real_signups,
@@ -380,6 +386,7 @@ def evaluate_gate2(
 
 
 def evaluate_gate3(run_id: str, results: list[dict], registered_sha: str = "") -> GateDecision:
+    """Gate 3 (tests): GO only when every required QA check passed."""
     failed = [r["name"] for r in results if r.get("required", True) and not r["passed"]]
     return GateDecision(
         run_id=run_id,
