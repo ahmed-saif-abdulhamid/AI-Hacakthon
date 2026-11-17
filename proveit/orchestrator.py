@@ -614,7 +614,7 @@ def market_md(run: Run, variant: Variant, claims: list[Claim], wiki: dict | None
     lines += [f"- [{c.id}] \"{c.quote}\" ({c.url})" for c in prices] or \
         ["- ASSUMPTION: no verified price point in the ledger for this variant."]
     lines += ["", "## Market size", "", "ASSUMPTION: no source in the ledger states a market size, so no TAM/SAM figure is given.", ""]
-    if wiki:
+    if wiki and verifier.is_on_topic(f"{wiki.get('title', '')} {wiki.get('extract', '')}", verifier.topic_keywords(variant)):
         lines += ["## Context (Wikipedia, context only, never evidence)", "", f"{wiki['extract']}", "", f"Source: {wiki['url']}", ""]
     return "\n".join(lines)
 
@@ -782,8 +782,9 @@ def simple_gate_md(title: str, dec: GateDecision, extra: str = "") -> str:
             f"- **Rule fired:** {dec.rule_fired}\n- **Next step:** {dec.next_step or '-'}\n"
             f"- **Recommendation:** {dec.recommendation}\n- **Founder decision:** {dec.founder_decision}\n"
             f"- **Thresholds SHA-256:** `{dec.thresholds_sha256}`\n\n## Metrics\n\n"
-            + "\n".join(f"- {k}: {v}" for k, v in dec.metrics.items()) + "\n\n## Thresholds\n\n"
-            + "\n".join(f"- {k}: {v}" for k, v in dec.thresholds.items()) + "\n\n"
+            + ("\n".join(f"- {k}: {v}" for k, v in dec.metrics.items()) or "- none: this gate is the founder's decision")
+            + "\n\n## Thresholds\n\n"
+            + ("\n".join(f"- {k}: {v}" for k, v in dec.thresholds.items()) or "- none") + "\n\n"
             + (f"## Failed checks\n\n" + "\n".join(f"- {f}" for f in dec.failed_checks) + "\n\n" if dec.failed_checks else "")
             + extra)
 

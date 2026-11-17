@@ -35,7 +35,7 @@ def support_faq(product: dict, pricing: dict, policies_md: str, docs_md: str) ->
          else "The price is shown on the store page before you pay.",
          "phase4_step1_pricing.md"),
         ("Can I get a refund?",
-         (refund + ". " if refund else "") + "Send your order number; the founder reviews and approves every refund, "
+         (refund.rstrip(".") + ". " if refund else "") + "Send your order number; the founder reviews and approves every refund, "
          "and your download link stops working once it is refunded.",
          "phase4_step2_policies.md"),
     ]
@@ -81,13 +81,12 @@ def metrics_plan(m: dict, th: dict) -> str:
     lines += [f"| {a} | {b} | {c} | {d} | {e} |" for a, b, c, d, e in _rows(m, th)]
     g6 = th["gate6_operate"]
     lines += ["", "## Decision rule (code, first match wins)", "",
-              f"1. Fewer than {g6['window_days']} days since launch, or no real orders and sign-ups under target: "
-              "**not enough data** (REPEAT: keep collecting, change nothing).",
-              f"2. Real orders >= {g6['min_real_orders']} and refund rate <= {g6['max_refund_rate']:.0%}: **persevere** (GO).",
-              "3. Real orders >= the bar but refund rate above it: **pivot** the product (the buyers came, the "
-              "product did not keep them); return to Phase 3.",
-              f"4. After the window, real sign-ups under {g6['stop_below_share']:.0%} of the waitlist target and "
-              "no real orders: **stop**.", ""]
+              f"1. Real orders >= {g6['min_real_orders']} and refund rate <= {g6['max_refund_rate']:.0%}: **persevere** (GO).",
+              f"2. Real orders >= {g6['min_real_orders']} but refund rate above {g6['max_refund_rate']:.0%}: **pivot** the "
+              "product (buyers came, the product did not keep them); return to Phase 3.",
+              f"3. {g6['window_days']} days after launch, real sign-ups under {g6['stop_below_share']:.0%} of the waitlist "
+              "target and the order bar not met: **stop**.",
+              "4. Otherwise: **not enough data** (REPEAT: keep collecting, change nothing).", ""]
     return "\n".join(lines)
 
 

@@ -42,7 +42,11 @@ def _numbers(text: str) -> set[str]:
 
 
 def citation_supports(statement: str, quote: str) -> bool:
-    return len(keywords(statement) & keywords(quote)) >= 2
+    """The quote must share at least 2 content words, and at least 30% of the statement's, with it.
+    Two shared topic words ("invoice", "overdue") are not enough to back a longer claim."""
+    words = keywords(statement)
+    shared = words & keywords(quote)
+    return len(shared) >= max(2, -(-3 * len(words) // 10))
 
 
 def validate(st: Statement, ledger: dict[str, Claim]) -> tuple[list[str], list[str]]:
