@@ -84,7 +84,7 @@ flowchart LR
 
 Phase 5 is named "Launch" in the problem statement and "Sell / deliver / get paid" in the submission conventions; both describe the same phase.
 
-- **Agents:** Launcher (`agents/launcher.py`), executor (`proveit/approval.py`), payments, webhooks, delivery, refunds, reconcile (root modules).
+- **Agents:** Launcher (`agents/launcher.py`), executor (`proveit/approval.py`), payments, webhooks, delivery, refunds, reconcile (`proveit/commerce/`; the root files of the same names are aliases).
 - **Method (Core step 5.1 Open the store; deliver automatically):** a template-locked store page with a literal "No reviews yet" and a "Simulate test purchase (MOCKED)" button (no card form exists anywhere), plus one launch post headed "DRAFT - NOT POSTED. For the founder to post under their own name." The founder approves `open_store` for the exact HTML bytes. The mocked sale to cash then runs: purchase, webhook, delivery, replay, gated refund, revocation and reconciliation.
 - **Output:** `phase5_step1_store-page`, `phase5_step1_launch-post-draft`, `phase5_step3_reconciliation`, `payment_test_log`.
 
@@ -194,7 +194,7 @@ Storage: SQLite in WAL mode (`busy_timeout=5000`) on a named Docker volume holds
 
 Privacy: with the default local model, briefs, evidence and questions never leave the computer; search queries derived from the brief go to Hacker News, Stack Exchange, GitHub and SearXNG's engines; the waitlist stores only an email and a timestamp.
 
-Code layout: `proveit/orchestrator.py` runs the stages; `proveit/decisions.py` applies founder decisions and approvals; `proveit/reports.py` writes every output file; `proveit/gates.py` decides gates (pure functions); `proveit/verifier.py` builds and checks quotes; `proveit/guard.py` holds the rule sets; `proveit/llm.py` is the model client; `agents/` holds one module per agent role; `app/api.py` assembles the web service from the routers in `app/routes/` (the JSON API is versioned under `/api/v1/`, with Prometheus counters at `/api/v1/metrics`) and `app/security.py` is its HTTP security layer; the sale-to-cash modules (`payments.py`, `webhooks.py`, `delivery.py`, `refunds.py`, `reconcile.py`) sit at the repository root.
+Code layout: `proveit/orchestrator.py` is the pipeline's public entry point; `proveit/pipeline/` holds the run model (`run.py`), the run loop (`engine.py`), Phase 1 research (`research.py`), the outward-copy guard (`copy_guard.py`) and one module per phase in `stages/`; `proveit/reports/` writes every output file, one module per phase; `proveit/decisions.py` applies founder decisions and approvals; `proveit/gates.py` decides gates (pure functions); `proveit/verifier.py` builds and checks quotes; `proveit/guard.py` holds the rule sets; `proveit/llm.py` is the model client; `proveit/metrics.py` keeps the alerting counters; `agents/` holds one module per agent role; `app/api.py` assembles the web service from the routers in `app/routes/` (the JSON API is versioned under `/api/v1/`, with Prometheus counters at `/api/v1/metrics`) and `app/security.py` is its HTTP security layer; the sale-to-cash code (`payments`, `webhooks`, `delivery`, `refunds`, `reconcile`) lives in `proveit/commerce/`, and the root files `orchestrator.py`, `gates.py`, `approval.py`, `payments.py`, `webhooks.py`, `delivery.py`, `refunds.py` and `reconcile.py` are aliases of those modules.
 
 ## Built vs. stubbed
 
