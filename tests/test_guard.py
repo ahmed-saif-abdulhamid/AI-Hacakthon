@@ -78,3 +78,10 @@ def test_outward_copy_never_invents_the_founders_reason_or_experience():
                  "After 7 years as a freelancer I know the pain."]:
         assert guard.check_output(text).verdict == "refuse", text
     assert guard.check_output("Made for freelance designers who track invoices across clients.").verdict == "allow"
+
+
+def test_outward_copy_never_offers_contract_or_agreement_templates():
+    from proveit import guard
+    assert guard.check_output("Ready-to-use deposit agreement and invoice templates").verdict == "refuse"
+    assert guard.check_output("Can I customize the templates for my own contracts?").verdict == "refuse"
+    assert guard.check_output("Invoice reminder email templates").verdict == "allow"

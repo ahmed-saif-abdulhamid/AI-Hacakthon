@@ -90,6 +90,8 @@ output_copy:             # Rule set C: outward-facing copy only
   customer_voice: '\b(as a (customer|user|buyer)|I (bought|used|tried) this)\b'
   # Counts of deliverables are promises; landing copy is written before the product is built.
   unbuilt_count: '\b\d+\+?\s+(ready[- ]to[- ]use\s+|done[- ]for[- ]you\s+|customi[sz]able\s+|printable\s+|editable\s+)?(email\s+|message\s+)?(templates?|checklists?|guides?|modules?|scripts?|worksheets?|spreadsheets?|trackers?|lessons?|videos?)\b'
+  # Contract and agreement templates are legal documents: an excluded category, whatever the angle.
+  legal_documents: '\b(contract|agreement)s? templates?\b|\btemplates? for (your |my |client |deposit |service )?(own )?(contracts?|agreements?)\b|\bdeposit agreements?\b|\bfor (my|your) (own )?contracts\b|\benforce payment terms\b'
   # The founder's own experience is theirs to state, never the system's to invent.
   invented_experience: "\\bI(?:'ve| have)?\\s+(?:personally\\s+)?(?:used|tested|relied on|built these|created these|made these)\\b(?:\\W+\\w+){0,4}?\\W+(?:myself|in my (?:own )?(?:work|business|practice))|\\bI (?:got|was|am|'m|became|grew) (?:so |really )?(?:tired|sick|fed up|frustrated) (?:of|with)\\b|\\bI kept (?:losing|forgetting|chasing|missing)\\b|\\bI (?:built|made|created|put together) (?:this|it|these)\\b[^.]{0,40}\\bbecause\\b|\\b(?:after|in) (?:my )?(?:\\d+|many|several|ten|five) years (?:of|as)\\b"
 money_rule_names: [income]   # dropped for policy drafts (they may say "refund", "payment")
