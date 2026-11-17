@@ -19,6 +19,8 @@ LABELS = {
     "target_market": r"target( market)?|market|region",
     "values": r"(core )?values",
 }
+MAX_BRIEF_CHARS = 3000  # what the model sees of a free-text brief
+ARABIC_SCRIPT = re.compile(r"[؀-ۿ]")
 ARABIC_MARKETS = r"\b(egypt|cairo|alexandria|saudi|riyadh|jeddah|uae|dubai|abu dhabi|jordan|morocco|algeria|tunisia|kuwait|qatar|oman|bahrain|lebanon|iraq|arab\w*|mena)\b"
 
 
@@ -49,7 +51,8 @@ def parse_brief(text: str) -> dict:
 
 
 def detect_language(brief: dict, text: str) -> str:
-    if re.search(r"[؀-ۿ]", text or ""):
+    """ "ar" for a brief in Arabic script or aimed at an Arab market, otherwise "en"."""
+    if ARABIC_SCRIPT.search(text or ""):
         return "ar"
     if re.search(ARABIC_MARKETS, brief.get("target_market", "") or "", re.I) and re.search(
         r"\barab", (brief.get("target_market", "") + " " + text).lower()
@@ -59,6 +62,7 @@ def detect_language(brief: dict, text: str) -> str:
 
 
 def run(run_id: str, text: str, fields: dict | None = None) -> FounderBrief:
+    """The brief from labelled lines and form fields by code; free text without an idea line goes to the model."""
     parsed = parse_brief(text)
     for k, v in (fields or {}).items():
         if v and str(v).strip():
@@ -75,7 +79,9 @@ def run(run_id: str, text: str, fields: dict | None = None) -> FounderBrief:
             fields_unspecified=[k for k, v in brief.items() if v == UNSPECIFIED],
         )
         return FounderBrief(**brief)
-    out = llm.agent_call(run_id, "intake", "structure_brief", IntakeOut, f"BRIEF:\n{text[:3000]}", num_predict=300)
+    out = llm.agent_call(
+        run_id, "intake", "structure_brief", IntakeOut, f"BRIEF:\n{text[:MAX_BRIEF_CHARS]}", num_predict=300
+    )
     data = out.model_dump()
     for k in LABELS:
         v = (data.get(k) or "").strip()

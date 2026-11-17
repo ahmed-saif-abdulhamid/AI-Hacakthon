@@ -8,6 +8,8 @@ import re
 
 from proveit import guard
 
+MODULE_WORDS = (40, 1500)  # a module's intro and steps together stay within these word counts
+NON_VERB_STEPS_ALLOWED = 10  # one checklist step in ten may start with something other than a verb
 VERB_RE = re.compile(r"^[A-Z][a-z]+")
 NON_VERBS = {"The", "A", "An", "This", "Your", "All", "Each", "Every", "Client", "Clients", "Project", "Our", "My"}
 
@@ -26,27 +28,21 @@ def _starts_with_verb(step: str) -> bool:
     return bool(VERB_RE.match(first)) and first not in NON_VERBS
 
 
-def run(spec, modules, csv_texts: list[str], docs: str, expected_modules: int) -> list[dict]:
-    results = []
+def _module_text(m) -> str:
+    return " ".join([m.title, m.intro] + m.steps)
 
-    def add(name, passed, detail=""):
-        results.append({"name": name, "passed": bool(passed), "detail": detail, "required": True})
 
-    add("modules_present", len(modules) >= expected_modules, f"{len(modules)} of {expected_modules}")
-    bad = [s for m in modules for s in m.steps if not _starts_with_verb(s)]
-    add(
-        "checklist_items_start_with_verb",
-        len(bad) <= max(1, sum(len(m.steps) for m in modules) // 10),
-        "; ".join(bad[:3]),
-    )
-    banned = []
-    for m in modules:
-        text = " ".join([m.title, m.intro] + m.steps)
-        res = guard.check_output(text, "outward")
-        if res.blocked:
-            banned.append(res.rule)
-    add("no_banned_claims", not banned, ", ".join(banned))
-    # House style for every file we ship: no evaluation vocabulary in product text.
+def _csv_parses(text: str) -> bool:
+    """A header and at least one row, every row as wide as the header."""
+    try:
+        rows = list(csv.reader(io.StringIO(text)))
+    except csv.Error:
+        return False
+    return len(rows) >= 2 and all(len(r) == len(rows[0]) for r in rows)
+
+
+def _evaluation_words(spec, modules, docs: str) -> list[str]:
+    """House style for every file we ship: no evaluation vocabulary in product text."""
     every = " ".join(
         [
             getattr(spec, "title", ""),
@@ -55,21 +51,32 @@ def run(spec, modules, csv_texts: list[str], docs: str, expected_modules: int) -
             " ".join(getattr(spec, "what_it_is_not", []) or []),
             docs,
         ]
-        + [" ".join([m.title, m.intro] + m.steps) for m in modules]
+        + [_module_text(m) for m in modules]
     )
-    words = sorted({m.group(0).lower() for m in EVAL_WORDS.finditer(every)})
+    return sorted({m.group(0).lower() for m in EVAL_WORDS.finditer(every)})
+
+
+def run(spec, modules, csv_texts: list[str], docs: str, expected_modules: int) -> list[dict]:
+    """Every QA check as {name, passed, detail, required}; Gate 3 needs all required ones to pass."""
+    results = []
+
+    def add(name: str, passed: object, detail: str = "") -> None:
+        results.append({"name": name, "passed": bool(passed), "detail": detail, "required": True})
+
+    add("modules_present", len(modules) >= expected_modules, f"{len(modules)} of {expected_modules}")
+    bad = [s for m in modules for s in m.steps if not _starts_with_verb(s)]
+    allowed = max(1, sum(len(m.steps) for m in modules) // NON_VERB_STEPS_ALLOWED)
+    add("checklist_items_start_with_verb", len(bad) <= allowed, "; ".join(bad[:3]))
+    blocked = [guard.check_output(_module_text(m), "outward") for m in modules]
+    banned = [res.rule for res in blocked if res.blocked]
+    add("no_banned_claims", not banned, ", ".join(banned))
+    words = _evaluation_words(spec, modules, docs)
     add("no_evaluation_words", not words, ", ".join(words))
-    parsed = True
-    for t in csv_texts:
-        try:
-            rows = list(csv.reader(io.StringIO(t)))
-            parsed = parsed and len(rows) >= 2 and all(len(r) == len(rows[0]) for r in rows)
-        except csv.Error:
-            parsed = False
-    add("csv_templates_parse", parsed)
+    add("csv_templates_parse", all(_csv_parses(t) for t in csv_texts))
     links = re.findall(r"phase3_step2_(module|template)-(\d+)", docs)
     add("internal_links_resolve", all(int(n) <= len(modules) for _, n in links), f"{len(links)} links")
+    lo, hi = MODULE_WORDS
     for i, m in enumerate(modules, start=1):
-        words = len(" ".join([m.intro] + m.steps).split())
-        add(f"module_{i}_word_count_in_bounds", 40 <= words <= 1500, f"{words} words")
+        n_words = len(" ".join([m.intro] + m.steps).split())
+        add(f"module_{i}_word_count_in_bounds", lo <= n_words <= hi, f"{n_words} words")
     return results

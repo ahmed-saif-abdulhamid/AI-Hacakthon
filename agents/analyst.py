@@ -14,15 +14,21 @@ from __future__ import annotations
 STATUS = "STUBBED"  # no live product, so every real-record count is 0 in the demo
 
 
-def support_faq(product: dict, pricing: dict, policies_md: str, docs_md: str) -> str:
+def _not_included(docs_md: str) -> list[str]:
+    """The bullet list under the user docs' "does not do" heading."""
+    if "does not do" not in docs_md:
+        return []
+    tail = docs_md.split("does not do", 1)[1].split("\n## ", 1)[0]
+    return [ln[2:].strip() for ln in tail.splitlines() if ln.startswith("- ")]
+
+
+def _faq(product: dict, pricing: dict, policies_md: str, docs_md: str) -> list[tuple[str, str, str]]:
+    """(question, draft answer, file it is built from) for the questions buyers ask most."""
     title = product.get("title", "the toolkit")
     modules = product.get("modules", [])
     tiers = [f"${pricing[k]:.0f}" for k in ("good", "better", "best") if isinstance(pricing.get(k), int | float)]
     refund = next((ln.strip("- ").strip() for ln in policies_md.splitlines() if "Refund window" in ln), None)
-    not_do = []
-    if "does not do" in docs_md:
-        tail = docs_md.split("does not do", 1)[1].split("\n## ", 1)[0]
-        not_do = [ln[2:].strip() for ln in tail.splitlines() if ln.startswith("- ")]
+    not_do = _not_included(docs_md)
     qa = [
         (
             "What do I get?",
@@ -67,6 +73,11 @@ def support_faq(product: dict, pricing: dict, policies_md: str, docs_md: str) ->
             "phase4_step2_policies.md",
         )
     )
+    return qa
+
+
+def support_faq(product: dict, pricing: dict, policies_md: str, docs_md: str) -> str:
+    """Support answer drafts as a markdown table, built only from facts this run already produced."""
     lines = [
         "# Phase 6, step 2: Support answers (drafts)",
         "",
@@ -76,7 +87,7 @@ def support_faq(product: dict, pricing: dict, policies_md: str, docs_md: str) ->
         "| Question | Draft answer | Built from |",
         "|---|---|---|",
     ]
-    lines += [f"| {q} | {a} | {src} |" for q, a, src in qa]
+    lines += [f"| {q} | {a} | {src} |" for q, a, src in _faq(product, pricing, policies_md, docs_md)]
     return "\n".join(lines) + "\n"
 
 
