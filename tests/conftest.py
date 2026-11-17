@@ -74,6 +74,9 @@ def offline_sources(monkeypatch):
         gather, data = fixture_gather(name)
         pages = {h["url"]: h["text"] for c in data["calls"] for h in c["hits"]}
         monkeypatch.setattr(orchestrator, "gather", gather)
+        monkeypatch.setattr(orchestrator, "score_alternatives", lambda run, variants, months: [
+            {"n": v.n, "title": v.title, "comments_checked": 20, "on_topic": 9 - v.n, "complaints": 4 - v.n,
+             "fit": 0.5, "errors": 0, "signal": 10 - v.n, "chosen": v.n == 1} for v in variants])
         monkeypatch.setattr(verifier, "_fetch", lambda url, timeout: pages.get(url))
         return data
     return use

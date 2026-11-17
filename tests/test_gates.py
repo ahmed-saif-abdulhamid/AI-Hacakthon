@@ -95,3 +95,15 @@ def test_gate2_zero_real_signups_is_repeat():
 @pytest.mark.parametrize("passed,outcome", [(True, "go"), (False, "repeat")])
 def test_gate3(passed, outcome):
     assert gates.evaluate_gate3("r", [{"name": "x", "passed": passed}]).outcome == outcome
+
+
+def test_pivot_targets_the_next_best_scored_angle_not_the_next_number():
+    from proveit.orchestrator import Run
+    run = Run.__new__(Run)
+    run.state = {"variants": [{}, {}, {}], "variant_n": 2, "research": {"2": {}},
+                 "ranking": [{"n": 1, "signal": 1.0}, {"n": 2, "signal": 9.0}, {"n": 3, "signal": 5.0}]}
+    assert run.next_variant() == 3
+    run.state["research"]["3"] = {}
+    assert run.next_variant() == 1
+    run.state["research"]["1"] = {}
+    assert run.next_variant() is None

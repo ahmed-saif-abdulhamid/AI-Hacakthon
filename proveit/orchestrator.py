@@ -22,7 +22,7 @@ from pathlib import Path
 import yaml
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
-from agents import analyst, builder, debate, intake, launcher, policy_drafter, pricer, qa, researcher, scout, strategist
+from agents import analyst, builder, debate, intake, launcher, policy_drafter, pricer, qa, researcher, scorer, scout, strategist
 from sources import wikipedia
 from sources.github import GitHub
 from sources.hn import HackerNews
@@ -84,6 +84,13 @@ class Run:
     def variant(self, n: int | None = None) -> Variant:
         n = n or self.state.get("variant_n", 1)
         return Variant(**self.state["variants"][n - 1])
+
+    def next_variant(self) -> int | None:
+        """The best-scored angle not researched yet (the pivot target), or None."""
+        tried = set(self.state.get("research", {})) | {str(self.state.get("variant_n", 1))}
+        order = [r["n"] for r in sorted(self.state.get("ranking") or [], key=lambda r: -r.get("signal", 0))]
+        order += [i for i in range(1, len(self.state.get("variants") or []) + 1) if i not in order]
+        return next((n for n in order if str(n) not in tried), None)
 
 
 def load(run_id: str) -> Run:
@@ -301,6 +308,19 @@ def gather(run: Run, variant: Variant, caps: dict, limits: dict, broaden: bool =
     return hits, calls, by_call, wiki
 
 
+def score_alternatives(run: Run, variants: list[Variant], max_age_months: int) -> list[dict]:
+    """Rank the Scout's angles by recent first-person complaints (code only); fall back to the first."""
+    try:
+        rows = scorer.rank(run.id, run.brief, variants, max_age_months)
+    except Exception as e:  # noqa: BLE001 - ranking is advisory; research still runs
+        log_action(run.id, "scorer", "score_alternatives_failed", error=str(e)[:160])
+        return [{"n": v.n, "title": v.title, "chosen": v.n == 1} for v in variants]
+    if all(r["errors"] for r in rows):
+        for r in rows:
+            r["chosen"] = r["n"] == 1
+    return rows
+
+
 def research_variant(run: Run, variant: Variant, broaden: bool = False) -> dict:
     rt = runtime()
     mode_cfg, limits = rt[run.mode], rt["limits"]
@@ -366,9 +386,13 @@ def stage_phase1(run: Run) -> None:
     if "variants" not in run.state:
         variants = scout.run(run.id, run.brief)
         run.state["variants"] = [v.model_dump() for v in variants]
-        run.state["variant_n"] = 1
+        progress(run, 1, "Comparing the angles")
+        ranking = score_alternatives(run, variants, th["gate1_evidence"]["max_age_months"])
+        run.state["ranking"] = ranking
+        chosen = next((r["n"] for r in ranking if r.get("chosen")), 1)
+        run.state["variant_n"] = chosen
         run.write("phase1_step1_opportunities.md", opportunities_md(run, variants))
-        say(run, "variants", title=variants[0].title)
+        say(run, "variants", title=run.variant(chosen).title)
         run.save()
     rt = runtime()[run.mode]
     variant_n = run.state.get("variant_n", 1)
@@ -399,7 +423,7 @@ def stage_phase1(run: Run) -> None:
     # skipped when there is nothing to argue about (the sources could not see the market, or the research failed).
     dec = gates.evaluate_gate1(run.id, metrics, th, run.brief_raw, run.sha, model_failure=research["model_failure"],
                                missed=research["missed"], repeats=repeats, variant_n=variant_n,
-                               n_variants=len(run.state["variants"]))
+                               n_variants=len(run.state["variants"]), next_variant=run.next_variant())
     args = {"advocate": [], "skeptic": []}
     run.state.pop("debate", None)
     if dec.reason not in ("insufficient_evidence", "model_failure", "model_suspect"):
@@ -419,8 +443,8 @@ def stage_phase1(run: Run) -> None:
     log_action(run.id, "gatekeeper", "evidence_gate", sources=sorted({c.url for c in claims if c.weight > 0}),
                model=None, cost=0, outcome=dec.outcome, reason=dec.reason, rule_fired=dec.rule_fired,
                thresholds_sha256=dec.thresholds_sha256, goalpost_moved=dec.goalpost_moved)
-    if dec.outcome == "stop" and run.mode == "live" and len(run.state["variants"]) > 1 and variant_n == 1:
-        dec.recommendation += " (STOP for variant 1; variants 2-3 not researched.)"
+    if dec.outcome == "stop" and run.mode == "live" and len(run.state["variants"]) > 1:
+        dec.recommendation += f" (STOP for variant {variant_n}; the other angles were scored but not researched.)"
     run.state["gate1"] = dec.model_dump()
     say(run, "gate", **dec.model_dump())
     prov = render.Provenance()
@@ -455,8 +479,25 @@ def opportunities_md(run: Run, variants: list[Variant]) -> str:
     for v in variants:
         lines.append(f"| {v.n} | {v.title} | {v.segment} | {v.job_to_be_done} | {'; '.join(v.pain_queries)} | "
                      f"{v.competitor_query} | {v.se_site} |")
-    lines += ["", "Variants are proposals from the Scout model and are research targets, not market claims. "
-              "In live mode only variant 1 is researched.", ""]
+    lines += ["", "Variants are proposals from the Scout model and are research targets, not market claims.", ""]
+    ranking = run.state.get("ranking") or []
+    if ranking and "signal" in ranking[0]:
+        g = run.state["thresholds"]["gate1_evidence"]
+        lines += ["## Scored against each other (code only, before deep research)", "",
+                  f"Each angle's pain queries were run against Hacker News comments from the last {g['max_age_months']} months "
+                  f"(https://hn.algolia.com/api/v1/search). Code counted comments that are on topic and read as the "
+                  "writer's own complaint (first person, a pain cue, not a product pitch). Fit is the share of the "
+                  "angle's segment and job words found in the founder's skills, market and idea.", "",
+                  "| # | Variant | Comments checked | On topic | First-person complaints | Founder fit | Signal | Researched first |",
+                  "|---|---|---|---|---|---|---|---|"]
+        for r in sorted(ranking, key=lambda r: -r["signal"]):
+            lines.append(f"| {r['n']} | {r['title']} | {r['comments_checked']} | {r['on_topic']} | {r['complaints']} | "
+                         f"{r['fit']} | {r['signal']} | {'**yes**' if r.get('chosen') else 'pivot target'} |")
+        lines += ["", "Signal = complaints + 0.25 x on-topic comments + 2 x fit. ASSUMPTION: these weights are a team "
+                  "default; the counts only rank the angles and are never counted as evidence at a gate. "
+                  "The deep research below (step 2) is what Gate 1 reads.", ""]
+    else:
+        lines += [f"Variant {run.state.get('variant_n', 1)} is researched first.", ""]
     return "\n".join(lines)
 
 
@@ -632,7 +673,7 @@ def allowed_decisions(run: Run) -> list[str]:
         out.append("clarify_ok")
     if _evidence_choice_open(run):
         out += ["repeat", "override"]
-        if run.state.get("variant_n", 1) < len(run.state.get("variants") or []):
+        if run.next_variant():
             out.append("pivot")
         if run.stage == "await_founder":
             out.append("stop")
@@ -711,7 +752,9 @@ def founder_decide(run_id: str, decision: str, reason: str = "") -> dict:
                  status="running" if ok or redo else "stopped")
         return {"ok": True, "stage": run.stage}
     if decision == "pivot":
-        n = min(run.state.get("variant_n", 1) + 1, len(run.state["variants"]))
+        n = run.next_variant()
+        if n is None:
+            return {"ok": False, "error": "Every angle has already been researched."}
         log_action(run.id, "founder", f"pivot_to_variant_{n}", approved_by="founder")
         run.state["variant_n"] = n
         run.save("phase1", status="running")

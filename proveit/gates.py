@@ -135,7 +135,10 @@ def _checks(m: dict, g: dict) -> dict[str, tuple[bool, float]]:
 
 def evaluate_gate1(run_id: str, metrics: dict, thresholds: dict, brief: dict, registered_sha: str, *,
                    model_failure: bool = False, missed: list[str] | None = None, excluded: str | None = None,
-                   repeats: int = 0, variant_n: int = 1, n_variants: int = 3) -> GateDecision:
+                   repeats: int = 0, variant_n: int = 1, n_variants: int = 3,
+                   next_variant: int | None = 0) -> GateDecision:
+    if next_variant == 0:            # not given: simply the next number
+        next_variant = variant_n + 1 if variant_n < n_variants else None
     g = thresholds["gate1_evidence"]
     current_sha = thresholds_sha256(thresholds, brief)
     moved = current_sha != registered_sha
@@ -173,11 +176,11 @@ def evaluate_gate1(run_id: str, metrics: dict, thresholds: dict, brief: dict, re
         return GateDecision(**base, outcome="go", reason="all_checks_pass", next_step="phase2_validate",
                             rule_fired="rule_4", recommendation="Every pre-registered check passed.")
     pain_ok = checks["sourced_pain"][0] and checks["distinct_sources"][0]
-    if pain_ok and set(failed) <= {"competitor_band", "founder_fit"} and variant_n < n_variants:
+    if pain_ok and set(failed) <= {"competitor_band", "founder_fit"} and next_variant:
         return GateDecision(**base, outcome="pivot", reason="pain_ok_" + "_and_".join(failed),
-                            next_step=f"research_variant_{variant_n + 1}", rule_fired="rule_5",
+                            next_step=f"research_variant_{next_variant}", rule_fired="rule_5",
                             recommendation="Pain is real, but " + ", ".join(failed)
-                            + f" failed. Pivot: research variant {variant_n + 1}.")
+                            + f" failed. Pivot: research variant {next_variant}.")
     if all(checks[k][1] >= g["near_miss_ratio"] for k in failed) and repeats < g["max_repeats"]:
         return GateDecision(**base, outcome="repeat", reason="near_miss", next_step="broaden_queries",
                             rule_fired="rule_6",
