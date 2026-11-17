@@ -10,6 +10,8 @@
 * Structured calls send the Pydantic JSON schema as ``response_format`` (constrained output),
   temperature 0 and a fixed seed; one retry on invalid JSON, then ``LLMError`` (the gate turns
   that into REPEAT/model_failure).
+* Every request has a timeout, busy or unreachable servers are retried with bounded back-off, and
+  ``LLMError.retryable`` tells callers whether trying again later can help.
 * The model has no tools: it only returns data. Only orchestrator code calls functions.
 """
 
@@ -21,12 +23,15 @@ import os
 import re
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from pathlib import Path
 from typing import TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
+
+from . import metrics
+from .log import log_action
 
 ROOT = Path(__file__).resolve().parent.parent
 PROMPTS = ROOT / "prompts"
@@ -34,13 +39,66 @@ NVIDIA_URL = "https://integrate.api.nvidia.com/v1"
 DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b"
 OLLAMA_URL = "http://localhost:11434"
 OLLAMA_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
+FAKE_MODEL_NAME = "fake-llm-tests-only"
+
+# Timeouts (seconds). Guard checks wait briefly for the hosted model; a local model on a CPU needs longer.
+DEFAULT_TIMEOUT_SECONDS = 120.0
+QUICK_TIMEOUT_SECONDS = {"ollama": 45.0, "nvidia": 10.0}
+OLLAMA_STATUS_TIMEOUT_SECONDS = 2.0
+
+# Retries: HTTP statuses worth retrying (rate limit and transient server errors) and their bounds.
+RETRY_STATUSES = (429, 500, 502, 503, 504)
+TRANSIENT_ERRORS = (httpx.TimeoutException, httpx.NetworkError)
+MAX_POST_ATTEMPTS = 10
+MAX_STATUS_RETRIES = 5
+MAX_TRANSPORT_RETRIES = 2
+STREAM_ATTEMPTS = 4
+JSON_ATTEMPTS = 2
+BACKOFF_BASE_SECONDS = 3.0
+BACKOFF_CAP_SECONDS = 20.0
+RETRY_AFTER_CAP_SECONDS = 30.0
+
+# Client-side pacing for the shared free tier.
+DEFAULT_RPM = 30
+DEFAULT_MAX_CONCURRENCY = 2
+RATE_WINDOW_SECONDS = 60.0
+RATE_POLL_CAP_SECONDS = 5.0
+RATE_SLACK_SECONDS = 0.05
+
+# Request shape.
+SEED = 7
+MIN_JSON_TOKENS = 256
+JSON_TOKEN_HEADROOM = 2  # max_tokens = budget x headroom, so a long answer is not cut mid-JSON
+STREAM_TEMPERATURE = 0.3
+STREAM_TOKEN_HEADROOM = 3
+# Request options tried in order: drop the ones a model rejects with HTTP 400.
+OPTIONAL_FIELDS = ("chat_template_kwargs", "response_format")
+
+HEALTH_MEMORY_SECONDS = 90.0  # how long a failed call colours the status shown in the console
+CHARS_PER_TOKEN = 4
 
 T = TypeVar("T", bound=BaseModel)
 Backend = Callable[[str, str, dict, str], str]
 
 
 class LLMError(Exception):
-    pass
+    """The model could not give a usable answer.
+
+    ``retryable`` is True when the same request may succeed later without any change: the server
+    rate-limited us (HTTP 429), was busy or failing transiently (HTTP 5xx in ``RETRY_STATUSES``), or
+    could not be reached in time (timeout, connection error). It is False for problems that a retry
+    cannot fix: a missing key, no model in the hosted demo, a rejected request, or invalid JSON.
+    """
+
+    def __init__(self, message: str, *, retryable: bool = False) -> None:
+        super().__init__(message)
+        self.retryable = retryable
+
+
+def _error(message: str, *, retryable: bool) -> LLMError:
+    """Build an LLMError and count it for alerting."""
+    metrics.increment("llm_call_failed", retryable=retryable)
+    return LLMError(message, retryable=retryable)
 
 
 _backend: Backend | None = None
@@ -63,6 +121,9 @@ def _load_dotenv() -> None:
 _load_dotenv()
 
 
+# ---- provider settings -------------------------------------------------------------
+
+
 def provider() -> str:
     chosen = os.environ.get("LLM_PROVIDER", "").strip().lower()
     if chosen in ("ollama", "nvidia"):
@@ -72,7 +133,7 @@ def provider() -> str:
 
 def model_name() -> str:
     if _backend is not None:
-        return "fake-llm-tests-only"
+        return FAKE_MODEL_NAME
     if provider() == "ollama":
         return os.environ.get("OLLAMA_MODEL") or OLLAMA_MODEL
     return os.environ.get("NVIDIA_MODEL") or DEFAULT_MODEL
@@ -80,8 +141,12 @@ def model_name() -> str:
 
 def base_url() -> str:
     if provider() == "ollama":
-        return os.environ.get("OLLAMA_URL", OLLAMA_URL).rstrip("/") + "/v1"
+        return _ollama_url() + "/v1"
     return os.environ.get("NVIDIA_BASE_URL", NVIDIA_URL).rstrip("/")
+
+
+def _ollama_url() -> str:
+    return os.environ.get("OLLAMA_URL", OLLAMA_URL).rstrip("/")
 
 
 def _headers() -> dict:
@@ -89,17 +154,16 @@ def _headers() -> dict:
         return {"Authorization": "Bearer ollama", "Accept": "application/json"}
     key = os.environ.get("NVIDIA_API_KEY", "").strip()
     if not key:
-        raise LLMError("NVIDIA_API_KEY is not set: get a free key at build.nvidia.com and put it in .env")
+        raise _error(
+            "NVIDIA_API_KEY is not set: get a free key at build.nvidia.com and put it in .env", retryable=False
+        )
     return {"Authorization": f"Bearer {key}", "Accept": "application/json"}
 
 
-def _timeout() -> float:
-    return float(os.environ.get("LLM_TIMEOUT", "120"))
-
-
-def _quick_timeout() -> float:
-    """Guard checks wait 10 s for the hosted model; a local model on a CPU needs longer."""
-    return 45.0 if provider() == "ollama" else 10.0
+def _timeout(quick: bool = False) -> float:
+    if quick:
+        return QUICK_TIMEOUT_SECONDS[provider()]
+    return float(os.environ.get("LLM_TIMEOUT", DEFAULT_TIMEOUT_SECONDS))
 
 
 def _no_model() -> bool:
@@ -120,36 +184,33 @@ def _strip_reasoning(text: str) -> str:
     return m.group(1) if m else text
 
 
-# Request options tried in order: drop the ones a model rejects with HTTP 400.
-OPTIONAL_FIELDS = ("chat_template_kwargs", "response_format")
-
-
-RETRY_STATUSES = (429, 500, 502, 503, 504)
+# ---- pacing, retries and health ----------------------------------------------------
 
 
 class _RateLimiter:
     """Client-side pacing for the shared free tier: at most ``LLM_RPM`` requests in any 60 s window and
     ``LLM_MAX_CONCURRENCY`` in flight, so a run spreads its calls instead of tripping HTTP 429."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._lock = threading.Lock()
         self._times: list[float] = []
-        self._sem = threading.BoundedSemaphore(max(1, int(os.environ.get("LLM_MAX_CONCURRENCY", "2"))))
+        concurrency = int(os.environ.get("LLM_MAX_CONCURRENCY", DEFAULT_MAX_CONCURRENCY))
+        self._sem = threading.BoundedSemaphore(max(1, concurrency))
 
-    def __enter__(self):
+    def __enter__(self) -> _RateLimiter:
         self._sem.acquire()
-        rpm = max(1, int(os.environ.get("LLM_RPM", "30")))
+        rpm = max(1, int(os.environ.get("LLM_RPM", DEFAULT_RPM)))
         while True:
             with self._lock:
                 now = time.time()
-                self._times = [t for t in self._times if now - t < 60]
+                self._times = [t for t in self._times if now - t < RATE_WINDOW_SECONDS]
                 if len(self._times) < rpm:
                     self._times.append(now)
                     return self
-                wait = 60 - (now - self._times[0]) + 0.05
-            time.sleep(min(wait, 5))
+                wait = RATE_WINDOW_SECONDS - (now - self._times[0]) + RATE_SLACK_SECONDS
+            time.sleep(min(wait, RATE_POLL_CAP_SECONDS))
 
-    def __exit__(self, *exc):
+    def __exit__(self, *exc: object) -> None:
         self._sem.release()
 
 
@@ -159,11 +220,9 @@ _limiter = _RateLimiter()
 def _backoff(attempt: int, r: httpx.Response | None) -> float:
     """Exponential back-off (3, 6, 12, 20, 20 s: about a minute in all), honouring Retry-After."""
     if r is not None:
-        try:
-            return min(30.0, float(r.headers.get("retry-after", "")))
-        except ValueError:
-            pass
-    return min(20.0, 3.0 * 2**attempt)
+        with contextlib.suppress(ValueError):
+            return min(RETRY_AFTER_CAP_SECONDS, float(r.headers.get("retry-after", "")))
+    return min(BACKOFF_CAP_SECONDS, BACKOFF_BASE_SECONDS * 2**attempt)
 
 
 _health = {"state": "ready", "at": 0.0}
@@ -174,48 +233,63 @@ def _note(state: str) -> None:
     _health.update(state=state, at=time.time())
 
 
+def _health_state(status_code: int) -> str:
+    if status_code == httpx.codes.OK:
+        return "ready"
+    return "busy" if status_code == httpx.codes.TOO_MANY_REQUESTS else "unreachable"
+
+
+def _unreachable(e: httpx.HTTPError) -> LLMError:
+    return _error(f"{provider()} model API unreachable: {e}", retryable=isinstance(e, TRANSIENT_ERRORS))
+
+
+def _drop_optional_field(body: dict) -> bool:
+    """Remove the next optional request field after an HTTP 400. False when none is left to drop."""
+    dropped = next((f for f in OPTIONAL_FIELDS if f in body), None)
+    if dropped is None:
+        return False
+    body.pop(dropped)
+    return True
+
+
+# ---- requests ----------------------------------------------------------------------
+
+
 def _post(body: dict, quick: bool = False) -> httpx.Response:
-    r = None
+    """POST a chat completion, retrying busy and unreachable servers (never for a quick guard check)."""
+    status_retries = 0 if quick else MAX_STATUS_RETRIES
+    transport_retries = 0 if quick else MAX_TRANSPORT_RETRIES
     retries = 0
-    max_retries = 0 if quick else 5
-    for _ in range(10):
+    r = None
+    for _ in range(MAX_POST_ATTEMPTS):
         try:
             with _limiter:
-                r = httpx.post(
-                    f"{base_url()}/chat/completions",
-                    json=body,
-                    headers=_headers(),
-                    timeout=_quick_timeout() if quick else _timeout(),
-                )
-        except (httpx.TimeoutException, httpx.NetworkError) as e:
+                r = httpx.post(f"{base_url()}/chat/completions", json=body, headers=_headers(), timeout=_timeout(quick))
+        except TRANSIENT_ERRORS as e:
             _note("unreachable")
-            if quick or retries >= 2:
-                raise LLMError(f"{provider()} model API unreachable: {e}") from e
+            if retries >= transport_retries:
+                raise _unreachable(e) from e
             time.sleep(_backoff(retries, None))
             retries += 1
             continue
         except httpx.HTTPError as e:
-            raise LLMError(f"{provider()} model API unreachable: {e}") from e
-        if r.status_code == 400:
-            dropped = next((f for f in OPTIONAL_FIELDS if f in body), None)
-            if dropped is None:
-                return r
-            body.pop(dropped)
-            continue
-        if r.status_code in RETRY_STATUSES and retries < max_retries:  # free-tier rate limit or a transient error
-            _note("busy" if r.status_code == 429 else "unreachable")
+            raise _unreachable(e) from e
+        if r.status_code == httpx.codes.BAD_REQUEST:
+            if _drop_optional_field(body):
+                continue
+            return r
+        if r.status_code in RETRY_STATUSES and retries < status_retries:
+            _note(_health_state(r.status_code))
             time.sleep(_backoff(retries, r))
             retries += 1
             continue
-        _note("ready" if r.status_code == 200 else ("busy" if r.status_code == 429 else "unreachable"))
+        _note(_health_state(r.status_code))
         return r
     return r
 
 
-def _complete(system: str, user: str, schema: dict, num_predict: int, quick: bool = False) -> tuple[str, int, int]:
-    if _no_model():
-        raise LLMError("no model in the hosted demo")
-    body = {
+def _json_body(system: str, user: str, schema: dict, num_predict: int) -> dict:
+    return {
         "model": model_name(),
         "messages": [
             {
@@ -226,15 +300,23 @@ def _complete(system: str, user: str, schema: dict, num_predict: int, quick: boo
             {"role": "user", "content": _no_think(user)},
         ],
         "temperature": 0,
-        "seed": 7,
-        "max_tokens": max(num_predict, 256) * 2,
+        "seed": SEED,
+        "max_tokens": max(num_predict, MIN_JSON_TOKENS) * JSON_TOKEN_HEADROOM,
         "stream": False,
         "response_format": {"type": "json_schema", "json_schema": {"name": "output", "schema": schema}},
         "chat_template_kwargs": {"enable_thinking": False},
     }
-    r = _post(body, quick)
-    if r.status_code != 200:
-        raise LLMError(f"{provider()} model API returned {r.status_code}: {r.text[:200]}")
+
+
+def _complete(system: str, user: str, schema: dict, num_predict: int, quick: bool = False) -> tuple[str, int, int]:
+    if _no_model():
+        raise _error("no model in the hosted demo", retryable=False)
+    r = _post(_json_body(system, user, schema, num_predict), quick)
+    if r.status_code != httpx.codes.OK:
+        raise _error(
+            f"{provider()} model API returned {r.status_code}: {r.text[:200]}",
+            retryable=r.status_code in RETRY_STATUSES,
+        )
     data = r.json()
     usage = data.get("usage") or {}
     content = data["choices"][0]["message"].get("content") or ""
@@ -253,23 +335,31 @@ def load_prompt(name: str) -> str:
     return (PROMPTS / f"{name}.md").read_text(encoding="utf-8")
 
 
-def fill(template: str, **values) -> str:
+def fill(template: str, **values: object) -> str:
+    """Replace each ``{{name}}`` in ``template`` (non-string values are inserted as JSON)."""
     out = template
     for k, v in values.items():
         out = out.replace("{{" + k + "}}", v if isinstance(v, str) else json.dumps(v, ensure_ascii=False))
     return out
 
 
+# ---- usage accounting --------------------------------------------------------------
+
+
+def _empty_usage() -> dict:
+    return {"calls": 0, "tokens_in": 0, "tokens_out": 0, "seconds": 0.0}
+
+
 def usage(run_id: str) -> dict:
     with _usage_lock:
-        return dict(_usage.get(run_id, {"calls": 0, "tokens_in": 0, "tokens_out": 0, "seconds": 0.0}))
+        return dict(_usage.get(run_id, _empty_usage()))
 
 
 def _add_usage(run_id: str | None, tin: int, tout: int, secs: float) -> None:
     if not run_id:
         return
     with _usage_lock:
-        u = _usage.setdefault(run_id, {"calls": 0, "tokens_in": 0, "tokens_out": 0, "seconds": 0.0})
+        u = _usage.setdefault(run_id, _empty_usage())
         u["calls"] += 1
         u["tokens_in"] += tin
         u["tokens_out"] += tout
@@ -277,7 +367,10 @@ def _add_usage(run_id: str | None, tin: int, tout: int, secs: float) -> None:
 
 
 def estimate_tokens(text: str) -> int:
-    return max(1, len(text) // 4)
+    return max(1, len(text) // CHARS_PER_TOKEN)
+
+
+# ---- public calls ------------------------------------------------------------------
 
 
 def chat_json(
@@ -294,7 +387,7 @@ def chat_json(
     schema = schema_model.model_json_schema()
     last_err = None
     meta = {"model": model_name(), "tokens_in": 0, "tokens_out": 0, "seconds": 0.0, "attempts": 0}
-    for attempt in range(2):
+    for attempt in range(JSON_ATTEMPTS):
         t0 = time.time()
         if _backend is not None:
             raw = _backend(system, user, schema, agent)
@@ -312,12 +405,12 @@ def chat_json(
             return schema_model.model_validate_json(raw), meta
         except ValidationError as e:
             last_err = e
-    raise LLMError(f"{agent}: invalid JSON after retry: {str(last_err)[:300]}")
+    raise _error(f"{agent}: invalid JSON after retry: {str(last_err)[:300]}", retryable=False)
 
 
 def chat_stream(
     system: str, messages: list[dict], *, run_id: str | None = None, agent: str = "assistant", num_predict: int = 200
-):
+) -> Iterator[str]:
     """Plain-text streaming chat (the spoken assistant). Yields text chunks; thinking is not spoken."""
     t0 = time.time()
     if _backend is not None:
@@ -328,64 +421,85 @@ def chat_stream(
         yield raw
         return
     if _no_model():
-        raise LLMError("no model in the hosted demo")
+        raise _error("no model in the hosted demo", retryable=False)
+    body = _stream_body(system, messages, num_predict)
+    tokens = {"prompt_tokens": 0, "completion_tokens": 0}
+    try:
+        yield from _without_reasoning(_stream_with_retries(body, tokens))
+    except httpx.HTTPError as e:
+        raise _unreachable(e) from e
+    finally:
+        _add_usage(run_id, tokens["prompt_tokens"], tokens["completion_tokens"], time.time() - t0)
+
+
+def _stream_body(system: str, messages: list[dict], num_predict: int) -> dict:
     if messages and messages[-1].get("role") == "user":
         messages = messages[:-1] + [{**messages[-1], "content": _no_think(messages[-1]["content"])}]
-    body = {
+    return {
         "model": model_name(),
         "messages": [{"role": "system", "content": system}] + messages,
         "stream": True,
-        "temperature": 0.3,
-        "max_tokens": num_predict * 3,
+        "temperature": STREAM_TEMPERATURE,
+        "max_tokens": num_predict * STREAM_TOKEN_HEADROOM,
         "stream_options": {"include_usage": True},
         "chat_template_kwargs": {"enable_thinking": False},
     }
-    tin = tout = 0
+
+
+def _stream_with_retries(body: dict, tokens: dict) -> Iterator[str]:
+    """Raw content chunks of one streamed answer, retrying busy servers before the first chunk."""
+    for attempt in range(STREAM_ATTEMPTS):
+        with (
+            _limiter,
+            httpx.stream(
+                "POST", f"{base_url()}/chat/completions", json=body, headers=_headers(), timeout=_timeout()
+            ) as r,
+        ):
+            if r.status_code == httpx.codes.BAD_REQUEST and "chat_template_kwargs" in body:
+                body.pop("chat_template_kwargs")
+                continue
+            if r.status_code in RETRY_STATUSES and attempt < STREAM_ATTEMPTS - 1:
+                r.read()
+                time.sleep(_backoff(attempt, r))
+                continue
+            if r.status_code != httpx.codes.OK:
+                r.read()
+                raise _error(
+                    f"NVIDIA API returned {r.status_code}: {r.text[:160]}", retryable=r.status_code in RETRY_STATUSES
+                )
+            yield from _sse_content(r, tokens)
+            return
+
+
+def _sse_content(r: httpx.Response, tokens: dict) -> Iterator[str]:
+    """Content deltas of a server-sent-events response; records the token usage it reports."""
+    for line in r.iter_lines():
+        if not line.startswith("data:"):
+            continue
+        payload = line.removeprefix("data:").strip()
+        if payload == "[DONE]":
+            return
+        event = json.loads(payload)
+        if event.get("usage"):
+            tokens["prompt_tokens"] = int(event["usage"].get("prompt_tokens", 0))
+            tokens["completion_tokens"] = int(event["usage"].get("completion_tokens", 0))
+        for choice in event.get("choices") or []:
+            yield (choice.get("delta") or {}).get("content") or ""
+
+
+def _without_reasoning(chunks: Iterator[str]) -> Iterator[str]:
+    """Drop everything between <think> and </think>, and empty chunks."""
     in_think = False
-    try:
-        for attempt in range(4):
-            with (
-                _limiter,
-                httpx.stream(
-                    "POST", f"{base_url()}/chat/completions", json=body, headers=_headers(), timeout=_timeout()
-                ) as r,
-            ):
-                if r.status_code == 400 and "chat_template_kwargs" in body:
-                    body.pop("chat_template_kwargs")
-                    continue
-                if r.status_code in RETRY_STATUSES and attempt < 3:
-                    r.read()
-                    time.sleep(_backoff(attempt, r))
-                    continue
-                if r.status_code != 200:
-                    r.read()
-                    raise LLMError(f"NVIDIA API returned {r.status_code}: {r.text[:160]}")
-                for line in r.iter_lines():
-                    if not line.startswith("data:"):
-                        continue
-                    payload = line[5:].strip()
-                    if payload == "[DONE]":
-                        break
-                    d = json.loads(payload)
-                    if d.get("usage"):
-                        tin = int(d["usage"].get("prompt_tokens", 0))
-                        tout = int(d["usage"].get("completion_tokens", 0))
-                    for ch in d.get("choices") or []:
-                        chunk = (ch.get("delta") or {}).get("content") or ""
-                        if "<think>" in chunk:
-                            in_think = True
-                        if in_think:
-                            if "</think>" not in chunk:
-                                continue
-                            in_think = False
-                            chunk = chunk.split("</think>", 1)[1]
-                        if chunk:
-                            yield chunk
-                return
-    except httpx.HTTPError as e:
-        raise LLMError(f"{provider()} model API unreachable: {e}") from e
-    finally:
-        _add_usage(run_id, tin, tout, time.time() - t0)
+    for chunk in chunks:
+        if "<think>" in chunk:
+            in_think = True
+        if in_think:
+            if "</think>" not in chunk:
+                continue
+            in_think = False
+            chunk = chunk.split("</think>", 1)[1]
+        if chunk:
+            yield chunk
 
 
 def agent_call(
@@ -400,8 +514,6 @@ def agent_call(
     prompt: str | None = None,
 ) -> T:
     """One logged agent call: prompts/<prompt or agent>.md as the system prompt."""
-    from .log import log_action
-
     try:
         obj, meta = chat_json(
             schema_model, load_prompt(prompt or agent), user, run_id=run_id, agent=agent, num_predict=num_predict
@@ -423,6 +535,9 @@ def agent_call(
     return obj
 
 
+# ---- status for the console --------------------------------------------------------
+
+
 def status() -> dict:
     """Model readiness for the UI: ready / missing key / not attached (demo)."""
     if _backend is not None:
@@ -433,8 +548,8 @@ def status() -> dict:
         return _ollama_status()
     if not os.environ.get("NVIDIA_API_KEY"):
         return {"state": "missing NVIDIA_API_KEY", "model": model_name(), "provider": "nvidia"}
-    # Based on the most recent real call (no extra requests): busy or unreachable for 90 s after a failure.
-    state = _health["state"] if time.time() - _health["at"] < 90 else "ready"
+    # Based on the most recent real call (no extra requests): busy or unreachable for a while after a failure.
+    state = _health["state"] if time.time() - _health["at"] < HEALTH_MEMORY_SECONDS else "ready"
     return {"state": state, "model": model_name(), "provider": "NVIDIA build (hosted, free tier)"}
 
 
@@ -442,7 +557,7 @@ def _ollama_status() -> dict:
     """Local model: ready once Ollama answers and the model has finished downloading."""
     base = {"model": model_name(), "provider": "Ollama (local, open weights)"}
     try:
-        r = httpx.get(os.environ.get("OLLAMA_URL", OLLAMA_URL).rstrip("/") + "/api/tags", timeout=2)
+        r = httpx.get(_ollama_url() + "/api/tags", timeout=OLLAMA_STATUS_TIMEOUT_SECONDS)
         names = {m.get("name", "") for m in r.json().get("models", [])}
     except (httpx.HTTPError, ValueError):
         return {"state": "unreachable", **base}
