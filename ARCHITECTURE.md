@@ -64,6 +64,11 @@ flowchart LR
 - **Agents:** Strategist (`agents/strategist.py`), Guard, Gatekeeper.
 - **Tools:** Jinja2 template `templates/landing.html.j2` (no slots for reviews, ratings, counters or timers), FastAPI `/p/<run>`.
 - **Method (Core step 2.1 Design the business):** a Lean Canvas where every cell is a list of Statements; `render.py` keeps a citation only when the cited quote shares >= 2 keywords and contains every number in the statement, otherwise the statement is printed as `ASSUMPTION:`. Riskiest assumption and the experiment are named. Landing copy fields pass rule set C and the model check, are regenerated once if blocked, and unsourced market statements are labelled. The founder approves the exact HTML bytes before `/p/<run>` serves them. Public hosting is STUBBED, so every sign-up is stored with `test=true` and excluded.
+  1. The Strategist writes the Lean Canvas from the verified claims of the researched angle. Legal-agreement wording (for example "deposit agreements") is rewritten by code into operational terms, and the rewrite is logged (`rewrite_legal_terms`).
+  2. Landing copy (headline, subheadline, benefits, FAQ) passes the outward guard. A blocked draft is regenerated once with the violation named; if it is still blocked, code drops the blocked benefits or FAQ items and flags anything left for the founder.
+  3. Code puts each FAQ question in `q` and its answer in `a`, and labels every unsourced factual statement ASSUMPTION.
+  4. The rendered page is stored under its SHA-256 and served at `/p/<run>` only after the founder approves those exact bytes (`publish_landing_page`). A rejected page is redrafted at most twice.
+  5. **Gate 2** counts real sign-ups only, against the pre-registered target (100 in 14 days, ASSUMPTION); test sign-ups never count.
 - **Output:** `phase2_step1_lean-canvas`, `phase2_step2_landing-page`, `phase2_gate_decision`.
 
 ### Phase 3: Build
@@ -71,12 +76,17 @@ flowchart LR
 - **Agents:** Builder (`agents/builder.py`), QA (`agents/qa.py`).
 - **Tools:** CSV writer, guard rule set C, factual-statement detector.
 - **Method (Core step 3.1 Build the product):** product spec (title, audience, modules, what it is not), one module in live mode (three in full mode) as a verb-first checklist plus a CSV template, and buyer docs assembled by code. QA runs deterministic checks (modules present, verb-first items, no banned claims, CSVs parse, internal links resolve, word counts); a failure triggers one rebuild with the failures named. After a Gate 2 override every file carries "PREVIEW after a founder override: demand not yet proven".
+  1. The Builder writes the spec, then each module as a checklist and a CSV template; the buyer guide is assembled by code from the modules.
+  2. **Gate 3** runs six deterministic QA checks: modules present, checklist items start with a verb, no banned claims, no evaluation words, CSV templates parse, internal links resolve.
+  3. A failed build is rebuilt once with the failing checks named; if it still fails, the run waits for the founder.
+  4. Unsourced factual statements in the spec and modules are labelled ASSUMPTION, and every statement is recorded in `provenance.json`.
 - **Output:** `phase3_step1_product-spec`, `phase3_step2_module-1`, `phase3_step2_template-1`, `phase3_step3_user-docs`, `phase3_gate_test-report`.
 
 ### Phase 4: Commercial setup
 
 - **Agents:** Pricer (`agents/pricer.py`), Policy drafter (`agents/policy_drafter.py`).
 - **Method (Core step 4.1 Set the price and policies):** code computes Good/Better/Best tiers from the quartiles of verified price points; with fewer than 2 verified points every price is ASSUMPTION. The model only writes a cited rationale. No revenue projections of any kind. Terms, privacy (it lists exactly what is stored: an email and a timestamp) and refund drafts are stamped "DRAFT - not legal advice". No payments of any kind are set up here.
+- **Method (Core step 4.2 Policy drafts):** terms, privacy and refund drafts, each stamped "DRAFT - not legal advice; review with a qualified professional." They pass the guard's policy rules (money words such as refund and payment are allowed there). Invented contact emails are replaced by a placeholder for the founder's own. Code writes what is stored (an email and a timestamp, and MOCKED order records; no passwords or card numbers) and the refund window (14 days, ASSUMPTION), with every refund approved by the founder. A Gate 4 rejection redrafts Phase 4 at most twice, then the run stops.
 - **Gate 4:** the founder approves or rejects price and policies (UI button or CLI).
 - **Output:** `phase4_step1_pricing`, `phase4_step2_policies`, `phase4_gate_decision`.
 
@@ -86,12 +96,15 @@ Phase 5 is named "Launch" in the problem statement and "Sell / deliver / get pai
 
 - **Agents:** Launcher (`agents/launcher.py`), executor (`proveit/approval.py`), payments, webhooks, delivery, refunds, reconcile (`proveit/commerce/`; the root files of the same names are aliases).
 - **Method (Core step 5.1 Open the store; deliver automatically):** a template-locked store page with a literal "No reviews yet" and a "Simulate test purchase (MOCKED)" button (no card form exists anywhere), plus one launch post headed "DRAFT - NOT POSTED. For the founder to post under their own name." The founder approves `open_store` for the exact HTML bytes. The mocked sale to cash then runs: purchase, webhook, delivery, replay, gated refund, revocation and reconciliation.
+- **Method (Core step 5.2 Payment -> delivery -> refund, MOCKED):** after the founder approves the store bytes (`open_store`), a test purchase creates an order, the mock provider sends a signed `payment.succeeded` webhook, and the handler delivers a 24-hour signed download token once; replaying the same event delivers nothing. A refund without founder approval raises `ApprovalRequired`; once approved, it revokes the download (403), and reconciliation matches orders, payments, fees, net and payouts. Details in [Sale to cash](#sale-to-cash).
+- **Launch post:** code states what the product contains from the built modules (never the model), and the post stays a draft: posting adapters are STUBBED and gated.
 - **Output:** `phase5_step1_store-page`, `phase5_step1_launch-post-draft`, `phase5_step3_reconciliation`, `payment_test_log`.
 
 ### Phase 6: Operate and learn
 
 - **Agents:** Analyst and Support (`agents/analyst.py`), code only, reading real records (test orders and test sign-ups never count). STUBBED in the demo only because there is no live launch, so every real count is 0.
 - **Method:** (1) support answers to the questions buyers ask most, built only from the run's approved files (user docs, price, policies, delivery); drafts that are never sent without the founder. (2) A metrics plan: each metric, where it is read from, and its pre-registered bar (`gate6_operate` in `config/gates.yaml`, hashed with the brief). (3) Gate 6 by rule, first match wins: >= 5 real orders with refund rate <= 10% -> GO (persevere); >= 5 orders but refunds above the bar -> PIVOT back to Phase 3; 30 days after launch with real sign-ups under 30% of the waitlist target -> STOP; otherwise REPEAT (not enough data).
+- **Gate 6 (code, real records only):** persevere (GO) at >= 5 real orders in the first 30 days with a refund rate <= 10%; PIVOT when buyers came but refunds exceed that; STOP when, after 30 days, real sign-ups are under 30% of the waitlist target; otherwise REPEAT (not enough data). The thresholds are team defaults (ASSUMPTION) in `config/gates.yaml`.
 - **Output:** `phase6_step1_memo`, `phase6_step2_support-answers`, `phase6_step3_metrics`, `phase6_gate_decision`.
 
 ### Interface: the console and J.A.R.V.I.S.
