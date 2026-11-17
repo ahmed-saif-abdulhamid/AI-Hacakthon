@@ -48,8 +48,9 @@ flowchart LR
   1. Step 0 intake: the 6-field brief (only the idea is required) is checked by guard rule set B (excluded categories, allow-list, ask-the-founder tier) and the generation-intent part of rule set A; labelled briefs are parsed by code, free text by one model call. Missing fields become `ASSUMPTION: unspecified`.
   2. Thresholds are pre-registered: `sha256(canonical_json({gates.yaml, brief}))` is the first log entry.
   3. Scout returns 3 variants (segment, job to be done, 3 pain-phrased queries, a competitor query, a Stack Exchange site, a language). Founder fit (0-5) is computed in code from the brief.
+  3a. **Compare against alternatives (code only, `agents/scorer.py`):** each variant first gets the same excluded-category check as the brief (an excluded or possibly excluded angle is shown but never researched or pivoted to). The Scorer then runs each eligible variant's pain queries against Hacker News comments from the evidence window and counts on-topic, first-person complaints; signal = complaints + 0.25 x on-topic + 2 x fit share. The strongest is researched first; PIVOT goes to the next-best untried angle, and the verdict on the angle left behind is kept as `phase1_gate_variant-<n>`. The counts rank angles only and are never gate evidence.
   4. Sources run in parallel with per-run call caps and 8 s timeouts. Records are normalised, split into numbered sentences by `pysbd`, ranked by keyword overlap and trimmed to 12 hits x 6 prose sentences (code, tables and diagrams skipped).
-  5. The Researcher reads 4 threads per call and returns only `{hit_id, sentence_ids, kind, claim_text}`. Code joins the sentences into the quote, so the quote is verbatim by construction.
+  5. The Researcher reads 7 threads per call and returns only `{hit_id, sentence_ids, kind, claim_text}`. Code joins the sentences into the quote, so the quote is verbatim by construction. **Two readers:** any shown sentence that passes code's published test (first person, on topic, a pain or payment cue, not a question, link or pitch) but that the model skipped is added by code as a claim and verified like every other claim, so an under-selecting model cannot hide evidence.
   6. The Verifier re-fetches each public URL (5 s, parallel) and checks `partial_ratio(quote, page) >= 95`: `verified_live` 1.0, `archived_match` 0.5 (0 for web pages), `unverified` 0 (ASSUMPTION). A claim keeps weight only if code finds >= 2 shared stemmed keywords with the variant and the pain or payment cue matching its kind.
   7. Market definition (step 1.3) is built by code from verified competitor and price claims; a market size appears only if a source states one, otherwise ASSUMPTION.
   8. Mom Test kit (step 1.4): 8 past-behaviour questions and a notes template; on REPEAT for insufficient evidence it adds a 5-interview plan described by profiles, never named people.
@@ -85,10 +86,11 @@ Phase 5 is named "Launch" in the problem statement and "Sell / deliver / get pai
 - **Method (Core step 5.1 Open the store; deliver automatically):** a template-locked store page with a literal "No reviews yet" and a "Simulate test purchase (MOCKED)" button (no card form exists anywhere), plus one launch post headed "DRAFT - NOT POSTED. For the founder to post under their own name." The founder approves `open_store` for the exact HTML bytes. The mocked sale to cash then runs: purchase, webhook, delivery, replay, gated refund, revocation and reconciliation.
 - **Output:** `phase5_step1_store-page`, `phase5_step1_launch-post-draft`, `phase5_step3_reconciliation`, `payment_test_log`.
 
-### Phase 6: Operate and learn (STUBBED)
+### Phase 6: Operate and learn
 
-- **Agent:** Analyst (`agents/analyst.py`), STUBBED: the memo is written by code from real metrics only (real sign-ups, real orders; test orders excluded). Below the thresholds it says "Not enough data to call persevere or pivot." The interface for a future model-written memo is documented in `prompts/analyst.md`.
-- **Output:** `phase6_step1_memo`.
+- **Agents:** Analyst and Support (`agents/analyst.py`), code only, reading real records (test orders and test sign-ups never count). STUBBED in the demo only because there is no live launch, so every real count is 0.
+- **Method:** (1) support answers to the questions buyers ask most, built only from the run's approved files (user docs, price, policies, delivery); drafts that are never sent without the founder. (2) A metrics plan: each metric, where it is read from, and its pre-registered bar (`gate6_operate` in `config/gates.yaml`, hashed with the brief). (3) Gate 6 by rule, first match wins: >= 5 real orders with refund rate <= 10% -> GO (persevere); >= 5 orders but refunds above the bar -> PIVOT back to Phase 3; 30 days after launch with real sign-ups under 30% of the waitlist target -> STOP; otherwise REPEAT (not enough data).
+- **Output:** `phase6_step1_memo`, `phase6_step2_support-answers`, `phase6_step3_metrics`, `phase6_gate_decision`.
 
 ### Interface: the console and J.A.R.V.I.S.
 
@@ -107,7 +109,7 @@ Every step ends with a check: schema validation of model output (Pydantic, one r
 | Scout, Researcher, Debate, Strategist, Builder, Pricer, Policy, Launcher | JSON schema + Pydantic validation, one retry, then REPEAT `model_failure` |
 | Claims | Code-built quote, live re-check, relevance + cue check |
 | Statements | `render.py` citation support or `ASSUMPTION:` |
-| Outward copy | Guard C + model check, regenerate once, then flag for the founder |
+| Outward copy | Guard C + model check, regenerate once; if still blocked, code drops the blocked sentences or FAQ items, then flags anything left for the founder. What the product contains is written by code from the built modules |
 | Publish, open store, refund | `@gated(action)` with payload SHA-256 |
 | Product | QA tests (Gate 3) |
 

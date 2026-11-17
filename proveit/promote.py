@@ -45,9 +45,7 @@ def promote(weak_id: str, strong_id: str, to_root: bool = False) -> dict:
             "entries_strong": sum(1 for e in entries if e["run_id"] == strong_id), "outputs": copied}
     (promoted / "runs.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8", newline="\n")
     meta["seed"] = seed.export([weak_id, strong_id])
-    (promoted / "runs.json").write_text(json.dumps(meta, indent=2) + "
-", encoding="utf-8", newline="
-")
+    (promoted / "runs.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8", newline="\n")
     if to_root:
         shutil.copyfile(promoted / "decision_log.json", ROOT / "decision_log.json")
     return meta

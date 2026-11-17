@@ -7,11 +7,11 @@
 - **Reason:** insufficient_evidence
 - **Rule fired:** rule_2
 - **Next step:** mom_test_interviews
-- **Recommendation:** Our public sources cannot see this market well enough (coverage 0.33 < 0.5). This is not evidence of absence. Run 5 Mom Test interviews.
-- **Variant researched:** 1. Late-Payment Follow-Up Toolkit
-- **Pre-registered thresholds SHA-256:** `b367a0d1338c03a8f7d6318d971398eb4139dff4b5fc0ed3444023704ce5ef90`
+- **Recommendation:** Our public sources cannot see this market well enough (coverage 0.4 < 0.5). This is not evidence of absence. Run 5 Mom Test interviews.
+- **Variant researched:** 3. Project Deposit & Milestone Tracker
+- **Pre-registered thresholds SHA-256:** `123b85bcf0e37ce958ab6d76fd569f17ebdf0ad55803378ace5b75c8d5826dec`
 - **Goalpost moved:** false
-- **Founder decision:** overridden against the evidence (logged). Reason: Founder demo: continue as a preview to show phases 2 to 6; demand is not yet proven
+- **Founder decision:** overridden against the evidence (logged). Reason: I accept the evidence is weak; I want a landing page to test demand directly with freelancers I know.
 
 Thresholds are team defaults (ASSUMPTION), registered before any source was called.
 
@@ -19,17 +19,15 @@ Thresholds are team defaults (ASSUMPTION), registered before any source was call
 
 | Check | Value | Threshold | Pass |
 |---|---|---|---|
-| sourced_pain (weighted) | 1.0 | >= 6 | no |
-| distinct_sources | 1 | >= 2 | no |
-| recent_share (<= 24 months) | 1.0 | >= 0.5 | yes |
+| sourced_pain (weighted) | 0 | >= 6 | no |
+| distinct_sources | 0 | >= 2 | no |
+| recent_share (<= 24 months) | 0.0 | >= 0.5 | no |
 | wtp_signals | 0 | >= 1 | no |
-| competitors (distinct, verified) | 1 | in [1, 15] | yes |
+| competitors (distinct, verified) | 0 | in [1, 15] | no |
 | founder_fit (0-5, code) | 5.0 | >= 3 | yes |
-| coverage | 0.33 | >= 0.5 | no |
+| coverage | 0.4 | >= 0.5 | no |
 
-Claims: 9 total, 9 verified live, 0 archived matches, 0 unverified.
-
-Code-qualified sentences not selected by the model: H57.S12, H69.S4.
+Claims: 4 total, 4 verified live, 0 archived matches, 0 unverified.
 
 ## For and against
 
@@ -39,26 +37,20 @@ Not written for this verdict: the public sources gave too little to argue about,
 
 | Source | Query | OK | Hits | On-topic | Covered |
 |---|---|---|---|---|---|
-| hn | forgot to follow up invoices | True | 20 | 1 | False |
-| hn | chasing overdue payments | True | 17 | 13 | True |
-| hn | clients pay invoices late | True | 19 | 6 | True |
-| hn | freelance developers and | True | 20 | 2 | False |
-| stackexchange | invoice reminder templates @ freelancing | True | 0 | 0 | False |
-| stackexchange | forgot follow invoices @ freelancing | True | 0 | 0 | False |
+| hn | clients skip deposit payment | True | 18 | 10 | True |
+| hn | milestone payments delayed | True | 18 | 7 | True |
+| hn | forgot which milestone paid | True | 20 | 1 | False |
+| stackexchange | project payment tracker @ freelancing | False | 0 | 0 | False | Client error '429 Too Many Requests' for url 'https://api.st
+| stackexchange | clients skip deposit @ freelancing | False | 0 | 0 | False | Client error '429 Too Many Requests' for url 'https://api.st
 
 ## Claim ledger (this variant)
 
 | ID | Kind | Status | Weight | Cue | Quote | Source |
 |---|---|---|---|---|---|---|
-| C18 | pain | VERIFIED_LIVE | 1.0 | a mess | "If they reply with some nonsense about check runs and things being sent out on a Thursday, respond with a message clarifying when you expect payment based on what they said. If no reply within a day or two escalate -- se..."  | https://news.ycombinator.com/item?id=47639489 |
-| C21 | competitor | VERIFIED_LIVE | 1.0 | - | "For example, when creating an invoice, the system can tell you that the client has overdue payments or that the new invoice is 40% above their usual average."  | https://news.ycombinator.com/item?id=47427522 |
-| C19 | pain | verified_live (weight 0) | 0.0 | - | "Do not allow subcontractors to send their own invoices, you must do this yourself to ensure that all communication is exactly on time and never late. Lateness and inconsistency on your side erodes your ability to run a t..." <br>label not confirmed by code | https://news.ycombinator.com/item?id=47638781 |
-| C20 | pain | verified_live (weight 0) | 0.0 | - | "Seriously though, people aren't paying because they're not paying -- not because they somehow forgot. They're assholes. So treat them like assholes -- stop providing services the second their payment is late. Demand paym..." <br>off topic for this variant (code keyword check) | https://news.ycombinator.com/item?id=47639489 |
-| C22 | pain | verified_live (weight 0) | 0.0 | - | "If your customer is not communicating with you about invoices THEY ARE NOT SOLVENT. If payments are slowing down and tardiness is increasing, they are not being forgetful, THEY ARE RUNNING OUT OF MONEY." <br>label not confirmed by code | https://news.ycombinator.com/item?id=47638781 |
-| C23 | pain | verified_live (weight 0) | 0.0 | - | "In some cases you just have to treat non payment as part of the cost of doing business." <br>off topic for this variant (code keyword check) | https://news.ycombinator.com/item?id=47639489 |
-| C24 | competitor | verified_live (weight 0) | 0.0 | - | "- NudgePe, my own SaaS that chases late invoices automatically (Next.js, FastAPI, PostgreSQL, Supabase)." <br>off topic for this variant (code keyword check) | https://news.ycombinator.com/item?id=50495351 |
-| C25 | pain | verified_live (weight 0) | 0.0 | - | "After 7 years of freelancing and building enterprise platforms, I realized I was spending 20% of my time on "Shadow Admin" work-drafting contracts, compliance, and chasing invoices." <br>off topic for this variant (code keyword check) | https://news.ycombinator.com/item?id=46839109 |
-| C26 | pain | verified_live (weight 0) | 0.0 | - | "These are now the clauses we require in every project we do: - Payment is due X days after receipt of invoice, or immediately after the consultant has addressed any quality issues, whichever is sooner - Late payment shal..." <br>label not confirmed by code | https://news.ycombinator.com/item?id=47660815 |
+| C14 | pain | verified_live (weight 0) | 0.0 | - | "Answers: AWS doesn't give you a cent back, under any circumstances, does NOT get your servers back online but MAY give you 20% reduction on your future bill (and for customers in the UAE with the Iran war, they didn't) S..." <br>label not confirmed by code | https://news.ycombinator.com/item?id=50334908 |
+| C15 | pain | verified_live (weight 0) | 0.0 | - | "Failing to get a permit is not an act of god, having to pay even when the site does t have power is poor milestone / payment planning." <br>label not confirmed by code | https://news.ycombinator.com/item?id=49844201 |
+| C16 | pain | verified_live (weight 0) | 0.0 | - | "As far as the client is concerned, payment is delayed until the requirements are met that were laid out in the statement of work." <br>off topic for this variant (code keyword check) | https://news.ycombinator.com/item?id=46195877 |
+| C17 | pain | verified_live (weight 0) | 0.0 | - | "I have heard about projects at my current company where we have to give the client free work because the requirements weren't met within the time allotted." <br>off topic for this variant (code keyword check) | https://news.ycombinator.com/item?id=46195877 |
 
 ### Sources
 

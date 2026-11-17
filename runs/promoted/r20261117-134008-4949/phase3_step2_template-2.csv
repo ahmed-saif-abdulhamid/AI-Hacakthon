@@ -1,4 +1,0 @@
-Stage,Channel,Subject Line,Body Text,Call to Action,Sent Date
-Polite,Email,Friendly reminder: Invoice #1023 due soon,"Hi [Client Name], just a quick note that invoice #1023 for $[Amount] is due on [Due Date]. Please let me know if you have any questions.",Pay now: [Payment Link],2024-01-15
-Firm,Email,Second notice: Invoice #1023 overdue,"Hi [Client Name], invoice #1023 for $[Amount] was due on [Due Date] and is now past due. Please arrange payment within 5 business days.",Pay now: [Payment Link],2024-01-22
-Final,Chat,Final notice - Invoice #1023,"Hey [Client Name], this is a final reminder about invoice #1023 ($[Amount]) overdue since [Due Date]. If we don't receive payment by [Final Date], we'll need to escalate.",Reply with payment confirmation,2024-01-29

@@ -4,14 +4,12 @@
 
 | Check | Passed | Detail |
 |---|---|---|
-| modules_present | yes | 3 of 3 |
+| modules_present | yes | 1 of 1 |
 | checklist_items_start_with_verb | yes |  |
 | no_banned_claims | yes |  |
 | no_evaluation_words | yes |  |
 | csv_templates_parse | yes |  |
-| internal_links_resolve | yes | 6 links |
-| module_1_word_count_in_bounds | yes | 140 words |
-| module_2_word_count_in_bounds | yes | 149 words |
-| module_3_word_count_in_bounds | yes | 175 words |
+| internal_links_resolve | yes | 2 links |
+| module_1_word_count_in_bounds | yes | 158 words |
 
 All checks are deterministic code (no model). Build attempts: 1.

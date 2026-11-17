@@ -2,8 +2,8 @@
 
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-## Late-Payment Follow-Up Toolkit
+## Built a simple tracker for project deposits and milestones
 
-I built a set of email templates, a tracking spreadsheet, and a short guide to help freelance developers and designers follow up on overdue invoices without the awkwardness. [Add one sentence about why you made this.] The files are ready to download and adapt to your own workflow. Would love your feedback on what's missing or what could be clearer.
+It includes a Deposit Setup & Collection module with a deposit calculator, intake form, agreement checklist, payment tracker, and reminder templates. [Add one sentence about why you made this.] Would love your feedback on what's missing or what you'd change.
 
 Posting adapters are STUBBED; publish_post is gated and raises NotEnabled.

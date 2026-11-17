@@ -1,12 +1,18 @@
-# Phase 6: Operate and learn memo (STUBBED)
+# Phase 6, step 1: Persevere-or-pivot memo (STUBBED: no live launch)
 
-This memo uses real metrics only. MOCKED test orders and test sign-ups are excluded.
+Real records only. MOCKED test orders and test sign-ups are excluded.
 
-| Metric | Value | Source |
+| Metric | Now | Bar |
 |---|---|---|
-| Real waitlist sign-ups | 0 | signups table, test=false |
-| Real orders | 0 | orders table, test=false |
-| Test orders (excluded) | 1 | MOCKED payment test |
-| Refunds | 1 | refunds table |
+| Real waitlist sign-ups | 0 | >= 100 in 14 days |
+| Landing-page conversion | n/a | >= 10% after 200 visits |
+| Real orders | 0 | >= 5 in 30 days |
+| Refund rate | n/a | <= 10% |
+| Test orders (never counted) | 1 | - |
 
-**Not enough data to call persevere or pivot.** Real sign-ups (0) are below the pre-registered target (100) and there are no real orders.
+## Outcome: REPEAT
+
+**Not enough data: no live launch yet, so there are no real sign-ups or orders.**
+
+The rule that decided this is in phase6_step3_metrics.md. Nothing here is a forecast.
+With no real buyers yet, the honest answer is to keep collecting and change nothing.

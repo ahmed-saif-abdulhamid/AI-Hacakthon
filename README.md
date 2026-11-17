@@ -13,8 +13,9 @@
 **What the committed runs show** ([outputs/](outputs/), [decision_log.json](decision_log.json)):
 
 1. **It says "don't launch this".** A weak idea (an ebook of inspirational quotes) gets **STOP** in about a minute: too few people complain about the problem in public ([outputs/phase1_gate_decision-weak.md](outputs/phase1_gate_decision-weak.md)).
-2. **It refuses to give a verdict on broken research.** The first search for a stronger idea (a late-payment toolkit for freelancers) came back unusable, so the gate said REPEAT rather than "weak idea". The wider second search found real complaints, but not enough on the sources it can read, so it said **look again** and produced a Mom Test interview kit ([outputs/phase1_step4_interview-kit-strong.md](outputs/phase1_step4_interview-kit-strong.md)).
-3. **The founder stays in charge, and it stays on the record.** The founder carried on against the evidence with a logged reason, so phases 2-6 ran as a labelled preview: Lean Canvas, landing page, a tested MVP toolkit, pricing and draft policies, store page, then a MOCKED sale, automatic delivery and an approved refund that revoked access. The founder rejected a launch-post draft that invented their own experience, and it was redrafted.
+2. **It compares angles and pivots on evidence.** For a stronger idea (a late-payment toolkit for freelancers) the Scout proposed three angles; code counted recent first-person complaints on Hacker News for each, ruled one out as too close to legal advice (contract templates), and researched the strongest first ([outputs/phase1_step1_opportunities-strong.md](outputs/phase1_step1_opportunities-strong.md)). Gate 1 said **STOP** (1 counted complaint against a bar of 6: [outputs/phase1_gate_variant-1-strong.md](outputs/phase1_gate_variant-1-strong.md)); the founder pivoted to the next-best angle, which got **REPEAT**: the public forums can't see that market, so the next step is a Mom Test interview kit ([outputs/phase1_gate_decision-strong.md](outputs/phase1_gate_decision-strong.md)).
+3. **The founder stays in charge, and it stays on the record.** The founder carried on against the evidence with a logged reason, so phases 2-6 ran as a labelled preview: Lean Canvas, landing page (the founder rejected two drafts until the guard-blocked contract wording was gone), a tested MVP toolkit, pricing and draft policies, store page, a MOCKED sale with automatic delivery and an approved refund that revoked access, then support-answer drafts, a metrics plan and a persevere-or-pivot gate decided by code (**REPEAT**: no real buyers yet).
+4. **Known flaw in this run:** its launch-post draft (never posted) lists parts that were not built. The fix (code now writes what the product contains) landed after the run; see `proveit/orchestrator.py` `stage_phase5`.
 
 ## Quickstart
 
@@ -31,8 +32,8 @@ Without Docker: `pip install -r requirements.txt`, put `NVIDIA_API_KEY` in `.env
 | Step | Status | Notes |
 |---|---|---|
 | Intake + eligibility check (step 0) | **Working** | Excluded categories stop before any search; the founder cannot override them |
-| 1.1 Find opportunities (Core) | **Working** | Scout proposes 3 angles; live mode researches the first |
-| 1.2 Evidence ledger | **Working** | Quotes cut by code, re-checked on the source page, relevance and complaint cues checked by code |
+| 1.1 Find opportunities (Core) | **Working** | Scout proposes 3 angles; each passes the excluded-category check; code ranks them by recent first-person complaints and researches the strongest; PIVOT goes to the next-best |
+| 1.2 Evidence ledger | **Working** | Quotes cut by code, re-checked on the source page, relevance and complaint cues checked by code; sentences the model skipped but code qualifies are added and verified too |
 | 1.3 Market definition | **Working** | Unsourced numbers are labelled ASSUMPTION |
 | 1.4 Mom Test interview kit | **Working** | Questions, screener and a decision rule; interview-notes analysis is **STUBBED** |
 | Gate 1: evidence | **Working** | Code decides go / repeat / pivot / stop against a bar hashed before searching |
@@ -49,7 +50,9 @@ Without Docker: `pip install -r requirements.txt`, put `NVIDIA_API_KEY` in `.env
 | 5.2 Payment -> delivery -> refund (Core) | **MOCKED** | In-process mock provider with signed webhooks; no real or sandbox payments, no card fields |
 | 5.3 Reconciliation | **MOCKED** | Matches mock orders, payments, fees, payouts |
 | Posting to external platforms / email | **STUBBED** | Adapters are gated and raise NotEnabled |
-| 6 Operate and learn | **STUBBED** | Memo from real metrics only ("not enough data") |
+| 6.1 Persevere-or-pivot memo + Gate 6 | **Working** on real records (none exist yet, so **STUBBED** in the demo) | Code rule over pre-registered bars (`gate6_operate`); test orders never count |
+| 6.2 Support answers | **Working** (drafts only) | Built by code from the run's approved files; sending is **STUBBED** |
+| 6.3 Metrics plan | **Working** | Each metric's source and pre-registered bar |
 | Reddit source | **STUBBED** | Self-serve API access is restricted |
 | Console and optional spoken assistant (J.A.R.V.I.S.) | **Working** | Piper voice on this computer when installed, browser voice otherwise |
 
@@ -77,9 +80,9 @@ Eleven agents work through six phases, but only plain Python code calls tools, c
 | Run | Model | Model calls | Tokens (in + out) | Model time | Cost |
 |---|---|---|---|---|---|
 | Weak brief, Phase 1 to STOP | Nemotron 3 Ultra | 7 | 7,465 + 495 = ~8k | ~71 s | $0.00 |
-| Strong brief, all six phases (preview after override) | Nemotron 3 Ultra | 41 | 31,928 + 8,022 = ~40k | ~11 min | $0.00 |
+| Strong brief: 2 angles researched, all six phases (preview after override) | Nemotron 3 Ultra | 46 | 31,420 + 6,755 = ~38k | ~8.5 min | $0.00 |
 
-Model time includes ProveIt's own pacing for the free tier's rate limit (the strong run shared the tier with a calibration run). The strong run's 41 calls include one research retry and two redrafts the founder asked for. A Phase 1 verdict typically arrives in 30-90 seconds of wall-clock time.
+Model time includes ProveIt's own pacing for the free tier's rate limit. The strong run's 46 calls include a pivot (a second research pass) and the redrafts after the founder's rejections. A Phase 1 verdict typically arrives in 30-90 seconds of wall-clock time.
 
 ## What our system will NOT do
 

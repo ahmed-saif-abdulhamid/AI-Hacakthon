@@ -1,2 +1,0 @@
-order_id,order_amount,payment_amount,fee,net,payout_id,payout_amount,refund_amount,order_status,test,check
-ORD-6c67f2bf,39.0,39.0,1.43,37.57,po_5f5cf8dd,37.57,39.0,refunded,true,matched

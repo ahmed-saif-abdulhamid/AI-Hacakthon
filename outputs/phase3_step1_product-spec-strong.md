@@ -2,18 +2,18 @@
 
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-**Title:** Late-Payment Follow-Up Toolkit
+**Title:** Project Deposit & Milestone Tracker
 
-**Audience:** Freelance developers and designers who need a simple system to send invoice reminders and track overdue payments.
+**Audience:** Freelance developers and designers who need a simple system to secure upfront deposits and monitor milestone payments across multiple client projects.
 
 ## Modules
 
-1. **Reminder Sequence Planner**: Map out when and how to send each reminder so nothing slips through the cracks.
-2. **Email & Message Templates**: Ready-to-use copy for polite, firm, and final notices across email and chat platforms.
-3. **Payment Tracker Dashboard**: A lightweight spreadsheet to log invoices, due dates, reminder status, and payment receipts.
+1. **Deposit Setup & Collection**: Standardize how you request, confirm, and record initial project deposits so every engagement starts with cash in hand.
+2. **Milestone Payment Tracker**: Track each milestone's due date, amount, invoice status, and payment receipt across all active projects in one view.
+3. **Payment Follow‑Up Playbook**: Provide ready‑to‑use reminders and escalation steps so late payments are addressed quickly without damaging client relationships.
 
 ## What the product is not
 
-- Automated sending or integration with accounting software
-- Legal demand letters or collections escalation
-- Client relationship management beyond payment follow-up
+- Automated payment processing or gateway integration
+- Full accounting suite (general ledger, tax filing, payroll)
+- Client‑facing portal for self‑service invoice viewing

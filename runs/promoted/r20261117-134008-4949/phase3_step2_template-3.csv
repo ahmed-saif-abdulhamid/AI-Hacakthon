@@ -1,4 +1,0 @@
-Client Name,Invoice Number,Amount,Due Date,Reminder Status,Payment Date,Payment Method
-Acme Corp,INV-001,2500,2024-03-15,First Sent,,
-Bright Design,INV-042,1800,2024-03-10,Second Sent,,
-CodeWorks,INV-009,3200,2024-03-05,Paid,2024-03-07,Bank Transfer

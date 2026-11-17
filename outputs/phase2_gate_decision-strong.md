@@ -6,8 +6,8 @@
 - **Rule fired:** g2_no_real_traffic
 - **Next step:** share_landing_page_publicly
 - **Recommendation:** 0 real sign-ups against a target of 100 in 14 days. Public hosting is STUBBED and test sign-ups are excluded, so demand is not yet proven. Continuing needs a logged founder override.
-- **Founder decision:** overridden against the evidence (logged). Reason: Founder demo: continue the preview without real sign-ups; public hosting is not switched on
-- **Thresholds SHA-256:** `b367a0d1338c03a8f7d6318d971398eb4139dff4b5fc0ed3444023704ce5ef90`
+- **Founder decision:** overridden against the evidence (logged). Reason: No public hosting yet; I want to see the product and price before deciding whether to launch publicly.
+- **Thresholds SHA-256:** `123b85bcf0e37ce958ab6d76fd569f17ebdf0ad55803378ace5b75c8d5826dec`
 
 ## Metrics
 

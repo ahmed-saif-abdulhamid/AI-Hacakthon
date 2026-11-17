@@ -1,9 +1,9 @@
 {
   "weak": "r20261117-105529-93d0",
-  "strong": "r20261117-134008-4949",
-  "entries": 145,
+  "strong": "r20261117-153619-4d68",
+  "entries": 147,
   "entries_weak": 19,
-  "entries_strong": 126,
+  "entries_strong": 128,
   "outputs": [
     "phase1_gate_decision-weak.md",
     "phase1_step1_opportunities-weak.md",
@@ -12,6 +12,7 @@
     "phase1_step4_interview-kit-weak.md",
     "payment_test_log.md",
     "phase1_gate_decision-strong.md",
+    "phase1_gate_variant-1-strong.md",
     "phase1_step1_opportunities-strong.md",
     "phase1_step2_claims-strong.json",
     "phase1_step3_market-strong.md",
@@ -22,11 +23,7 @@
     "phase3_gate_test-report-strong.md",
     "phase3_step1_product-spec-strong.md",
     "phase3_step2_module-1-strong.md",
-    "phase3_step2_module-2-strong.md",
-    "phase3_step2_module-3-strong.md",
     "phase3_step2_template-1-strong.csv",
-    "phase3_step2_template-2-strong.csv",
-    "phase3_step2_template-3-strong.csv",
     "phase3_step3_user-docs-strong.md",
     "phase4_gate_decision-strong.md",
     "phase4_step1_pricing-strong.md",
@@ -34,6 +31,20 @@
     "phase5_step1_launch-post-draft-strong.md",
     "phase5_step1_store-page-strong.html",
     "phase5_step3_reconciliation-strong.csv",
-    "phase6_step1_memo-strong.md"
-  ]
+    "phase6_gate_decision-strong.md",
+    "phase6_step1_memo-strong.md",
+    "phase6_step2_support-answers-strong.md",
+    "phase6_step3_metrics-strong.md"
+  ],
+  "seed": {
+    "runs": 2,
+    "actions": 147,
+    "approvals": 7,
+    "published": 2,
+    "orders": 1,
+    "telemetry": 123,
+    "payments": 1,
+    "refunds": 1,
+    "blobs": 7
+  }
 }

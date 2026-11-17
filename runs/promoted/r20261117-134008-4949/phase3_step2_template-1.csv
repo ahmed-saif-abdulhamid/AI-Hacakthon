@@ -1,4 +1,0 @@
-Invoice ID,Client Name,Due Date,Reminder Stage,Scheduled Send Date,Channel
-INV-001,Acme Corp,2024-06-01,First Reminder,2024-06-02,Email
-INV-001,Acme Corp,2024-06-01,Second Reminder,2024-06-08,Email
-INV-001,Acme Corp,2024-06-01,Final Notice,2024-07-01,Call

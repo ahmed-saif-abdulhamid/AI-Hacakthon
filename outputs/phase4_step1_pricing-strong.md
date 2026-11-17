@@ -17,9 +17,9 @@ No revenue projections or scenarios are produced.
 
 ## Rationale
 
-- ASSUMPTION: Pricing tiers are set as assumptions (good=$19, better=$39, best=$79) because no verified price points were provided for this service.
-- ASSUMPTION: Competitor C10 describes a freelancer services agreement template with pricing/rates sections but does not disclose specific price levels.
-- ASSUMPTION: Competitor C21 highlights invoicing intelligence features (e.g., overdue payment alerts, anomaly detection) without revealing any pricing information.
+- ASSUMPTION: Pricing tiers are set as assumptions (good=$19, better=$39, best=$79) because no verified price points were provided for this product.
+- ASSUMPTION: Competitor C9 highlights integrated invoicing and payments that reduce manual follow-ups, a capability that typically justifies premium tiers.
+- ASSUMPTION: Competitor C12 describes automated invoice insights such as overdue payment alerts and anomaly detection, features often reserved for higher-priced plans.
 
 ### Sources
 

@@ -4,7 +4,7 @@ For: freelance developers and designers. Questions are about past behaviour only
 
 ## Questions
 
-1. Tell me about the last time you had to send invoice reminders and track overdue payments. What happened?
+1. Tell me about the last time you had to collect deposits and track milestone payments across projects. What happened?
 2. What was the hardest part of that, and why?
 3. What did you do about it? What tools, templates or people did you use?
 4. What did that cost you, in money or time, the last time?
@@ -16,7 +16,7 @@ For: freelance developers and designers. Questions are about past behaviour only
 ## Who to talk to (screener)
 
 - They are one of: freelance developers and designers.
-- They had to send invoice reminders and track overdue payments at least once in the past three months.
+- They had to collect deposits and track milestone payments across projects at least once in the past three months.
 - They are not a friend or family member (polite answers are not evidence).
 
 ## How to decide after five conversations

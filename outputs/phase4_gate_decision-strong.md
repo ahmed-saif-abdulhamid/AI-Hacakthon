@@ -7,11 +7,11 @@
 - **Next step:** -
 - **Recommendation:** Founder approved the price and the policy drafts.
 - **Founder decision:** accepted
-- **Thresholds SHA-256:** `b367a0d1338c03a8f7d6318d971398eb4139dff4b5fc0ed3444023704ce5ef90`
+- **Thresholds SHA-256:** `123b85bcf0e37ce958ab6d76fd569f17ebdf0ad55803378ace5b75c8d5826dec`
 
 ## Metrics
 
-
+- none: this gate is the founder's decision
 
 ## Thresholds
 

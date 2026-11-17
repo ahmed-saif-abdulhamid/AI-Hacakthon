@@ -2,11 +2,11 @@
 
 **Segment:** freelance developers and designers (from the Scout variant; a research target, not a market claim)
 
-**Job to be done:** send invoice reminders and track overdue payments
+**Job to be done:** collect deposits and track milestone payments across projects
 
 ## Alternatives and competitors (verified claims only)
 
-- [C21] "For example, when creating an invoice, the system can tell you that the client has overdue payments or that the new invoice is 40% above their usual average." (https://news.ycombinator.com/item?id=47427522)
+- ASSUMPTION: no verified competitor claim in the ledger for this variant.
 
 ## Visible prices
 
@@ -18,6 +18,6 @@ ASSUMPTION: no source in the ledger states a market size, so no TAM/SAM figure i
 
 ## Context (Wikipedia, context only, never evidence)
 
-Graphic design careers include creative director, art director, art production manager, brand identity developer, illustrator and layout artist.
+Toptal is a global remote company that provides a freelancing platform, connecting businesses with software engineers, designers, finance experts, product managers, and project managers. The company has no headquarters.
 
-Source: https://en.wikipedia.org/wiki/Graphic_design_occupations
+Source: https://en.wikipedia.org/wiki/Toptal
