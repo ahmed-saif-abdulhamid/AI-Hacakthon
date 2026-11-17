@@ -29,6 +29,7 @@ FIRST_PERSON = re.compile(r"\b(i|i'm|i've|i'd|me|my|we|we're|we've|our|us)\b", r
 PITCH = re.compile(r"\b(i|we)('ve| have)? (built|made|created|launched|am building|'m building|are building|'re building)\b"
                    r"|\bthe idea came from\b|\bi hear from\b|\b(my|our) (app|tool|product|startup|saas)\b"
                    r"|\b(sign up|try it|check it out|join (the|our) waitlist|show hn|launch hn)\b", re.I)
+WEAK_PAIN = re.compile(r"manual(ly)?|problems?|overdue|unpaid|wish|pain|expensive|costly|difficult")
 URLISH = re.compile(r"https?://|www\.|#\w")
 STRONG_WTP = re.compile(r"\b(paid|would pay|pay for|paying for|bought)\b|[$€£]\s?\d", re.I)
 
@@ -227,12 +228,20 @@ def apply_relevance(claims: list[Claim], variant: Variant, max_age_months: int =
             # experience. Neither is a complaint from a would-be customer.
             c.weight = 0.0
             notes.append("product pitch or feature list, not a complaint")
+        elif c.kind in ("pain", "wtp") and c.quote.rstrip().endswith("?"):
+            c.weight = 0.0
+            notes.append("a question, not someone's own experience")
         elif c.kind in CUE_KINDS:
             cue = match_cue(c.kind, c.quote)
             c.cue_matched = cue
             if not cue:
                 c.weight = 0.0
                 notes.append("label not confirmed by code")
+            elif c.kind == "pain" and WEAK_PAIN.fullmatch(cue.strip().lower()) and not FIRST_PERSON.search(c.quote):
+                # Words like "manual", "problem" or "overdue" describe a topic; they count as a complaint only
+                # when the person is talking about their own experience.
+                c.weight = 0.0
+                notes.append("general wording, not someone's own complaint")
             else:
                 c.weight = base
         elif c.kind == "competitor":

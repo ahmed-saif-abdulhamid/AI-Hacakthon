@@ -56,12 +56,12 @@
       <button type="button" id="m-hud" data-mode="hud" aria-pressed="false" title="Holographic voice HUD: talk to {{ assistant }}">Voice</button>
       <button type="button" id="m-dual" data-mode="dual" aria-pressed="false" title="Dual-sync: workspace and voice side by side">Both</button>
     </div>
-    <button class="pill" id="voiceToggle" type="button" aria-pressed="true" data-act="voice"><span aria-hidden="true">🔊</span><span class="long">Spoken replies</span></button>
+    <button class="pill" id="voiceToggle" type="button" aria-pressed="true" aria-label="Spoken replies" data-act="voice"><span aria-hidden="true">🔊</span><span class="long">Spoken replies</span></button>
   </header>
   <div class="conn" id="conn" role="alert" hidden><b>Lost connection to ProveIt.</b> Your run keeps going on the server; this page reconnects by itself.</div>
 
-  <div class="stage" id="stage">
-    <main id="workspace" tabindex="-1">
+  <main class="stage" id="stage">
+    <div id="workspace" tabindex="-1">
       <section id="intro" class="intro" aria-labelledby="intro-h" hidden>
         <h1 id="intro-h">Find out if anyone wants it before you build it.</h1>
         <p class="lede">Describe a digital product idea. ProveIt looks for real people describing the problem on public forums, checks every quote on its source page, and tells you plainly when the evidence is too thin to build on.</p>
@@ -107,10 +107,10 @@
           <button class="btn" type="button" data-act="print">Print the evidence report</button>
         </div>
       </section>
-    </main>
+    </div>
 
     <section class="voice" id="voicepanel" aria-label="Talk to {{ assistant }}" hidden>
-      <h2 class="sr">Talk to {{ assistant }}</h2>
+      <h1 class="sr">Talk to {{ assistant }}</h1>
       <div class="orbwrap"><canvas id="orb" width="600" height="600" aria-hidden="true"></canvas></div>
       <div class="vstate" id="vstate"><b>{{ assistant }}</b> is ready</div>
       <div class="caption" id="caption" aria-live="polite"></div>
@@ -122,7 +122,7 @@
       <div class="voice-verdict" id="voiceVerdict" hidden></div>
       <div class="convo" id="convo"></div>
     </section>
-  </div>
+  </main>
 
   <div class="ask">
     <div class="askout" id="askout" role="status" hidden>
@@ -206,6 +206,7 @@
       <span><kbd>Esc</kbd></span><span>Close a dialog or the answer card</span>
       <span><kbd>?</kbd></span><span>Show this list</span>
     </div>
+    <label class="filterrow" style="margin-top:16px"><input type="checkbox" id="singlekeys" checked> Single-key shortcuts (N, 1, 2, 3, /, ?) are on</label>
     <div class="dlgfoot"><span></span><button class="btn primary" type="button" data-close>Done</button></div>
   </div>
 </dialog>

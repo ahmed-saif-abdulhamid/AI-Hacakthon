@@ -146,16 +146,18 @@ def _note(state: str) -> None:
     _health.update(state=state, at=time.time())
 
 
-def _post(body: dict) -> httpx.Response:
+def _post(body: dict, quick: bool = False) -> httpx.Response:
     r = None
     retries = 0
+    max_retries = 0 if quick else 5
     for _ in range(10):
         try:
             with _limiter:
-                r = httpx.post(f"{base_url()}/chat/completions", json=body, headers=_headers(), timeout=_timeout())
+                r = httpx.post(f"{base_url()}/chat/completions", json=body, headers=_headers(),
+                               timeout=10.0 if quick else _timeout())
         except (httpx.TimeoutException, httpx.NetworkError) as e:
             _note("unreachable")
-            if retries >= 2:
+            if quick or retries >= 2:
                 raise LLMError(f"NVIDIA API unreachable: {e}") from e
             time.sleep(_backoff(retries, None))
             retries += 1
@@ -168,7 +170,7 @@ def _post(body: dict) -> httpx.Response:
                 return r
             body.pop(dropped)
             continue
-        if r.status_code in RETRY_STATUSES and retries < 5:   # free-tier rate limit or a transient error
+        if r.status_code in RETRY_STATUSES and retries < max_retries:   # free-tier rate limit or a transient error
             _note("busy" if r.status_code == 429 else "unreachable")
             time.sleep(_backoff(retries, r))
             retries += 1
@@ -178,7 +180,7 @@ def _post(body: dict) -> httpx.Response:
     return r
 
 
-def _complete(system: str, user: str, schema: dict, num_predict: int) -> tuple[str, int, int]:
+def _complete(system: str, user: str, schema: dict, num_predict: int, quick: bool = False) -> tuple[str, int, int]:
     if _no_model():
         raise LLMError("no model in the hosted demo")
     body = {
@@ -190,7 +192,7 @@ def _complete(system: str, user: str, schema: dict, num_predict: int) -> tuple[s
         "response_format": {"type": "json_schema", "json_schema": {"name": "output", "schema": schema}},
         "chat_template_kwargs": {"enable_thinking": False},
     }
-    r = _post(body)
+    r = _post(body, quick)
     if r.status_code != 200:
         raise LLMError(f"NVIDIA API returned {r.status_code}: {r.text[:200]}")
     data = r.json()
@@ -239,7 +241,7 @@ def estimate_tokens(text: str) -> int:
 
 
 def chat_json(schema_model: type[T], system: str, user: str, *, run_id: str | None = None,
-              agent: str = "", num_predict: int = 400) -> tuple[T, dict]:
+              agent: str = "", num_predict: int = 400, quick: bool = False) -> tuple[T, dict]:
     """Ask the model for JSON matching ``schema_model``; validate; retry once."""
     schema = schema_model.model_json_schema()
     last_err = None
@@ -251,7 +253,7 @@ def chat_json(schema_model: type[T], system: str, user: str, *, run_id: str | No
             tin, tout = estimate_tokens(system + user), estimate_tokens(raw)
         else:
             prompt = user if attempt == 0 else user + "\n\nReturn ONLY valid JSON matching the schema."
-            raw, tin, tout = _complete(system, prompt, schema, num_predict)
+            raw, tin, tout = _complete(system, prompt, schema, num_predict, quick)
         secs = time.time() - t0
         meta["tokens_in"] += tin
         meta["tokens_out"] += tout

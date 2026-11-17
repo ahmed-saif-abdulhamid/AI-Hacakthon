@@ -80,3 +80,15 @@ def test_product_pitches_and_feature_bullets_are_not_complaints():
     verifier.apply_relevance([pitch, bullet, real], V)
     assert pitch.weight == 0 and bullet.weight == 0 and "pitch" in pitch.weight_note
     assert real.weight == 1.0
+
+
+def test_questions_and_general_wording_are_not_complaints():
+    from proveit.models import Claim
+    base = Claim(id="C1", run_id="r", kind="pain", claim_text="x", source="hn", url="https://x.example",
+                 hit_title="freelance web designers onboarding new clients", status="verified_live",
+                 quote="Do you onboard new clients manually?")
+    general = base.model_copy(update={"id": "C2", "quote": "Onboarding new clients manually is common for web designers."})
+    own = base.model_copy(update={"id": "C3", "quote": "I onboard new clients manually and it eats my weekends."})
+    verifier.apply_relevance([base, general, own], V)
+    assert base.weight == 0 and "question" in base.weight_note
+    assert general.weight == 0 and own.weight == 1.0

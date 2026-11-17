@@ -32,3 +32,26 @@ def test_mode_parameter_cannot_inject_script():
 def test_api_base_parameter_is_escaped():
     html = client.get("/hud?api=</script><script>alert(1)</script>").text
     assert "<script>alert(1)</script>" not in html
+
+
+def test_dns_rebinding_host_is_refused():
+    assert client.get("/api/approvals", headers={"host": "evil.example"}).status_code == 400
+
+
+def test_cross_site_and_non_json_posts_are_refused():
+    r = client.post("/api/ask", json={"text": "hi"}, headers={"origin": "https://evil.example"})
+    assert r.status_code == 403
+    r = client.post("/api/runs", content=b'{"fields":{"idea":"x"}}', headers={"content-type": "text/plain"})
+    assert r.status_code == 415
+
+
+def test_public_placeholder_is_never_the_signing_secret(monkeypatch, tmp_path):
+    from proveit import secrets_store
+    secrets_store.secret_key.cache_clear()
+    monkeypatch.setenv("PROVEIT_ENV", "dev")
+    monkeypatch.setenv("SECRET_KEY", "dev-only-change-me")
+    monkeypatch.setenv("PROVEIT_DATA", str(tmp_path))
+    key = secrets_store.secret_key()
+    assert key != "dev-only-change-me" and len(key) == 64
+    assert (tmp_path / "secret_key").read_text() == key
+    secrets_store.secret_key.cache_clear()

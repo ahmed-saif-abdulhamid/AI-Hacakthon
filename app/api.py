@@ -104,6 +104,34 @@ async def _security_headers(request: Request, call_next):
     return resp
 
 
+ALLOWED_HOSTS = {h.strip().lower() for h in os.environ.get(
+    "ALLOWED_HOSTS", "localhost,127.0.0.1,api,testserver").split(",") if h.strip()}
+FORM_POSTS = re.compile(r"^/(p/[^/]+/signup|store/[^/]+/buy|orders/[^/]+/refund-request|api/voice/transcribe)$")
+
+
+@app.middleware("http")
+async def _same_origin_only(request: Request, call_next):
+    """DNS-rebinding and cross-site protection for a local app that can approve things:
+    the Host must be this machine, and anything that changes state must come from this origin as JSON."""
+    host = (request.headers.get("host") or "").split(":")[0].lower()
+    if not DEMO and "*" not in ALLOWED_HOSTS and host not in ALLOWED_HOSTS:
+        return JSONResponse({"ok": False, "error": "unknown host"}, status_code=400)
+    if request.method in ("POST", "PUT", "PATCH", "DELETE"):
+        origin = request.headers.get("origin")
+        if origin and origin != "null":
+            ohost = re.sub(r"^https?://", "", origin).split(":")[0].split("/")[0].lower()
+            if ohost not in ALLOWED_HOSTS and not DEMO:
+                return JSONResponse({"ok": False, "error": "cross-site request refused"}, status_code=403)
+        ctype = (request.headers.get("content-type") or "").split(";")[0].strip().lower()
+        if not FORM_POSTS.match(request.url.path) and int(request.headers.get("content-length") or 0) > 0 \
+                and ctype != "application/json":
+            return JSONResponse({"ok": False, "error": "send JSON (Content-Type: application/json)"}, status_code=415)
+    resp = await call_next(request)
+    if request.url.path.startswith("/static/") and "v=" in request.url.query:
+        resp.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return resp
+
+
 @app.middleware("http")
 async def _valid_run_ids(request: Request, call_next):
     """A run id in the path must look like one, so no path can climb out of the runs folder."""
@@ -234,7 +262,7 @@ def root():
     return RedirectResponse("/hud")
 
 
-@app.get("/hud", response_class=HTMLResponse)
+@app.api_route("/hud", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def hud(mode: Literal["tactical", "hud", "dual"] = "tactical", embed: int = 0, api: str = ""):
     return _env.get_template("hud.html.j2").render(
         initial_mode=mode, embed=bool(embed), api_base=api, status_table=STATUS_TABLE, demo=DEMO,
@@ -338,6 +366,23 @@ def runs():
     return [dict(r, title=_run_title(r["id"])) for r in orchestrator.list_runs(60)]
 
 
+def _usage_from_log(run_id: str) -> dict:
+    """Model usage summed from the persistent decision log (the in-memory counter resets on restart)."""
+    calls = tin = tout = 0
+    secs = 0.0
+    for r in db.query("SELECT model, extra FROM actions WHERE run_id=? AND model IS NOT NULL", (run_id,)):
+        try:
+            e = json.loads(r.get("extra") or "{}")
+        except ValueError:
+            continue
+        if "tokens_in" in e:
+            calls += 1
+            tin += int(e.get("tokens_in") or 0)
+            tout += int(e.get("tokens_out") or 0)
+            secs += float(e.get("seconds") or 0)
+    return {"calls": calls, "tokens_in": tin, "tokens_out": tout, "seconds": round(secs, 1)}
+
+
 def run_view(run_id: str) -> dict:
     try:
         run = orchestrator.load(run_id)
@@ -360,7 +405,7 @@ def run_view(run_id: str) -> dict:
         "variant_n": v, "claims": claims, "metrics": research.get("metrics"), "coverage_rows": research.get("coverage_rows"),
         "gate1": s.get("gate1"), "gate2": s.get("gate2"), "gate3": s.get("gate3"), "gate4": s.get("gate4"),
         "debate": s.get("debate"), "override": s.get("override"), "clarify": s.get("clarify"),
-        "pending_approval": s.get("pending_approval"), "usage": llm.usage(run.id) or s.get("usage"),
+        "pending_approval": s.get("pending_approval"), "usage": _usage_from_log(run.id),
         "error": s.get("error"), "error_message": s.get("error_message"),
         "order": {k: s.get("order", {}).get(k) for k in ("id", "amount")} if s.get("order") else None,
         "files": sorted(p.name for p in run.dir.iterdir() if p.is_file()),

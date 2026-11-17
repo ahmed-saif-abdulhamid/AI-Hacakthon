@@ -18,7 +18,8 @@ services:
       PROVEIT_DB: "/app/data/proveit.db"
       # Runs live on the named volume, which is always writable whatever your host user id is.
       PROVEIT_RUNS: "/app/data/runs"
-      SECRET_KEY: "${SECRET_KEY:-dev-only-change-me}"
+      # Leave unset to have ProveIt generate a private signing secret on first start (kept in the data volume).
+      SECRET_KEY: "${SECRET_KEY:-}"
       GITHUB_TOKEN: "${GITHUB_TOKEN:-}"
       SE_KEY: "${SE_KEY:-}"
       # The model is NVIDIA Nemotron (open weights) on NVIDIA's free hosted tier.

@@ -29,7 +29,8 @@ class BadEvent(ValueError):
 
 
 def _secret() -> bytes:
-    return os.environ.get("SECRET_KEY", "dev-only-change-me").encode()
+    from proveit.secrets_store import secret_key
+    return secret_key().encode()
 
 
 def sign(event: dict) -> str:

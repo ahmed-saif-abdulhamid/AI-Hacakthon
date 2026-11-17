@@ -153,13 +153,13 @@ POLICY_SYSTEM = (
 )
 
 
-def model_check(text: str, kind: str = "input", run_id: str | None = None) -> GuardResult | None:
+def model_check(text: str, kind: str = "input", run_id: str | None = None, quick: bool = False) -> GuardResult | None:
     """C2: one short yes/no call. Returns None when the model is unavailable (logged by caller)."""
     from . import llm
     from .log import log_action
     try:
         v, meta = llm.chat_json(PolicyVerdict, POLICY_SYSTEM, f"KIND: {kind}\nTEXT:\n{text[:2000]}",
-                                run_id=run_id, agent="guard", num_predict=40)
+                                run_id=run_id, agent="guard", num_predict=40, quick=quick)
     except llm.LLMError as e:
         if run_id:
             log_action(run_id, "guard", "model_policy_check_unavailable", model=llm.model_name(), cost=0,
@@ -264,7 +264,8 @@ ROUTES = [
     ("approve_request", r"^\s*(please\s+)?(approve|authori[sz]e)\b|\b(can|could|would) you\s+(please\s+)?(approve|authori[sz]e)\b"
                         r"|\b(go ahead and|just|please)\s+(approve|authori[sz]e)\b|\bapprove (it|this|that|the|my|our)\b(?!.*\?\s*$)"),
     ("change_threshold", r"\b(lower|raise|reduce|change|move|relax|loosen|drop|tweak|adjust)\b\W+(\w+\W+){0,3}?"
-                         r"(bar|threshold|target|rules?)\b|\bcount (it|this) as a pass\b"),
+                         r"(bar|threshold|target|rules?)\b|\bcount (it|this) as a pass\b"
+                         r"|\b(treat|count|consider|call)\b\W+(\w+\W+){0,4}?as\W+(\w+\W+){0,2}?(go|a pass|enough|six|6)\b"),
     ("rerun_step", r"\b(re-?run|run (it |this )?again|retry|repeat (the )?step|research variant)\b"),
     ("explain_decision", r"\b(why|explain|reason|evidence|how did you|what did you find|summar\w+)\b"),
     ("edit_copy", r"\b(rewrite|reword|edit|headline|tagline|hero|copy|wording)\b"),

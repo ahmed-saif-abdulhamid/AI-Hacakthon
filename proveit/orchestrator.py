@@ -154,6 +154,18 @@ def advance(run_id: str) -> str:
         try:
             fn(run)
         except llm.LLMError as e:
+            busy_waits = run.state.get("busy_waits", 0)
+            if ("429" in str(e) or "unreachable" in str(e).lower()) and busy_waits < 3:
+                # The free tier is busy: wait visibly and try the same step again, without the founder's help.
+                wait = 20 * (busy_waits + 1)
+                run.state["busy_waits"] = busy_waits + 1
+                run.save()
+                log_action(run.id, "orchestrator", "wait_for_busy_model", stage=run.stage, seconds=wait)
+                emit(run.id, run.state.get("phase", 1), "progress",
+                     f"NVIDIA's free service is busy, so I'm waiting {wait} seconds and trying this step again.")
+                time.sleep(wait)
+                continue
+            run.state.pop("busy_waits", None)
             run.state["error"] = str(e)[:300]
             run.state["error_message"] = friendly_error(str(e))
             log_action(run.id, "orchestrator", "stage_failed", stage=run.stage, error=str(e)[:200])
@@ -361,9 +373,17 @@ def stage_phase1(run: Run) -> None:
     rt = runtime()[run.mode]
     variant_n = run.state.get("variant_n", 1)
     repeats = run.state.get("repeats", 0)
-    research = research_variant(run, run.variant(variant_n), broaden=repeats > 0)
-    run.state.setdefault("claims", []).extend(research.pop("claims"))
-    run.state.setdefault("research", {})[str(variant_n)] = research
+    done_key = f"{variant_n}:{repeats}"
+    if run.state.get("research_done") == done_key and str(variant_n) in run.state.get("research", {}):
+        # A retry after a pause (for example a rate limit at the debate) reuses the search already made,
+        # so quotes are never counted twice.
+        research = run.state["research"][str(variant_n)]
+    else:
+        research = research_variant(run, run.variant(variant_n), broaden=repeats > 0)
+        run.state.setdefault("claims", []).extend(research.pop("claims"))
+        run.state.setdefault("research", {})[str(variant_n)] = research
+        run.state["research_done"] = done_key
+        run.save()
     if run.mode == "full" and not run.state.get("others_researched"):
         for n in range(1, min(rt["variants_researched"], len(run.state["variants"])) + 1):
             if n == variant_n:
@@ -375,17 +395,25 @@ def stage_phase1(run: Run) -> None:
     run.write("phase1_step2_claims.json", claims_json(run))
     claims = [c for c in run.claims() if any(c.hit_id == h for h in research["hits"])]
     metrics = research["metrics"]
-    progress(run, 1, "Debate: Advocate vs Skeptic")
-    known = {k: v for k, v in run.state.get("brief", {}).items()
-             if k in ("skills", "budget", "hours_per_week", "target_market", "values") and v and "unspecified" not in str(v)}
-    args = debate.run(run.id, claims, metrics, run.variant(variant_n).title,
-                      "; ".join(f"{k.replace('_', ' ')}: {v}" for k, v in known.items()))
-    run.state["debate"] = {k: [s.model_dump() for s in v] for k, v in args.items()}
-    say(run, "debate", advocate=args["advocate"][0].text if args["advocate"] else "",
-        skeptic=args["skeptic"][0].text if args["skeptic"] else "")
+    # Code decides first; the for-and-against debate only explains, so it never blocks the verdict and is
+    # skipped when there is nothing to argue about (the sources could not see the market, or the research failed).
     dec = gates.evaluate_gate1(run.id, metrics, th, run.brief_raw, run.sha, model_failure=research["model_failure"],
                                missed=research["missed"], repeats=repeats, variant_n=variant_n,
                                n_variants=len(run.state["variants"]))
+    args = {"advocate": [], "skeptic": []}
+    run.state.pop("debate", None)
+    if dec.reason not in ("insufficient_evidence", "model_failure", "model_suspect"):
+        progress(run, 1, "Weighing the case for and against")
+        known = {k: v for k, v in run.state.get("brief", {}).items()
+                 if k in ("skills", "budget", "hours_per_week", "target_market", "values") and v and "unspecified" not in str(v)}
+        try:
+            args = debate.run(run.id, claims, metrics, run.variant(variant_n).title,
+                              "; ".join(f"{k.replace('_', ' ')}: {v}" for k, v in known.items()))
+            run.state["debate"] = {k: [s.model_dump() for s in v] for k, v in args.items()}
+            say(run, "debate", advocate=args["advocate"][0].text if args["advocate"] else "",
+                skeptic=args["skeptic"][0].text if args["skeptic"] else "")
+        except llm.LLMError as e:
+            log_action(run.id, "orchestrator", "debate_skipped_model_unavailable", error=str(e)[:160])
     if dec.goalpost_moved:
         log_action(run.id, "gatekeeper", "goalpost_moved", goalpost_moved=True)
     log_action(run.id, "gatekeeper", "evidence_gate", sources=sorted({c.url for c in claims if c.weight > 0}),
@@ -512,14 +540,19 @@ def gate1_md(run: Run, dec: GateDecision, claims: list[Claim], args: dict, prov:
     research = run.state.get("research", {}).get(str(run.variant().n), {})
     if research.get("missed"):
         out.append(f"Code-qualified sentences not selected by the model: {', '.join(research['missed'])}.\n")
-    out += ["## Advocate (case for GO)", "",
-            render.render_list([Statement(**s) if isinstance(s, dict) else s for s in args["advocate"]], ledger, used,
-                               prov, "phase1_gate_decision.md"), "",
-            "## Skeptic (case for STOP)", "",
-            render.render_list([Statement(**s) if isinstance(s, dict) else s for s in args["skeptic"]], ledger, used,
-                               prov, "phase1_gate_decision.md"), "",
-            "The arguments are model-written and decide nothing; `gates.py` applies the rule precedence.", "",
-            "## Source coverage", "", "| Source | Query | OK | Hits | On-topic | Covered |", "|---|---|---|---|---|---|"]
+    if args.get("advocate") or args.get("skeptic"):
+        out += ["## Advocate (case for GO)", "",
+                render.render_list([Statement(**s) if isinstance(s, dict) else s for s in args["advocate"]], ledger,
+                                   used, prov, "phase1_gate_decision.md"), "",
+                "## Skeptic (case for STOP)", "",
+                render.render_list([Statement(**s) if isinstance(s, dict) else s for s in args["skeptic"]], ledger,
+                                   used, prov, "phase1_gate_decision.md"), "",
+                "The arguments are model-written and decide nothing; `gates.py` applies the rule precedence.", ""]
+    else:
+        out += ["## For and against", "",
+                "Not written for this verdict: the public sources gave too little to argue about, or the research "
+                "did not come back clean. The arguments never decide a checkpoint.", ""]
+    out += ["## Source coverage", "", "| Source | Query | OK | Hits | On-topic | Covered |", "|---|---|---|---|---|---|"]
     for r in research.get("coverage_rows", []):
         out.append(f"| {r['source']} | {r['query']} | {r['ok']} | {r['hits']} | {r['on_topic']} | {r['covered']} |"
                    + (f" {r['error'][:60]}" if r.get("error") else ""))
@@ -633,6 +666,9 @@ def founder_decide(run_id: str, decision: str, reason: str = "") -> dict:
         if len(reason.strip()) < 8:
             return {"ok": False, "error": "Please write a short reason for carrying on; it is saved with the decision."}
         res = guard.check_input(reason, scope="override", use_model=True, run_id=run.id)
+        if guard.UNAVAILABLE in (res.notes or []):          # fail closed: no unchecked override
+            return {"ok": False, "error": "I couldn't run the safety check on your reason just now (the AI service "
+                                          "is busy). Please press it again in a few seconds."}
         if res.blocked:
             log_action(run.id, "guard", "block_override_reason", rule=res.rule)
             return {"ok": False, "error": res.message, "rule": res.rule}
@@ -685,6 +721,8 @@ def founder_decide(run_id: str, decision: str, reason: str = "") -> dict:
         run.state["repeats"] = run.state.get("repeats", 0) + 1
         run.save("phase1", status="running")
         return {"ok": True, "stage": "phase1"}
+    if decision in ("accept", "stop") and run.stage not in ("await_founder", "await_override", "await_clarify"):
+        return {"ok": False, "error": "There's nothing to decide at this step."}
     if decision in ("accept", "stop"):
         gate_key = "gate2" if run.stage == "await_override" else "gate1"
         log_action(run.id, "founder", f"accept_{gate_key}_recommendation" if decision == "accept" else "stop_run",

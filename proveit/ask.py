@@ -105,6 +105,7 @@ def strip_wake(text: str) -> str:
 
 
 MAX_SENTENCES = 4
+GENERATIVE = ("other", "explain_decision", "edit_copy")   # intents where the model writes new text
 SENTENCE_END = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9\"'(])")
 
 
@@ -200,8 +201,10 @@ def offline_answer(text: str, run) -> str:
     import os
     s = voice.address()
     tail = (" (This online demo can only read back the saved results.)" if os.environ.get("PROVEIT_DEMO") == "1"
-            else " (I can't reach the AI service right now, so this is a short answer. Check the internet "
-                 "connection and the NVIDIA key.)")
+            else (" (NVIDIA's free service is busy right now, so this is a short answer from the saved results.)"
+                  if llm.status().get("state") == "busy" else
+                  " (I can't reach the AI service right now, so this is a short answer from the saved results. "
+                  "Check the internet connection and the NVIDIA key.)"))
     if run is None or not run.state.get("gate1"):
         return f"Open one of your ideas on the left, {s}, and I'll tell you what I found." + tail
     g = run.state["gate1"]
@@ -226,12 +229,13 @@ def quote_answer(run) -> dict:
     """Quotes are read back verbatim by code (with the IDs on screen), never paraphrased by the model."""
     counted = sorted([c for c in current_claims(run) if c.weight > 0], key=lambda c: (c.kind != "pain", -c.weight))
     pains = [c for c in counted if c.kind == "pain"]
+    n_pain = len({c.hit_id or c.url for c in pains})           # one comment = one complaint, as on screen
     if not counted:
         msg = "I didn't find anyone clearly describing this problem in the places I searched."
         return {"intent": "quotes", "text": msg, "spoken": msg}
     pick = (pains or counted)[:2]
     places = {"hn": "Hacker News", "stackexchange": "Stack Exchange", "github": "GitHub", "web": "the web"}
-    spoken = (f"I counted {len(pains)} {'complaint' if len(pains) == 1 else 'complaints'} about the problem. "
+    spoken = (f"I counted {n_pain} {'complaint' if n_pain == 1 else 'complaints'} about the problem. "
               if pains else "Nobody described the problem as a complaint, but here is what counted. ")
     spoken += " ".join(f"On {places.get(c.source, c.source)}, {KIND_WORDS.get(c.kind, 'someone')} "
                        f"({c.id}): \"{(c.quote or '')[:180]}\"" for c in pick)
@@ -288,7 +292,8 @@ def _handle(text: str, run_id: str | None, use_model: bool, history: list[dict] 
     text = strip_wake(text)
     if not text:
         return {"intent": "wake", "text": "I'm listening.", "spoken": "Yes, " + voice.address() + "?", "listen": True}
-    res = guard.check_input(text, scope="ask", use_model=use_model, run_id=run_id)
+    # 1) Rules first (instant). The model check runs later, and only if new text is about to be generated.
+    res = guard.check_input(text, scope="ask", use_model=False, run_id=run_id)
     if res.blocked:
         log_action(run_id, "guard", "refuse_ask_request", model=llm.model_name() if res.layer == "model" else None,
                    cost=0, rule=res.rule, layer=res.layer)
@@ -307,6 +312,19 @@ def _handle(text: str, run_id: str | None, use_model: bool, history: list[dict] 
         except KeyError:
             run = None
     log_action(run_id, "ask", f"ask_{intent}", model=None, cost=0)
+    if intent in GENERATIVE and use_model:
+        # 2) Before any generation: one quick model check. If it can't run, answer from recorded data only.
+        mres = guard.model_check(text, "ask", run_id, quick=True)
+        if mres is not None and mres.blocked:
+            log_action(run_id, "guard", "refuse_ask_request", model=llm.model_name(), cost=0, rule=mres.rule,
+                       layer="model")
+            spoken = voice.refusal_line(mres.rule or "", mres.message, mres.notes)
+            return {"intent": "refused", "refused": True, "rule": mres.rule, "layer": "model", "text": mres.message,
+                    "spoken": spoken, "alert": "crimson"}
+        if mres is None:
+            log_action(run_id, "guard", "ask_answered_from_records_only", model=None, cost=0)
+            msg = offline_answer(text, run)
+            return {"intent": intent, "text": msg, "spoken": msg}
     if intent == "quotes":
         if run is None:
             return {"intent": intent, "text": "Open an idea on the left first.",

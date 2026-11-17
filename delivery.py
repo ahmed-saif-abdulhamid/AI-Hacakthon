@@ -17,7 +17,8 @@ class AccessDenied(Exception):
 
 
 def _serializer() -> URLSafeTimedSerializer:
-    return URLSafeTimedSerializer(os.environ.get("SECRET_KEY", "dev-only-change-me"), salt="proveit-download")
+    from proveit.secrets_store import secret_key
+    return URLSafeTimedSerializer(secret_key(), salt="proveit-download")
 
 
 def grant(order_id: str) -> str:

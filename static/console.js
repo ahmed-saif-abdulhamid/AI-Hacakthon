@@ -78,9 +78,14 @@ function toggleVoice() {
   if (!S.voice) { try { speechSynthesis.cancel(); } catch (e) {} stopAudio(); }
   announce(S.voice ? "Spoken replies on" : "Spoken replies off");
 }
+const SMALL = matchMedia("(max-width: 860px)");
+function syncDrawer() { const sb = $("sidebar"); sb.inert = SMALL.matches && !sb.classList.contains("open"); }
+SMALL.addEventListener("change", syncDrawer);
 function openDrawer(open) {
   const sb = $("sidebar"), btn = document.querySelector("[data-act=menu]");
-  sb.classList.toggle("open", open); btn.setAttribute("aria-expanded", String(open));
+  const wasOpen = sb.classList.contains("open");
+  sb.classList.toggle("open", open); btn.setAttribute("aria-expanded", String(open)); syncDrawer();
+  if (!open && wasOpen && SMALL.matches) btn.focus();
   let scrim = document.querySelector(".scrim");
   if (open && !scrim) { scrim = document.createElement("div"); scrim.className = "scrim"; scrim.onclick = () => openDrawer(false); document.body.appendChild(scrim); }
   if (!open && scrim) scrim.remove();
@@ -188,7 +193,7 @@ async function poll(now) {
   if (document.hidden && !now) { schedule(4000); return; }
   if (!S.run) { schedule(4000); return; }
   try {
-    const [v, tel] = await Promise.all([api("/api/runs/" + S.run), api(`/api/runs/${S.run}/telemetry?since=${S.seq}`)]);
+    const [v, tel] = await Promise.all([api("/api/runs/" + encodeURIComponent(S.run)), api(`/api/runs/${encodeURIComponent(S.run)}/telemetry?since=${S.seq}`)]);
     if (S.fails >= 2) announce("Reconnected to ProveIt.");
     S.fails = 0; $("conn").hidden = true;
     S.view = v;
@@ -279,7 +284,7 @@ function renderSteps(v) {
 
 function bar(label, val, thr, max, unit, note) {
   const pass = val >= thr; const pct = Math.max(0, Math.min(100, 100 * val / max)), tp = Math.min(100, 100 * thr / max);
-  const txt = `${val}${unit || ""} of ${thr}${unit || ""} needed`;
+  const txt = `${val}${unit || ""} (needs ${thr}${unit || ""})`;
   return `<div class="bar"><div class="lbl"><strong>${label}</strong><span>${txt}</span></div>
     <div class="track ${pass ? "pass" : "fail"}" role="meter" aria-valuenow="${val}" aria-valuemin="0" aria-valuemax="${max}" aria-label="${label}" aria-valuetext="${txt}, ${pass ? "met" : "not met"}"><i style="width:${pct}%"></i><u style="left:calc(${tp}% - 1px)"></u></div>
     ${note ? `<small>${note}</small>` : ""}</div>`;
@@ -388,7 +393,7 @@ async function decide(d, btn) {
   if (d === "override") { reason = ($("ovr")?.value || "").trim(); if (reason.length < 8) { if (errEl) { errEl.textContent = "Write a short reason first; it's saved with your decision."; errEl.hidden = false; } $("ovr")?.focus(); return; } }
   busy(btn, true);
   try {
-    const r = await api(`/api/runs/${S.run}/decide`, {method: "POST", body: JSON.stringify({decision: d, reason})});
+    const r = await api(`/api/runs/${encodeURIComponent(S.run)}/decide`, {method: "POST", body: JSON.stringify({decision: d, reason})});
     if (!r.ok) { if (errEl) { errEl.textContent = r.error; errEl.hidden = false; } else showAnswer(r.error, "err"); }
     else { S.keys = {}; announce(d === "stop" ? "Stopped." : "Done. Working on it."); }
   } catch (e) { if (errEl) { errEl.textContent = "That didn't go through: " + e.message; errEl.hidden = false; } }
@@ -396,7 +401,7 @@ async function decide(d, btn) {
 }
 async function retryRun(btn) {
   busy(btn, true, "Trying again…");
-  try { await api(`/api/runs/${S.run}/continue`, {method: "POST"}); S.keys = {}; announce("Trying again."); }
+  try { await api(`/api/runs/${encodeURIComponent(S.run)}/continue`, {method: "POST"}); S.keys = {}; announce("Trying again."); }
   catch (e) { showAnswer("That didn't work: " + e.message, "err"); }
   finally { poll(true); }
 }
@@ -438,7 +443,7 @@ function renderEvidence(v) {
     const status = c.status === "verified_live" ? "Checked on the page" : (c.status === "archived_match" ? "Page offline: matched a saved copy (counts half)" : "Not checked");
     return `<article class="claim ${counts ? "" : "zero"}" id="ev-${esc(c.id)}"><div class="meta"><b>${esc(c.id)}</b><span class="tag ${counts ? cls : "none"}">${esc(word)}</span><span>${counts ? esc(status) : "Didn't count"}</span></div>
       <div><blockquote dir="auto">“${esc(c.quote || c.claim_text || "")}”</blockquote>
-      <div class="src">${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(PLACE[c.source] || c.source)}${c.hit_title ? ": " + esc(c.hit_title).slice(0, 90) : ""}</a>` : "ASSUMPTION"}${c.source === "stackexchange" ? " · CC BY-SA" : ""}${!counts && c.weight_note ? " · " + esc(c.weight_note.replace(/;? ?archived match/, "")) : ""}</div></div></article>`;
+      <div class="src">${/^https?:\/\//i.test(c.url || "") ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(PLACE[c.source] || c.source)}${c.hit_title ? ": " + esc(String(c.hit_title).slice(0, 90)) : ""}</a>` : "ASSUMPTION"}${c.source === "stackexchange" ? " · CC BY-SA" : ""}${!counts && c.weight_note ? " · " + esc(c.weight_note.replace(/;? ?archived match/, "")) : ""}</div></div></article>`;
   }).join("");
   $("pane-evidence").innerHTML = head + (rows || `<p class="empty">${all.length ? "None of the quotes I found were clearly about this problem. Tick the box to see them and why." : "No quotes yet."}</p>`);
 }
@@ -452,8 +457,8 @@ function renderDebate(v) {
   const st = s => { const ids = (s.claim_ids || []).filter(i => ok.has(i));
     const text = String(s.text || "").replace(/\s*\((C\d+(,\s*C\d+)*)\)/g, "").replace(/\s*\[C\d+\]/g, "");
     return `<p>${ids.length ? "" : `<span class="assume" title="Not backed by a counted quote">ASSUMPTION</span>`}${esc(text)}${ids.map(i => `<a class="cite" href="#ev-${esc(i)}" data-cite="${esc(i)}">${esc(i)}</a>`).join("")}</p>`; };
-  $("pane-debate").innerHTML = `<div class="debate"><div><h3>The case for going ahead</h3><p class="sub">The optimist, citing only counted quotes.</p>${v.debate.advocate.map(st).join("")}</div>
-    <div><h3>The case for stopping</h3><p class="sub">The sceptic, using the same quotes.</p>${v.debate.skeptic.map(st).join("")}</div></div>`;
+  $("pane-debate").innerHTML = `<div class="debate"><div><h2>The case for going ahead</h2><p class="sub">The optimist, citing only counted quotes.</p>${v.debate.advocate.map(st).join("")}</div>
+    <div><h2>The case for stopping</h2><p class="sub">The sceptic, using the same quotes.</p>${v.debate.skeptic.map(st).join("")}</div></div>`;
 }
 
 /* files, with a small safe Markdown renderer (text is escaped first) */
@@ -493,7 +498,7 @@ async function viewFile(name, btn) {
   document.querySelectorAll("#files button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.file === name)));
   const el = $("viewer"); el.innerHTML = `<div class="skeleton" aria-hidden="true"><i></i><i style="width:70%"></i></div>`;
   try {
-    const t = await api(`/api/runs/${S.run}/files/${encodeURIComponent(name)}`);
+    const t = await api(`/api/runs/${encodeURIComponent(S.run)}/files/${encodeURIComponent(name)}`);
     const text = typeof t === "string" ? t : JSON.stringify(t, null, 2);
     if (name.endsWith(".html")) { el.innerHTML = `<iframe sandbox="" title="${esc(prettyName(name))}"></iframe>`; el.querySelector("iframe").srcdoc = text; }
     else if (name.endsWith(".md")) el.innerHTML = `<article class="doc" tabindex="-1"><div class="docbar"><span>${esc(PHASE_OF(name))}</span><span>${esc(name)}</span></div>${md(text)}</article>`;
@@ -510,7 +515,7 @@ function renderCost(v) {
 let shownApprovals = "";
 async function renderApprovals() {
   let list = [];
-  try { list = await api("/api/approvals?status=pending" + (S.run ? "&run=" + S.run : "")); } catch (e) { return; }
+  try { list = await api("/api/approvals?status=pending" + (S.run ? "&run=" + encodeURIComponent(S.run) : "")); } catch (e) { return; }
   const c = $("apCount"); c.hidden = !list.length; c.textContent = list.length;
   const key = list.map(a => a.id).join(","); if (key === shownApprovals) return; shownApprovals = key;
   const box = $("approvals");
@@ -822,7 +827,7 @@ document.addEventListener("keydown", e => {
   const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable;
   if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") { e.preventDefault(); $("askq").focus(); return; }
   if (e.key === "Escape" && !document.querySelector("dialog[open]")) { hideAnswer(); openDrawer(false); return; }
-  if (typing || e.ctrlKey || e.metaKey || e.altKey || document.querySelector("dialog[open]")) return;
+  if (typing || e.ctrlKey || e.metaKey || e.altKey || document.querySelector("dialog[open]") || !S.singleKeys) return;
   if (e.key === "/") { e.preventDefault(); $("askq").focus(); }
   else if (e.key === "?") { e.preventDefault(); openDialog("keysdlg"); }
   else if (e.key === "n" || e.key === "N") { e.preventDefault(); openNew(); }
@@ -831,6 +836,11 @@ document.addEventListener("keydown", e => {
 document.addEventListener("click", () => { if (AC && AC.state === "suspended") AC.resume(); });
 
 /* ---------- start ---------- */
+S.singleKeys = true;
+try { S.singleKeys = localStorage.getItem("proveit_singlekeys") !== "off"; } catch (e) {}
+$("singlekeys").checked = S.singleKeys;
+$("singlekeys").addEventListener("change", e => { S.singleKeys = e.target.checked; try { localStorage.setItem("proveit_singlekeys", S.singleKeys ? "on" : "off"); } catch (x) {} });
+syncDrawer();
 try { const m = localStorage.getItem("proveit_mode"); if (m && !CFG.embed && !new URL(location.href).searchParams.get("mode")) S.mode = m; } catch (e) {}
 try { const t = localStorage.getItem("proveit_theme"); if (t === "light" || t === "dark") S.theme = t; } catch (e) {}
 $("themebtn").textContent = "Theme: " + S.theme;
