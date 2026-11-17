@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import time
 
+from proveit.models import Hit, SourceCall
+
 from .base import Source
 
 STATUS = "STUBBED"
@@ -14,5 +16,5 @@ class Reddit(Source):
     name = "reddit"
     pain_capable = False
 
-    def search(self, query: str, **kw):
+    def search(self, query: str, **kw) -> tuple[list[Hit], SourceCall]:
         return [], self._call(query, "reddit://stubbed", time.time(), error="STUBBED: adapter not enabled")

@@ -91,7 +91,7 @@ def advance(run_id: str) -> str:
         try:
             step(run)
         except llm.LLMError as e:
-            if _is_transient(e) and _wait_out_busy_model(run):
+            if e.retryable and _wait_out_busy_model(run):
                 continue
             _pause_on_error(run, str(e), friendly_error(str(e)))
             break
@@ -102,11 +102,6 @@ def advance(run_id: str) -> str:
     run.state["usage"] = llm.usage(run_id)
     run.save()
     return run.stage
-
-
-def _is_transient(error: llm.LLMError) -> bool:
-    message = str(error).lower()
-    return "429" in message or "unreachable" in message
 
 
 def _wait_out_busy_model(run: Run) -> bool:

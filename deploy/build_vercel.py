@@ -64,61 +64,86 @@ from app.api import app  # noqa: E402,F401
 '''
 
 
-def ignore(_dir, names):
+SQLITE_TIMEOUT_SECONDS = 5
+RUN_TABLES = ("actions", "approvals", "published", "orders", "telemetry")  # rows keyed by run_id
+PRIVATE_TABLES = ("signups", "deliveries", "webhook_events", "payouts")  # never shipped in the demo
+FUNCTION_MAX_DURATION_SECONDS = 30
+
+
+def ignore(_dir: str, names: list[str]) -> list[str]:
     return [n for n in names if n in ("__pycache__", ".pytest_cache") or n.endswith(".pyc")]
 
 
 def build() -> Path:
+    """Assemble the demo site in deploy/vercel_site/ and return its path."""
     promoted = json.loads((ROOT / "runs" / "promoted" / "runs.json").read_text(encoding="utf-8"))
     keep = [promoted["weak"], promoted["strong"]]
+    _empty_output_dir()
+    _copy_code(keep)
+    _build_demo_db(keep, OUT / "demo" / "proveit.db")
+    _write_vercel_files()
+    return OUT
+
+
+def _empty_output_dir() -> None:
+    """Empty deploy/vercel_site/ but keep the folder and its .vercel project link."""
     OUT.mkdir(parents=True, exist_ok=True)
-    for child in OUT.iterdir():  # empty it but keep the folder (and its .vercel link)
+    for child in OUT.iterdir():
         if child.name == ".vercel":
             continue
-        shutil.rmtree(child) if child.is_dir() else child.unlink()
+        if child.is_dir():
+            shutil.rmtree(child)
+        else:
+            child.unlink()
+
+
+def _copy_code(run_ids: list[str]) -> None:
     for d in CODE_DIRS:
         shutil.copytree(ROOT / d, OUT / d, ignore=ignore)
     for f in CODE_FILES:
         shutil.copy(ROOT / f, OUT / f)
     shutil.copytree(ROOT / "app", OUT / "app", ignore=ignore)
-    for rid in keep:
+    for rid in run_ids:
         shutil.copytree(ROOT / "runs" / rid, OUT / "runs" / rid, ignore=ignore)
 
-    # A database holding only the two committed runs (no sign-up emails, no tokens, no other runs).
-    (OUT / "demo").mkdir()
-    dst = OUT / "demo" / "proveit.db"
-    src = sqlite3.connect(ROOT / "data" / "proveit.db")
-    out = sqlite3.connect(dst)
-    src.backup(out)
-    src.close()
-    q = ",".join("?" * len(keep))
-    for table in ("runs",):
-        out.execute(f"DELETE FROM {table} WHERE id NOT IN ({q})", keep)
-    for table in ("actions", "approvals", "published", "orders", "telemetry"):
-        out.execute(f"DELETE FROM {table} WHERE run_id IS NULL OR run_id NOT IN ({q})", keep)
-    out.execute("DELETE FROM actions WHERE agent IN ('assistant', 'ask')")  # console chat, not the run
-    out.execute("DELETE FROM blobs WHERE sha256 NOT IN (SELECT payload_sha256 FROM approvals)")
-    out.execute("DELETE FROM payments WHERE order_id NOT IN (SELECT id FROM orders)")
-    out.execute("DELETE FROM refunds WHERE order_id NOT IN (SELECT id FROM orders)")
-    for table in ("signups", "deliveries", "webhook_events", "payouts"):
-        out.execute(f"DELETE FROM {table}")
-    out.commit()
-    out.execute("PRAGMA journal_mode=DELETE")
-    out.execute("VACUUM")
-    out.close()
 
+def _build_demo_db(run_ids: list[str], dst: Path) -> None:
+    """A database holding only the committed runs (no sign-up emails, no tokens, no other runs)."""
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    src = sqlite3.connect(ROOT / "data" / "proveit.db", timeout=SQLITE_TIMEOUT_SECONDS)
+    out = sqlite3.connect(dst, timeout=SQLITE_TIMEOUT_SECONDS)
+    try:
+        src.backup(out)
+    finally:
+        src.close()
+    try:
+        q = ",".join("?" * len(run_ids))
+        out.execute(f"DELETE FROM runs WHERE id NOT IN ({q})", run_ids)
+        for table in RUN_TABLES:
+            out.execute(f"DELETE FROM {table} WHERE run_id IS NULL OR run_id NOT IN ({q})", run_ids)
+        out.execute("DELETE FROM actions WHERE agent IN ('assistant', 'ask')")  # console chat, not the run
+        out.execute("DELETE FROM blobs WHERE sha256 NOT IN (SELECT payload_sha256 FROM approvals)")
+        out.execute("DELETE FROM payments WHERE order_id NOT IN (SELECT id FROM orders)")
+        out.execute("DELETE FROM refunds WHERE order_id NOT IN (SELECT id FROM orders)")
+        for table in PRIVATE_TABLES:
+            out.execute(f"DELETE FROM {table}")
+        out.commit()
+        out.execute("PRAGMA journal_mode=DELETE")
+        out.execute("VACUUM")
+    finally:
+        out.close()
+
+
+def _write_vercel_files() -> None:
     (OUT / "index.py").write_text(ENTRY, encoding="utf-8")
     (OUT / "requirements.txt").write_text(REQUIREMENTS, encoding="utf-8")
     (OUT / ".python-version").write_text("3.12\n", encoding="utf-8")
-    (OUT / "vercel.json").write_text(
-        json.dumps(
-            {"$schema": "https://openapi.vercel.sh/vercel.json", "functions": {"index.py": {"maxDuration": 30}}},
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
+    config = {
+        "$schema": "https://openapi.vercel.sh/vercel.json",
+        "functions": {"index.py": {"maxDuration": FUNCTION_MAX_DURATION_SECONDS}},
+    }
+    (OUT / "vercel.json").write_text(json.dumps(config, indent=2), encoding="utf-8")
     (OUT / ".vercelignore").write_text("__pycache__\n*.pyc\n.vercel\n", encoding="utf-8")
-    return OUT
 
 
 if __name__ == "__main__":

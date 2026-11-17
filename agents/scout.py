@@ -62,6 +62,10 @@ SE_SITES = {
     "sustainability",
     "politics",
 }
+N_VARIANTS = 3
+QUERIES_PER_VARIANT = 3
+MAX_QUERY_WORDS = 5
+FALLBACK_SE_SITE = "workplace"
 _TRAILING = {"for", "of", "to", "and", "or", "the", "a", "an", "with", "in", "on", "at", "my", "our", "your", "by"}
 
 
@@ -82,31 +86,31 @@ class ScoutOut(BaseModel):
 def _clean_query(q: str) -> str:
     """2-5 plain words; never end on a dangling word such as "for" or "the"."""
     q = re.sub(r"[\"'()\[\]]", " ", q or "")
-    words = q.lower().split()[:5]
+    words = q.lower().split()[:MAX_QUERY_WORDS]
     while words and words[-1] in _TRAILING:
         words.pop()
     return " ".join(words)
 
 
 def run(run_id: str, brief: FounderBrief) -> list[Variant]:
+    """Up to three researchable angles on the idea, with queries and fields cleaned by code."""
     user = (
         f"IDEA: {brief.idea}\nFOUNDER SKILLS: {brief.skills}\nTARGET MARKET: {brief.target_market}\n"
-        f"VALUES: {brief.values}\nLANGUAGE: {brief.language}\nReturn exactly 3 variants."
+        f"VALUES: {brief.values}\nLANGUAGE: {brief.language}\nReturn exactly {N_VARIANTS} variants."
     )
     out = llm.agent_call(run_id, "scout", "find_opportunities", ScoutOut, user, num_predict=700)
-    variants = []
-    for n, v in enumerate(out.variants[:3], start=1):
-        site = v.se_site.strip().lower().replace(".stackexchange.com", "")
-        variants.append(
-            Variant(
-                n=n,
-                title=v.title.strip(),
-                segment=v.segment.strip(),
-                job_to_be_done=v.job_to_be_done.strip(),
-                pain_queries=[q for q in (_clean_query(x) for x in v.pain_queries) if q][:3],
-                competitor_query=_clean_query(v.competitor_query) or _clean_query(v.job_to_be_done),
-                se_site=site if site in SE_SITES else "workplace",
-                language=v.language if v.language in ("en", "ar") else brief.language,
-            )
-        )
-    return variants
+    return [_variant(n, v, brief) for n, v in enumerate(out.variants[:N_VARIANTS], start=1)]
+
+
+def _variant(n: int, v: VariantOut, brief: FounderBrief) -> Variant:
+    site = v.se_site.strip().lower().replace(".stackexchange.com", "")
+    return Variant(
+        n=n,
+        title=v.title.strip(),
+        segment=v.segment.strip(),
+        job_to_be_done=v.job_to_be_done.strip(),
+        pain_queries=[q for q in (_clean_query(x) for x in v.pain_queries) if q][:QUERIES_PER_VARIANT],
+        competitor_query=_clean_query(v.competitor_query) or _clean_query(v.job_to_be_done),
+        se_site=site if site in SE_SITES else FALLBACK_SE_SITE,
+        language=v.language if v.language in ("en", "ar") else brief.language,
+    )

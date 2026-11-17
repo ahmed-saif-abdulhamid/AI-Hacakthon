@@ -9,10 +9,14 @@ from __future__ import annotations
 import os
 import sqlite3
 import threading
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+MEMORY = ":memory:"
+# How long a statement waits for another connection's write lock before failing with "database is locked".
+LOCK_TIMEOUT_SECONDS = 5
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS runs (
@@ -67,18 +71,23 @@ def db_path() -> str:
     return os.environ.get("PROVEIT_DB", str(ROOT / "data" / "proveit.db"))
 
 
+def _new_connection(path: str, **kwargs: object) -> sqlite3.Connection:
+    """A connection with rows as mappings and a bounded wait for locks."""
+    conn = sqlite3.connect(path, timeout=LOCK_TIMEOUT_SECONDS, **kwargs)
+    conn.row_factory = sqlite3.Row
+    conn.execute(f"PRAGMA busy_timeout={LOCK_TIMEOUT_SECONDS * 1000}")
+    return conn
+
+
 def _open(path: str) -> sqlite3.Connection:
     global _memory_conn
-    if path == ":memory:":
+    if path == MEMORY:
         if _memory_conn is None:
-            _memory_conn = sqlite3.connect(":memory:", check_same_thread=False)
-            _memory_conn.row_factory = sqlite3.Row
+            _memory_conn = _new_connection(MEMORY, check_same_thread=False)
             _memory_conn.executescript(SCHEMA)
         return _memory_conn
     Path(path).parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(path, timeout=10)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA busy_timeout=5000")
+    conn = _new_connection(path)
     if path not in _initialised:
         conn.execute("PRAGMA journal_mode=WAL")
         conn.executescript(SCHEMA)
@@ -87,7 +96,8 @@ def _open(path: str) -> sqlite3.Connection:
 
 
 @contextmanager
-def connect():
+def connect() -> Iterator[sqlite3.Connection]:
+    """A connection for one unit of work: committed on success, closed afterwards (file databases)."""
     path = db_path()
     with _lock:
         conn = _open(path)
@@ -95,7 +105,7 @@ def connect():
             yield conn
             conn.commit()
         finally:
-            if path != ":memory:":
+            if path != MEMORY:
                 conn.close()
 
 

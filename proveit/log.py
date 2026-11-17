@@ -26,8 +26,9 @@ def log_action(
     model: str | None = None,
     cost: float = 0,
     approved_by: str | None = None,
-    **extra,
+    **extra: object,
 ) -> dict:
+    """Append one decision-log entry and return it. Extra keyword values (None dropped) are stored as JSON."""
     if approved_by not in (None, "founder"):
         raise ValueError("approved_by must be 'founder' or None")
     entry = {
@@ -60,7 +61,7 @@ def log_action(
     return entry
 
 
-def emit(run_id: str, phase: int, kind: str, text: str, **data) -> None:
+def emit(run_id: str, phase: int, kind: str, text: str, **data: object) -> None:
     """UI telemetry (progress, narration). Not part of the decision log."""
     db.execute(
         "INSERT INTO telemetry (run_id, ts, phase, kind, text, data) VALUES (?,?,?,?,?,?)",
@@ -93,21 +94,14 @@ def _row_to_entry(r: dict) -> dict:
 
 
 def entries(run_id: str | None = None, since_seq: int = 0) -> list[dict]:
+    """Entries after ``since_seq`` (one run's, or every run's), each with its ``_seq`` cursor."""
     if run_id is None:
         rows = db.query("SELECT * FROM actions WHERE seq > ? ORDER BY seq", (since_seq,))
     else:
         rows = db.query("SELECT * FROM actions WHERE run_id = ? AND seq > ? ORDER BY seq", (run_id, since_seq))
-    out = []
-    for r in rows:
-        e = _row_to_entry(r)
-        e["_seq"] = r["seq"]
-        out.append(e)
-    return out
+    return [{**_row_to_entry(r), "_seq": r["seq"]} for r in rows]
 
 
 def export(run_id: str) -> list[dict]:
-    out = []
-    for e in entries(run_id):
-        e.pop("_seq", None)
-        out.append(e)
-    return out
+    """One run's entries as committed in decision_log.json (no cursor)."""
+    return [_row_to_entry(r) for r in db.query("SELECT * FROM actions WHERE run_id = ? ORDER BY seq", (run_id,))]

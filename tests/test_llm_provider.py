@@ -8,7 +8,7 @@ import httpx
 import pytest
 from pydantic import BaseModel
 
-from proveit import llm
+from proveit import llm, metrics
 
 
 class Out(BaseModel):
@@ -87,3 +87,26 @@ def test_qwen3_is_asked_to_answer_without_a_reasoning_block(monkeypatch):
     assert llm._no_think("hello") == "hello"
     monkeypatch.setenv("OLLAMA_MODEL", "llama3.2")
     assert llm._no_think("hello") == "hello"
+
+
+@pytest.mark.parametrize(("status", "retryable"), [(429, True), (503, True), (401, False), (404, False)])
+def test_llm_error_says_whether_a_retry_can_help(monkeypatch, status, retryable):
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-key-not-real")
+    metrics.reset()
+    monkeypatch.setattr(httpx, "post", lambda *a, **k: FakeResp(status, {"error": "nope"}))
+    with pytest.raises(llm.LLMError, match=f"returned {status}") as err:
+        llm.chat_json(Out, "s", "u", quick=True)
+    assert err.value.retryable is retryable
+    assert metrics.value("llm_call_failed", retryable=retryable) == 1
+
+
+def test_unreachable_model_is_retryable(monkeypatch):
+    monkeypatch.setenv("NVIDIA_API_KEY", "test-key-not-real")
+
+    def timeout(*a, **k):
+        raise httpx.ConnectTimeout("timed out")
+
+    monkeypatch.setattr(httpx, "post", timeout)
+    with pytest.raises(llm.LLMError, match="unreachable") as err:
+        llm.chat_json(Out, "s", "u", quick=True)
+    assert err.value.retryable

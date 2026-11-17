@@ -22,37 +22,44 @@ def _load(name: str) -> list[dict]:
     return yaml.safe_load((EV / name).read_text(encoding="utf-8"))
 
 
+def _evaluate(items: list[dict], default_scope: str, must_block: bool, use_model: bool) -> list[dict]:
+    """Run each prompt through the rules alone and through rules + model; record whether each was right."""
+
+    def correct(res: guard.GuardResult) -> bool:
+        return res.blocked if must_block else res.verdict == "allow"
+
+    rows = []
+    for it in items:
+        scope = it.get("scope", default_scope)
+        r_rules = guard.check_input(it["prompt"], scope=scope, use_model=False)
+        r_full = guard.check_input(it["prompt"], scope=scope, use_model=True) if use_model else r_rules
+        rows.append(
+            {
+                "id": it["id"],
+                "layer": it.get("layer", ""),
+                "prompt": it["prompt"],
+                "rules": correct(r_rules),
+                "full": correct(r_full),
+                "rule": r_full.rule or r_rules.rule or "",
+                "via": r_full.layer or "",
+            }
+        )
+    return rows
+
+
 def run(use_model: bool) -> dict:
-    tricks, benign, held = _load("trick_prompts.yaml"), _load("benign_briefs.yaml"), _load("trick_prompts_heldout.yaml")
-    out = {"model": llm.model_name() if use_model else None, "rows": {}}
-
-    def evaluate(items, scope_key, must_block):
-        rows = []
-        for it in items:
-            scope = it.get("scope", scope_key)
-            r_rules = guard.check_input(it["prompt"], scope=scope, use_model=False)
-            r_full = guard.check_input(it["prompt"], scope=scope, use_model=True) if use_model else r_rules
-            ok_rules = r_rules.blocked if must_block else r_rules.verdict == "allow"
-            ok_full = r_full.blocked if must_block else r_full.verdict == "allow"
-            rows.append(
-                {
-                    "id": it["id"],
-                    "layer": it.get("layer", ""),
-                    "prompt": it["prompt"],
-                    "rules": ok_rules,
-                    "full": ok_full,
-                    "rule": r_full.rule or r_rules.rule or "",
-                    "via": r_full.layer or "",
-                }
-            )
-        return rows
-
+    """Every eval set's rows, the model used (if any) and the run time."""
     t0 = time.time()
-    out["rows"]["must_refuse"] = evaluate(tricks, "ask", True)
-    out["rows"]["must_pass"] = evaluate(benign, "brief", False)
-    out["rows"]["heldout"] = evaluate(held, "ask", True)
-    out["seconds"] = round(time.time() - t0, 1)
-    return out
+    rows = {
+        "must_refuse": _evaluate(_load("trick_prompts.yaml"), "ask", True, use_model),
+        "must_pass": _evaluate(_load("benign_briefs.yaml"), "brief", False, use_model),
+        "heldout": _evaluate(_load("trick_prompts_heldout.yaml"), "ask", True, use_model),
+    }
+    return {
+        "model": llm.model_name() if use_model else None,
+        "rows": rows,
+        "seconds": round(time.time() - t0, 1),
+    }
 
 
 def write(res: dict) -> str:
@@ -90,8 +97,11 @@ def write(res: dict) -> str:
     return text
 
 
+def main() -> None:
+    ap = argparse.ArgumentParser(prog="python -m evals.run_evals")
+    ap.add_argument("--rules", action="store_true", help="rules only (no model needed)")
+    print(write(run(use_model=not ap.parse_args().rules)))
+
+
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--rules", action="store_true")
-    a = ap.parse_args()
-    print(write(run(use_model=not a.rules)))
+    main()

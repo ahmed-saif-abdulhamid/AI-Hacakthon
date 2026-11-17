@@ -12,6 +12,7 @@ Scopes (each check runs only where it belongs, so the system's own evidence is n
 from __future__ import annotations
 
 import re
+import time
 from dataclasses import asdict, dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -19,6 +20,9 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel
 from rapidfuzz import fuzz
+
+from . import llm
+from .log import log_action
 
 ROOT = Path(__file__).resolve().parent.parent
 BRIEF_A_RULES = (
@@ -32,6 +36,16 @@ BRIEF_A_RULES = (
     "bypass",
 )
 UNAVAILABLE = "model_check_unavailable"
+
+# Typo correction: tokens this long are fuzzy-matched against the rule words at this similarity.
+TYPO_MIN_TOKEN_LENGTH = 6
+TYPO_MIN_SIMILARITY = 85
+# The model check sees at most this much text and answers in a few tokens.
+MODEL_CHECK_MAX_CHARS = 2000
+MODEL_CHECK_TOKENS = 40
+# A brief whose model check could not run is checked once more after this pause, then the founder is asked.
+MODEL_CHECK_RETRY_DELAY_SECONDS = 3
+MAX_MATCH_CHARS = 80
 
 # The model check names its rule in free text; map it to the same friendly refusal the rules use.
 MODEL_RULE_KEYS = [
@@ -51,15 +65,21 @@ MODEL_CATEGORY_KEYS = [
     (r"health|medic|supplement|diet|therap|diagnos", "health_advice"),
     (r"legal|law|immigration|tax", "legal_advice"),
 ]
-INTENTS = (
-    "edit_copy",
-    "explain_decision",
-    "rerun_step",
-    "change_threshold",
-    "approve_request",
-    "evaluate_brief",
-    "other",
-)
+# How each excluded category is named in a refusal: singular for a rule hit on one brief, plural for the model's.
+CATEGORY_LABELS = {
+    "arabic": "an excluded category",
+    "physical_goods": "physical goods",
+    "financial_crypto": "a financial or crypto product",
+    "health_advice": "a health advice product",
+    "legal_advice": "a legal advice product",
+}
+MODEL_CATEGORY_LABELS = {
+    "physical_goods": "physical goods",
+    "financial_crypto": "financial or crypto products",
+    "health_advice": "health advice products",
+    "legal_advice": "legal advice products",
+}
+COPY_REQUEST = re.compile(r"\b(say|says|add|put|include|claim|show|display)\b", re.I)
 
 
 @dataclass
@@ -94,10 +114,10 @@ def _fix_typos(text: str) -> str:
     keys = rules()["typo_tokens"]
     out = []
     for tok in re.findall(r"\w+|\W+", text):
-        if len(tok) >= 6 and tok.isalpha():
+        if len(tok) >= TYPO_MIN_TOKEN_LENGTH and tok.isalpha():
             low = tok.lower()
             best = max(keys, key=lambda k: fuzz.ratio(low, k))
-            if low != best and fuzz.ratio(low, best) >= 85:
+            if low != best and fuzz.ratio(low, best) >= TYPO_MIN_SIMILARITY:
                 tok = keys[best]
         out.append(tok)
     return "".join(out)
@@ -117,7 +137,7 @@ def _match_a(text: str, names: tuple[str, ...] | None = None) -> GuardResult | N
         probe = rx(r["exclude"]).sub(" ", t) if r.get("exclude") else t
         m = rx(r["pattern"]).search(probe)
         if m:
-            hits.append((name, r, m.group(0)[:80]))
+            hits.append((name, r, m.group(0)[:MAX_MATCH_CHARS]))
     if not hits:
         return None
     name, r, matched = hits[0]
@@ -130,20 +150,13 @@ def _match_a(text: str, names: tuple[str, ...] | None = None) -> GuardResult | N
 def classify_brief(text: str) -> GuardResult:
     """Rule set B: excluded product categories (allow-list and an ask-the-founder tier)."""
     b = rules()["excluded_categories"]
-    t = _prep(text)
-    probe = rx(b["allow_list"]).sub(" ", t)
+    probe = rx(b["allow_list"]).sub(" ", _prep(text))
     if not rx(b["product_context"]).search(probe) and not re.search(r"[؀-ۿ]", probe):
         return GuardResult("allow")
     for cat, spec in b["categories"].items():
         m = rx(spec["pattern"]).search(probe)
         if m:
-            label = {
-                "arabic": "an excluded category",
-                "physical_goods": "physical goods",
-                "financial_crypto": "a financial or crypto product",
-                "health_advice": "a health advice product",
-                "legal_advice": "a legal advice product",
-            }.get(cat, cat.replace("_", " "))
+            label = CATEGORY_LABELS.get(cat, cat.replace("_", " "))
             return GuardResult(
                 "stop",
                 "rules",
@@ -187,17 +200,14 @@ POLICY_SYSTEM = (
 
 def model_check(text: str, kind: str = "input", run_id: str | None = None, quick: bool = False) -> GuardResult | None:
     """C2: one short yes/no call. Returns None when the model is unavailable (logged by caller)."""
-    from . import llm
-    from .log import log_action
-
     try:
         v, meta = llm.chat_json(
             PolicyVerdict,
             POLICY_SYSTEM,
-            f"KIND: {kind}\nTEXT:\n{text[:2000]}",
+            f"KIND: {kind}\nTEXT:\n{text[:MODEL_CHECK_MAX_CHARS]}",
             run_id=run_id,
             agent="guard",
-            num_predict=40,
+            num_predict=MODEL_CHECK_TOKENS,
             quick=quick,
         )
     except llm.LLMError as e:
@@ -229,15 +239,9 @@ def model_refusal(rule: str, kind: str = "input") -> GuardResult:
     low = (rule or "").lower()
     for pat, cat in MODEL_CATEGORY_KEYS:
         if re.search(pat, low):
-            label = {
-                "physical_goods": "physical goods",
-                "financial_crypto": "financial or crypto products",
-                "health_advice": "health advice products",
-                "legal_advice": "legal advice products",
-            }[cat]
             msg = (
-                f"This looks like {label}, which ProveIt can't help build. It works on digital products such as "
-                "templates, guides and checklists that give no financial, medical or legal advice."
+                f"This looks like {MODEL_CATEGORY_LABELS[cat]}, which ProveIt can't help build. It works on digital "
+                "products such as templates, guides and checklists that give no financial, medical or legal advice."
             )
             return GuardResult("stop" if kind == "brief" else "refuse", "model", f"excluded_{cat}", msg, category=cat)
     for pat, key in MODEL_RULE_KEYS:
@@ -256,38 +260,44 @@ def model_refusal(rule: str, kind: str = "input") -> GuardResult:
 def check_input(text: str, scope: str = "ask", use_model: bool = True, run_id: str | None = None) -> GuardResult:
     """Rule set A (+ B for briefs), then the model check for ask/override scopes."""
     if scope == "brief":
-        hit = _match_a(text, BRIEF_A_RULES)
-        if hit:
-            return hit
-        b = classify_brief(text)
-        if b.verdict != "allow":
-            return b
-        if use_model:
-            res = model_check(text, "brief", run_id)
-            if res is None:  # fail closed: one retry, then ask the founder
-                import time
+        return _check_brief(text, use_model, run_id)
+    return _check_request(text, scope, use_model, run_id)
 
-                time.sleep(3)
-                res = model_check(text, "brief", run_id)
-            if res is None:
-                return GuardResult(
-                    "clarify",
-                    "model",
-                    UNAVAILABLE,
-                    "I couldn't run my safety check just now because the AI service is busy. Please "
-                    "confirm this is a digital product that gives no financial, medical or legal "
-                    "advice, and I'll carry on.",
-                )
-            return res
+
+def _check_brief(text: str, use_model: bool, run_id: str | None) -> GuardResult:
+    """A founder brief: the generation-intent rules, excluded categories, then the model (fail closed)."""
+    hit = _match_a(text, BRIEF_A_RULES)
+    if hit:
+        return hit
+    b = classify_brief(text)
+    if b.verdict != "allow":
+        return b
+    if not use_model:
         return GuardResult("allow")
+    res = model_check(text, "brief", run_id)
+    if res is None:  # fail closed: one retry, then ask the founder
+        time.sleep(MODEL_CHECK_RETRY_DELAY_SECONDS)
+        res = model_check(text, "brief", run_id)
+    if res is None:
+        return GuardResult(
+            "clarify",
+            "model",
+            UNAVAILABLE,
+            "I couldn't run my safety check just now because the AI service is busy. Please "
+            "confirm this is a digital product that gives no financial, medical or legal "
+            "advice, and I'll carry on.",
+        )
+    return res
+
+
+def _check_request(text: str, scope: str, use_model: bool, run_id: str | None) -> GuardResult:
+    """An ask or override message: every A rule, outward-copy rules for copy requests, then the model."""
     hit = _match_a(text)
     if hit:
         return hit
     # A request to put content into copy ("make the hero say loved by 2,000 founders") is
     # checked against rule set C before any copywriter sees it.
-    if route_intent(text) == "edit_copy" or re.search(
-        r"\b(say|says|add|put|include|claim|show|display)\b", text or "", re.I
-    ):
+    if route_intent(text) == "edit_copy" or COPY_REQUEST.search(text or ""):
         out = check_output(text, "outward")
         if out.blocked:
             out.message = (
@@ -296,13 +306,13 @@ def check_input(text: str, scope: str = "ask", use_model: bool = True, run_id: s
             )
             out.rule = "input_" + (out.rule or "")
             return out
-    if use_model:
-        res = model_check(text, scope, run_id)
-        if res is None:
-            # Fail closed for generation: the caller answers only from recorded data (no model writing).
-            return GuardResult("allow", notes=[UNAVAILABLE])
-        return res
-    return GuardResult("allow")
+    if not use_model:
+        return GuardResult("allow")
+    res = model_check(text, scope, run_id)
+    if res is None:
+        # Fail closed for generation: the caller answers only from recorded data (no model writing).
+        return GuardResult("allow", notes=[UNAVAILABLE])
+    return res
 
 
 def check_output(
@@ -311,9 +321,8 @@ def check_output(
     """Rule set C on outward copy. Analysis artifacts and verbatim quotes are exempt by type."""
     if artifact_type in ("analysis", "quote"):
         return GuardResult("allow", notes=[f"{artifact_type}: exempt from rule set C"])
-    c = rules()["output_copy"]
     skip = set(rules()["money_rule_names"]) if artifact_type == "policy" else set()
-    for name, pattern in c.items():
+    for name, pattern in rules()["output_copy"].items():
         if name in skip:
             continue
         m = rx(pattern).search(text or "")
@@ -323,7 +332,7 @@ def check_output(
                 "rules",
                 f"output_{name}",
                 f"Outward copy blocked ({name.replace('_', ' ')}): '{m.group(0)[:60]}'.",
-                matched=m.group(0)[:80],
+                matched=m.group(0)[:MAX_MATCH_CHARS],
             )
     if use_model:
         res = model_check(text, f"outward copy ({artifact_type})", run_id)
@@ -357,6 +366,7 @@ ROUTES = [
 
 
 def route_intent(text: str) -> str:
+    """The first route whose pattern matches (see ROUTES), or "other"."""
     t = (text or "").lower()
     for intent, pattern in ROUTES:
         if re.search(pattern, t):

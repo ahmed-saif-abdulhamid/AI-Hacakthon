@@ -12,7 +12,9 @@ words excluded) and, for pain / wtp / price claims, contains a matching cue.
 
 from __future__ import annotations
 
+import os
 import re
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
@@ -20,11 +22,26 @@ from functools import lru_cache
 import httpx
 from rapidfuzz import fuzz
 
-from sources.base import USER_AGENT, cues, keywords, normalize
+from sources.base import NETWORK_ERRORS, USER_AGENT, cues, keywords, normalize
 
 from .models import Claim, Hit, Variant
 
 ARCHIVE_WEIGHT = {"hn": 0.5, "stackexchange": 0.5, "github": 0.5, "web": 0.0}
+LIVE_WEIGHT = 1.0
+MAX_CLAIM_WORDS = 15
+# Live check: how many pages at once, and how closely a quote must match the page text.
+FETCH_WORKERS = 8
+DEFAULT_VERIFY_CAP = 8
+DEFAULT_FETCH_TIMEOUT_SECONDS = 5.0
+FUZZY_MIN_CHARS = 40  # shorter quotes must appear verbatim
+FUZZY_THRESHOLD = 95
+DAYS_PER_MONTH = 30.44
+# A shown sentence must be prose: this many characters, and mostly letters (not code, tables or diagrams).
+PROSE_MIN_CHARS, PROSE_MAX_CHARS = 15, 500
+PROSE_MIN_LETTER_SHARE = 0.8
+LIST_BULLETS = ("-", "*", "•")
+SE_API = "https://api.stackexchange.com/2.3/questions/"
+
 CUE_KINDS = {"pain": "pain", "wtp": "wtp", "price_point": "price_point"}
 FIRST_PERSON = re.compile(r"\b(i|i'm|i've|i'd|me|my|we|we're|we've|our|us)\b", re.I)
 PITCH = re.compile(
@@ -94,6 +111,9 @@ def is_on_topic(text: str, topic: set[str], need: int = 2) -> bool:
     return len(words & topic) >= need
 
 
+# ---- building claims from sentence IDs ----------------------------------------------
+
+
 def contiguous_run(ids: list[int]) -> list[int]:
     """Longest run of consecutive IDs (a non-contiguous join would not be verbatim)."""
     ids = sorted(set(ids))
@@ -113,55 +133,63 @@ def build_quote(hit: Hit, sentence_ids: list[int]) -> tuple[str | None, list[int
 
 
 def build_claims(run_id: str, hits: dict[str, Hit], items: list[dict], start: int = 1) -> list[Claim]:
+    """Claims from the researcher's (hit ID, sentence IDs) items. Code builds every quote; duplicates
+    (same hit and sentences) are dropped and the rest are numbered C<start>, C<start+1>, ..."""
     claims, seen = [], set()
-    for n, it in enumerate(items, start=start):
+    for it in items:
         hit = hits.get(it.get("hit_id", ""))
         kind = it.get("kind", "pain")
-        claim_text = " ".join(str(it.get("claim_text", "")).split()[:15])
+        claim_text = " ".join(str(it.get("claim_text", "")).split()[:MAX_CLAIM_WORDS])
         if hit is None:
-            claims.append(
-                Claim(
-                    id=f"C{n}",
-                    run_id=run_id,
-                    kind=kind,
-                    claim_text=claim_text,
-                    quote=None,
-                    url=None,
-                    source="assumption",
-                    status="unverified",
-                    weight=0.0,
-                    weight_note="hit id not found; quote could not be built",
-                )
-            )
+            claims.append(_unbuilt_claim(run_id, kind, claim_text))
             continue
         quote, ids = build_quote(hit, list(it.get("sentence_ids", [])))
-        key = (hit.id, tuple(ids))
-        if key in seen:
+        if (hit.id, tuple(ids)) in seen:
             continue
-        seen.add(key)
-        claims.append(
-            Claim(
-                id=f"C{n}",
-                run_id=run_id,
-                kind=kind,
-                claim_text=claim_text,
-                quote=quote,
-                url=hit.url,
-                source=hit.source,
-                hit_id=hit.id,
-                hit_title=hit.title,
-                sentence_ids=ids,
-                published_at=hit.published_at,
-                engagement=hit.engagement,
-                status="archived_match" if quote else "unverified",
-                label="SOURCED" if quote else "ASSUMPTION",
-                weight_note="" if quote else "sentence ids invalid; quote could not be built",
-            )
-        )
+        seen.add((hit.id, tuple(ids)))
+        claims.append(_hit_claim(run_id, kind, claim_text, hit, quote, ids))
     for i, c in enumerate(claims, start=start):
         c.id = f"C{i}"
     return claims
 
+
+def _unbuilt_claim(run_id: str, kind: str, claim_text: str) -> Claim:
+    """A claim whose hit ID does not exist: kept visible as an ASSUMPTION with no weight."""
+    return Claim(
+        id="",
+        run_id=run_id,
+        kind=kind,
+        claim_text=claim_text,
+        quote=None,
+        url=None,
+        source="assumption",
+        status="unverified",
+        weight=0.0,
+        weight_note="hit id not found; quote could not be built",
+    )
+
+
+def _hit_claim(run_id: str, kind: str, claim_text: str, hit: Hit, quote: str | None, ids: list[int]) -> Claim:
+    return Claim(
+        id="",
+        run_id=run_id,
+        kind=kind,
+        claim_text=claim_text,
+        quote=quote,
+        url=hit.url,
+        source=hit.source,
+        hit_id=hit.id,
+        hit_title=hit.title,
+        sentence_ids=ids,
+        published_at=hit.published_at,
+        engagement=hit.engagement,
+        status="archived_match" if quote else "unverified",
+        label="SOURCED" if quote else "ASSUMPTION",
+        weight_note="" if quote else "sentence ids invalid; quote could not be built",
+    )
+
+
+# ---- live re-check -------------------------------------------------------------------
 
 _SE_URL = re.compile(
     r"https?://(?:(?P<sub>[a-z0-9-]+)\.stackexchange\.com|(?P<so>stackoverflow|superuser|serverfault"
@@ -172,17 +200,15 @@ _SE_URL = re.compile(
 def _fetch_stackexchange(m: re.Match, timeout: float) -> str | None:
     """Stack Exchange web pages sit behind a bot challenge, so re-read the same public post (question and
     answers, current version) through the official API instead of the HTML page."""
-    import os
-
-    site = m.group("sub") or m.group("so")
-    params = {"site": site, "filter": "withbody"}
+    params = {"site": m.group("sub") or m.group("so"), "filter": "withbody"}
     if os.environ.get("SE_KEY"):
         params["key"] = os.environ["SE_KEY"]
-    base = "https://api.stackexchange.com/2.3/questions/" + m.group("qid")
+    base = SE_API + m.group("qid")
+    headers = {"User-Agent": USER_AGENT}
     try:
-        q = httpx.get(base, params=params, headers={"User-Agent": USER_AGENT}, timeout=timeout).json()
-        a = httpx.get(base + "/answers", params=params, headers={"User-Agent": USER_AGENT}, timeout=timeout).json()
-    except Exception:  # noqa: BLE001
+        q = httpx.get(base, params=params, headers=headers, timeout=timeout).json()
+        a = httpx.get(base + "/answers", params=params, headers=headers, timeout=timeout).json()
+    except (*NETWORK_ERRORS, ValueError):
         return None
     bodies = [i.get("title", "") + " " + i.get("body", "") for i in q.get("items", [])]
     bodies += [i.get("body", "") for i in a.get("items", [])]
@@ -190,36 +216,42 @@ def _fetch_stackexchange(m: re.Match, timeout: float) -> str | None:
 
 
 def _fetch(url: str, timeout: float) -> str | None:
+    """The normalised text of a public page, or None when it cannot be read."""
     m = _SE_URL.match(url or "")
     if m:
         return _fetch_stackexchange(m, timeout)
     try:
         r = httpx.get(url, headers={"User-Agent": USER_AGENT}, timeout=timeout, follow_redirects=True)
-        return normalize(r.text) if r.status_code == 200 else None
-    except Exception:  # noqa: BLE001
+    except NETWORK_ERRORS:
         return None
+    return normalize(r.text) if r.status_code == httpx.codes.OK else None
 
 
-def quote_on_page(quote: str, page: str, min_chars: int = 40, threshold: int = 95) -> bool:
+def quote_on_page(quote: str, page: str, min_chars: int = FUZZY_MIN_CHARS, threshold: int = FUZZY_THRESHOLD) -> bool:
     if len(quote) < min_chars:
         return quote in page
     return fuzz.partial_ratio(quote, page) >= threshold
 
 
+def _add_note(c: Claim, note: str) -> None:
+    c.weight_note = (c.weight_note + "; " if c.weight_note else "") + note
+
+
 def verify_live(
-    claims: list[Claim], cap: int = 8, timeout: float = 5.0, min_chars: int = 40, threshold: int = 95, fetcher=None
+    claims: list[Claim],
+    cap: int = DEFAULT_VERIFY_CAP,
+    timeout: float = DEFAULT_FETCH_TIMEOUT_SECONDS,
+    min_chars: int = FUZZY_MIN_CHARS,
+    threshold: int = FUZZY_THRESHOLD,
+    fetcher: Callable[[str], str | None] | None = None,
 ) -> dict:
     """Re-fetch up to ``cap`` distinct public URLs in parallel and set each claim's status."""
     fetch = fetcher or (lambda u: _fetch(u, timeout))
     # Prioritise claims that could count (on-topic and cue-confirmed come first).
     candidates = [c for c in claims if c.quote and c.url]
     candidates.sort(key=lambda c: (-(c.weight_note == "eligible"), c.id))
-    urls = []
-    for c in candidates:
-        if c.url not in urls:
-            urls.append(c.url)
-    urls = urls[:cap]
-    with ThreadPoolExecutor(max_workers=8) as ex:
+    urls = list(dict.fromkeys(c.url for c in candidates))[:cap]
+    with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as ex:
         pages = dict(zip(urls, ex.map(fetch, urls), strict=False))
     now = datetime.now(UTC)
     stats = {"checked_urls": len(urls), "reachable": sum(1 for p in pages.values() if p), "verified_live": 0}
@@ -228,19 +260,57 @@ def verify_live(
         page = pages.get(c.url)
         if c.url not in pages:
             c.status = "archived_match"
-            c.weight_note = (c.weight_note + "; " if c.weight_note else "") + "not live-checked (verify cap)"
+            _add_note(c, "not live-checked (verify cap)")
         elif page and quote_on_page(c.quote, page, min_chars, threshold):
             c.status = "verified_live"
             stats["verified_live"] += 1
         else:
             c.status = "archived_match"
-            note = "page unreachable" if page is None else "not found on live page"
-            c.weight_note = (c.weight_note + "; " if c.weight_note else "") + note + "; archived match"
+            _add_note(c, ("page unreachable" if page is None else "not found on live page") + "; archived match")
     return stats
 
 
+# ---- relevance and weight --------------------------------------------------------------
+
+
+def _base_weight(c: Claim) -> float:
+    if c.status == "verified_live":
+        return LIVE_WEIGHT
+    if c.status == "archived_match":
+        return ARCHIVE_WEIGHT.get(c.source, 0.0)
+    return 0.0
+
+
+def _weigh(c: Claim) -> tuple[float, str | None]:
+    """(weight, reason it is zero) for a claim with a quote whose ``on_topic`` is already set."""
+    if not c.on_topic:
+        return 0.0, "off topic for this variant (code keyword check)"
+    if c.kind in ("pain", "wtp"):
+        # Someone selling a tool describes "the problem" to pitch it; a feature bullet is not a person's
+        # experience, and a question is not someone's own complaint.
+        if PITCH.search(c.quote) or c.quote.lstrip().startswith(LIST_BULLETS):
+            return 0.0, "product pitch or feature list, not a complaint"
+        if c.quote.rstrip().endswith("?"):
+            return 0.0, "a question, not someone's own experience"
+    if c.kind in CUE_KINDS:
+        c.cue_matched = match_cue(c.kind, c.quote)
+        if not c.cue_matched:
+            return 0.0, "label not confirmed by code"
+        if c.kind == "pain" and WEAK_PAIN.fullmatch(c.cue_matched.strip().lower()) and not FIRST_PERSON.search(c.quote):
+            # Words like "manual", "problem" or "overdue" describe a topic; they count as a complaint only
+            # when the person is talking about their own experience.
+            return 0.0, "general wording, not someone's own complaint"
+        return _base_weight(c), None
+    if c.kind == "competitor":
+        return _base_weight(c), None
+    return 0.0, "context only; never counted by a gate"
+
+
 def apply_relevance(claims: list[Claim], variant: Variant, max_age_months: int = 24) -> None:
-    """Code relevance check: sets on_topic, cue_matched, weight and label. Pure."""
+    """Code relevance check: sets on_topic, cue_matched, weight and label. Pure.
+
+    ``max_age_months`` is not used here: recency is counted by the gate (``gates.compute_metrics``).
+    """
     topic = topic_keywords(variant)
     for c in claims:
         if not c.quote:
@@ -248,47 +318,13 @@ def apply_relevance(claims: list[Claim], variant: Variant, max_age_months: int =
             continue
         # On topic: the quote read together with its thread title (a single sentence rarely repeats
         # the segment's words). The pain / payment cue must still be in the quote itself.
-        c.keyword_overlap = overlap(c.quote + " " + c.hit_title, topic)
-        c.on_topic = is_on_topic(c.quote + " " + c.hit_title, topic)
-        base = (
-            1.0
-            if c.status == "verified_live"
-            else ARCHIVE_WEIGHT.get(c.source, 0.0)
-            if c.status == "archived_match"
-            else 0.0
-        )
+        context = c.quote + " " + c.hit_title
+        c.keyword_overlap = overlap(context, topic)
+        c.on_topic = is_on_topic(context, topic)
         c.label = "SOURCED"
-        notes = [n for n in c.weight_note.split("; ") if n and n not in ("eligible",)]
-        if not c.on_topic:
-            c.weight = 0.0
-            notes.append("off topic for this variant (code keyword check)")
-        elif c.kind in ("pain", "wtp") and (PITCH.search(c.quote) or c.quote.lstrip().startswith(("-", "*", "•"))):
-            # Someone selling a tool describes "the problem" to pitch it; a feature bullet is not a person's
-            # experience. Neither is a complaint from a would-be customer.
-            c.weight = 0.0
-            notes.append("product pitch or feature list, not a complaint")
-        elif c.kind in ("pain", "wtp") and c.quote.rstrip().endswith("?"):
-            c.weight = 0.0
-            notes.append("a question, not someone's own experience")
-        elif c.kind in CUE_KINDS:
-            cue = match_cue(c.kind, c.quote)
-            c.cue_matched = cue
-            if not cue:
-                c.weight = 0.0
-                notes.append("label not confirmed by code")
-            elif c.kind == "pain" and WEAK_PAIN.fullmatch(cue.strip().lower()) and not FIRST_PERSON.search(c.quote):
-                # Words like "manual", "problem" or "overdue" describe a topic; they count as a complaint only
-                # when the person is talking about their own experience.
-                c.weight = 0.0
-                notes.append("general wording, not someone's own complaint")
-            else:
-                c.weight = base
-        elif c.kind == "competitor":
-            c.weight = base
-        else:
-            c.weight = 0.0
-            notes.append("context only; never counted by a gate")
-        c.weight_note = "; ".join(notes)
+        c.weight, reason = _weigh(c)
+        notes = [n for n in c.weight_note.split("; ") if n and n != "eligible"]
+        c.weight_note = "; ".join(notes + ([reason] if reason else []))
 
 
 def mark_eligible(claims: list[Claim], variant: Variant) -> None:
@@ -307,7 +343,7 @@ def is_recent(c: Claim, max_age_months: int) -> bool:
     if c.published_at is None:
         return False
     pub = c.published_at if c.published_at.tzinfo else c.published_at.replace(tzinfo=UTC)
-    return pub >= datetime.now(UTC) - timedelta(days=30.44 * max_age_months)
+    return pub >= datetime.now(UTC) - timedelta(days=DAYS_PER_MONTH * max_age_months)
 
 
 def missed_qualified(
@@ -316,38 +352,37 @@ def missed_qualified(
     """Shown sentences that pass code's own on-topic + pain/wtp cue check but were not selected."""
     topic = topic_keywords(variant)
     selected = {(c.hit_id, i) for c in claims for i in c.sentence_ids}
-    missed = []
-    for hid, ids in shown_ids.items():
-        h = hits[hid]
-        for i in ids:
-            if (hid, i) in selected:
-                continue
-            s = h.sentences[i - 1]
-            # Proxy for "evidence the model should have picked": a person's own experience (first person,
-            # declarative, no links or hashtags: product copy talks to "you"), on topic, with a pain cue
-            # or a strong payment cue.
-            if s.rstrip().endswith("?") or s.lstrip().startswith(("-", "*", "•")) or URLISH.search(s):
-                continue
-            if not FIRST_PERSON.search(s):
-                continue
-            if is_on_topic(s, topic) and (match_cue("pain", s) or STRONG_WTP.search(s)):
-                missed.append(f"{hid}.S{i}")
-    return missed
+    return [
+        f"{hid}.S{i}"
+        for hid, ids in shown_ids.items()
+        for i in ids
+        if (hid, i) not in selected and _qualifies(hits[hid].sentences[i - 1], topic)
+    ]
+
+
+def _qualifies(s: str, topic: set[str]) -> bool:
+    """Proxy for "evidence the model should have picked": a person's own experience (first person,
+    declarative, no links or hashtags: product copy talks to "you"), on topic, with a pain cue or a
+    strong payment cue."""
+    if s.rstrip().endswith("?") or s.lstrip().startswith(LIST_BULLETS) or URLISH.search(s):
+        return False
+    if not FIRST_PERSON.search(s):
+        return False
+    return is_on_topic(s, topic) and bool(match_cue("pain", s) or STRONG_WTP.search(s))
 
 
 def _prose(s: str) -> bool:
     """Skip code, tables and ASCII diagrams: keep sentences that are mostly letters."""
-    if not 15 <= len(s) <= 500:
+    if not PROSE_MIN_CHARS <= len(s) <= PROSE_MAX_CHARS:
         return False
     letters = sum(ch.isalpha() or ch.isspace() for ch in s)
-    return letters / len(s) >= 0.8
+    return letters / len(s) >= PROSE_MIN_LETTER_SHARE
 
 
 def select_sentences(hit: Hit, topic: set[str], max_n: int = 6) -> list[int]:
     """Pick up to ``max_n`` sentence IDs to show the model: the most on-topic sentences,
     kept in document order, so long records are not cut off after sentence 6."""
-    n = len(hit.sentences)
-    usable = [i for i in range(1, n + 1) if _prose(hit.sentences[i - 1])]
+    usable = [i for i in range(1, len(hit.sentences) + 1) if _prose(hit.sentences[i - 1])]
     if len(usable) <= max_n:
         return usable
     ranked = sorted(

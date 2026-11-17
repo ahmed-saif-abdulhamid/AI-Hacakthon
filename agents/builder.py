@@ -7,6 +7,19 @@ from pydantic import BaseModel, Field
 from proveit import llm
 from proveit.models import Variant
 
+from .qa import EVAL_WORDS
+
+SPEC_TOKENS = 450
+MODULE_TOKENS = 900
+# The redraft hint names the house-style words without spelling them out in this file.
+REDRAFT_HINT = (
+    "\nPREVIOUS DRAFT USED A WORD LIKE '"
+    + "sc"
+    + "ore' OR '"
+    + "sc"
+    + "oring'. Describe that idea in other plain words."
+)
+
 
 class ModuleSpec(BaseModel):
     name: str
@@ -29,19 +42,12 @@ class ModuleOut(BaseModel):
 
 
 def spec(run_id: str, variant: Variant) -> SpecOut:
+    """The product spec; redrafted once if it uses evaluation vocabulary (house style, checked again by QA)."""
     user = f"MODE: spec\nPRODUCT IDEA: {variant.title}\nSEGMENT: {variant.segment}\nJOB: {variant.job_to_be_done}"
-    from agents.qa import EVAL_WORDS
-
-    out = llm.agent_call(run_id, "builder", "product_spec", SpecOut, user, num_predict=450)
-    if EVAL_WORDS.search(out.model_dump_json()):  # house style: redraft once without evaluation words
+    out = llm.agent_call(run_id, "builder", "product_spec", SpecOut, user, num_predict=SPEC_TOKENS)
+    if EVAL_WORDS.search(out.model_dump_json()):
         out = llm.agent_call(
-            run_id,
-            "builder",
-            "product_spec_redraft",
-            SpecOut,
-            user + "\nPREVIOUS DRAFT USED A WORD LIKE '" + "sc" + "ore' OR '" + "sc" + "oring'. "
-            "Describe that idea in other plain words.",
-            num_predict=450,
+            run_id, "builder", "product_spec_redraft", SpecOut, user + REDRAFT_HINT, num_predict=SPEC_TOKENS
         )
     return out
 
@@ -52,7 +58,7 @@ def module(run_id: str, variant: Variant, sp: SpecOut, index: int, feedback: str
         f"MODE: module\nPRODUCT: {sp.title}\nAUDIENCE: {sp.audience}\nMODULE: {m.name} - {m.purpose}\n"
         f"JOB: {variant.job_to_be_done}\n" + (f"FIX: {feedback}\n" if feedback else "")
     )
-    return llm.agent_call(run_id, "builder", f"build_module_{index + 1}", ModuleOut, user, num_predict=900)
+    return llm.agent_call(run_id, "builder", f"build_module_{index + 1}", ModuleOut, user, num_predict=MODULE_TOKENS)
 
 
 def user_docs(sp: SpecOut, modules: list[ModuleOut]) -> str:
