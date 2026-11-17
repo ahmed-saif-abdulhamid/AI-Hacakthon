@@ -5,6 +5,7 @@ runs/promoted/. On start-up the console loads them when they are missing, so a f
 ``docker compose up``, even without an NVIDIA key, opens real recorded runs instead of
 an empty screen. Sign-up emails, delivery tokens and console chat are never exported.
 """
+
 from __future__ import annotations
 
 import base64
@@ -53,7 +54,7 @@ def export(run_ids: list[str]) -> dict:
             r.pop("seq", None)
             if table == "runs":
                 r["state_json"] = _trim_state(r["state_json"])
-            if table == "blobs" and isinstance(r.get("payload"), (bytes, bytearray)):
+            if table == "blobs" and isinstance(r.get("payload"), bytes | bytearray):
                 r["payload"] = {"b64": base64.b64encode(r["payload"]).decode()}
         data["tables"][table] = rows
     PROMOTED.mkdir(parents=True, exist_ok=True)
@@ -63,7 +64,7 @@ def export(run_ids: list[str]) -> dict:
         if dst.exists():
             shutil.rmtree(dst)
         shutil.copytree(runs_dir() / rid, dst)
-    for old in PROMOTED.iterdir():                     # drop folders of runs no longer promoted
+    for old in PROMOTED.iterdir():  # drop folders of runs no longer promoted
         if old.is_dir() and old.name.startswith("r") and old.name not in run_ids:
             shutil.rmtree(old)
     return {t: len(v) for t, v in data["tables"].items()}
@@ -92,6 +93,7 @@ def load() -> list[str]:
                 if table == "blobs" and isinstance(r.get("payload"), dict):
                     r = {**r, "payload": base64.b64decode(r["payload"]["b64"])}
                 cols = ",".join(r)
-                c.execute(f"INSERT OR IGNORE INTO {table} ({cols}) VALUES ({','.join('?' * len(r))})",
-                          tuple(r.values()))
+                c.execute(
+                    f"INSERT OR IGNORE INTO {table} ({cols}) VALUES ({','.join('?' * len(r))})", tuple(r.values())
+                )
     return loaded

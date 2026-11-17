@@ -1,5 +1,6 @@
 """Strategist: Lean Canvas + riskiest assumption + experiment, and landing-page copy fields.
 Every canvas cell is a list of Statements; render.py cites or labels each one."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
@@ -9,8 +10,17 @@ from proveit.models import Claim, FounderBrief, Statement, Variant
 
 from .debate import claims_table
 
-CELLS = ("problem", "customer_segments", "unique_value_proposition", "solution", "channels",
-         "revenue_streams", "cost_structure", "key_metrics", "unfair_advantage")
+CELLS = (
+    "problem",
+    "customer_segments",
+    "unique_value_proposition",
+    "solution",
+    "channels",
+    "revenue_streams",
+    "cost_structure",
+    "key_metrics",
+    "unfair_advantage",
+)
 
 
 class CanvasOut(BaseModel):
@@ -41,13 +51,23 @@ class LandingOut(BaseModel):
 
 def canvas(run_id: str, brief: FounderBrief, variant: Variant, claims: list[Claim]) -> CanvasOut:
     counted = [c for c in claims if c.weight > 0]
-    user = (f"MODE: canvas\nVARIANT: {variant.title}\nSEGMENT: {variant.segment}\nJOB: {variant.job_to_be_done}\n"
-            f"FOUNDER SKILLS: {brief.skills}\nBUDGET: {brief.budget}\nCLAIMS:\n{claims_table(counted, 12)}")
-    return llm.agent_call(run_id, "strategist", "lean_canvas", CanvasOut, user, num_predict=1100,
-                          sources=sorted({c.url for c in counted if c.url}))
+    user = (
+        f"MODE: canvas\nVARIANT: {variant.title}\nSEGMENT: {variant.segment}\nJOB: {variant.job_to_be_done}\n"
+        f"FOUNDER SKILLS: {brief.skills}\nBUDGET: {brief.budget}\nCLAIMS:\n{claims_table(counted, 12)}"
+    )
+    return llm.agent_call(
+        run_id,
+        "strategist",
+        "lean_canvas",
+        CanvasOut,
+        user,
+        num_predict=1100,
+        sources=sorted({c.url for c in counted if c.url}),
+    )
 
 
 def landing(run_id: str, variant: Variant, feedback: str = "") -> LandingOut:
-    user = (f"MODE: landing\nPRODUCT: {variant.title}\nFOR: {variant.segment}\nJOB: {variant.job_to_be_done}\n"
-            + (f"PREVIOUS DRAFT WAS BLOCKED: {feedback}. Remove that content.\n" if feedback else ""))
+    user = f"MODE: landing\nPRODUCT: {variant.title}\nFOR: {variant.segment}\nJOB: {variant.job_to_be_done}\n" + (
+        f"PREVIOUS DRAFT WAS BLOCKED: {feedback}. Remove that content.\n" if feedback else ""
+    )
     return llm.agent_call(run_id, "strategist", "landing_copy", LandingOut, user, num_predict=450)

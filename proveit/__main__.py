@@ -1,14 +1,15 @@
 """CLI: python -m proveit <command>
 
-  run <brief.md> [--mode live|full] [--label weak|strong]   start a run and advance it
-  continue <run_id>                                          advance a run after a founder step
-  status <run_id>                                            stage, gates and pending approvals
-  runs                                                       list runs
-  approvals list [--run ID] | approve <id> | reject <id>     founder approvals (hash-bound)
-  decide <run_id> <accept|stop|override|pivot|repeat|clarify_ok|gate4_approve|gate4_reject> [--reason TEXT]
-  ask "<text>" [--run ID]                                    Ask the assistant (guard first)
-  promote --weak <id> --strong <id> [--root]                 the only writer of outputs/
+run <brief.md> [--mode live|full] [--label weak|strong]   start a run and advance it
+continue <run_id>                                          advance a run after a founder step
+status <run_id>                                            stage, gates and pending approvals
+runs                                                       list runs
+approvals list [--run ID] | approve <id> | reject <id>     founder approvals (hash-bound)
+decide <run_id> <accept|stop|override|pivot|repeat|clarify_ok|gate4_approve|gate4_reject> [--reason TEXT]
+ask "<text>" [--run ID]                                    Ask the assistant (guard first)
+promote --weak <id> --strong <id> [--root]                 the only writer of outputs/
 """
+
 from __future__ import annotations
 
 import argparse
@@ -22,9 +23,17 @@ from . import approval, orchestrator, startup
 def _status(run_id: str) -> dict:
     run = orchestrator.load(run_id)
     pend = [a.model_dump(mode="json") for a in approval.list_approvals(run_id, "pending")]
-    return {"run_id": run.id, "label": run.label, "mode": run.mode, "stage": run.stage,
-            "gate1": (run.state.get("gate1") or {}).get("outcome"), "gate2": (run.state.get("gate2") or {}).get("outcome"),
-            "pending_approvals": pend, "usage": run.state.get("usage"), "error": run.state.get("error")}
+    return {
+        "run_id": run.id,
+        "label": run.label,
+        "mode": run.mode,
+        "stage": run.stage,
+        "gate1": (run.state.get("gate1") or {}).get("outcome"),
+        "gate2": (run.state.get("gate2") or {}).get("outcome"),
+        "pending_approvals": pend,
+        "usage": run.state.get("usage"),
+        "error": run.state.get("error"),
+    }
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -87,9 +96,11 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(orchestrator.founder_decide(args.run_id, args.decision, args.reason), indent=2))
     elif args.cmd == "ask":
         from . import ask
+
         print(json.dumps(ask.handle(args.text, args.run), indent=2, ensure_ascii=False))
     elif args.cmd == "promote":
         from .promote import promote
+
         print(json.dumps(promote(args.weak, args.strong, to_root=args.root), indent=2))
     return 0
 

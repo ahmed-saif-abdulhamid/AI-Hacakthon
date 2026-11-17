@@ -1,4 +1,5 @@
 """The optional NVIDIA provider: request shape, JSON validation and the missing-key error (no network)."""
+
 from __future__ import annotations
 
 import json
@@ -29,8 +30,11 @@ def test_nvidia_provider_sends_schema_and_parses_json(monkeypatch):
     def fake_post(url, json=None, headers=None, timeout=None):
         seen.update(url=url, body=json, headers=headers)
         content = '<think>plan</think>```json\n{"answer": "ok"}\n```'
-        return FakeResp(200, {"choices": [{"message": {"content": content}}],
-                              "usage": {"prompt_tokens": 10, "completion_tokens": 3}})
+        return FakeResp(
+            200,
+            {"choices": [{"message": {"content": content}}], "usage": {"prompt_tokens": 10, "completion_tokens": 3}},
+        )
+
     monkeypatch.setattr(httpx, "post", fake_post)
     out, meta = llm.chat_json(Out, "system", "user")
     assert out.answer == "ok" and meta["tokens_in"] == 10
@@ -58,6 +62,7 @@ def test_option_rejected_with_400_is_dropped_and_retried(monkeypatch):
         if "chat_template_kwargs" in json:
             return FakeResp(400, {"error": "unknown field"})
         return FakeResp(200, {"choices": [{"message": {"content": '{"answer": "fine"}'}}], "usage": {}})
+
     monkeypatch.setattr(httpx, "post", fake_post)
     out, _ = llm.chat_json(Out, "s", "u")
     assert out.answer == "fine" and len(calls) == 2 and "response_format" in calls[1]

@@ -1,5 +1,6 @@
 """Intake agent: founder brief -> FounderBrief. Labelled briefs are parsed by code; free
 text goes to the model. Missing fields become "ASSUMPTION: unspecified"."""
+
 from __future__ import annotations
 
 import re
@@ -50,8 +51,9 @@ def parse_brief(text: str) -> dict:
 def detect_language(brief: dict, text: str) -> str:
     if re.search(r"[؀-ۿ]", text or ""):
         return "ar"
-    if re.search(ARABIC_MARKETS, brief.get("target_market", "") or "", re.I) and \
-            re.search(r"\barab", (brief.get("target_market", "") + " " + text).lower()):
+    if re.search(ARABIC_MARKETS, brief.get("target_market", "") or "", re.I) and re.search(
+        r"\barab", (brief.get("target_market", "") + " " + text).lower()
+    ):
         return "ar"
     return "en"
 
@@ -64,8 +66,14 @@ def run(run_id: str, text: str, fields: dict | None = None) -> FounderBrief:
     if parsed.get("idea"):
         brief = {k: parsed.get(k) or UNSPECIFIED for k in LABELS}
         brief["language"] = detect_language(brief, text)
-        log_action(run_id, "intake", "parse_brief", model=None, cost=0,
-                   fields_unspecified=[k for k, v in brief.items() if v == UNSPECIFIED])
+        log_action(
+            run_id,
+            "intake",
+            "parse_brief",
+            model=None,
+            cost=0,
+            fields_unspecified=[k for k, v in brief.items() if v == UNSPECIFIED],
+        )
         return FounderBrief(**brief)
     out = llm.agent_call(run_id, "intake", "structure_brief", IntakeOut, f"BRIEF:\n{text[:3000]}", num_predict=300)
     data = out.model_dump()

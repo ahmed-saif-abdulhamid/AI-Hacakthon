@@ -1,4 +1,5 @@
 """MOCKED sale to cash: purchase, delivery, idempotent webhook, gated refund, reconciliation."""
+
 from __future__ import annotations
 
 import pytest
@@ -44,6 +45,7 @@ def test_refund_with_approval_revokes_download(paid_order):
     from fastapi.testclient import TestClient
 
     from app.api import app
+
     oid, _, first = paid_order
     ap = refunds.request("r1", oid)
     approval.auto_approve(ap.id)
@@ -62,6 +64,7 @@ def test_reconciliation_balances(paid_order):
 
 def test_no_card_fields_anywhere():
     from pathlib import Path
+
     root = Path(__file__).resolve().parent.parent
     for f in list((root / "templates").glob("*.j2")) + [root / "app" / "ui.py"]:
         text = f.read_text(encoding="utf-8").lower()
@@ -70,18 +73,18 @@ def test_no_card_fields_anywhere():
 
 def test_forged_or_altered_event_is_refused(paid_order):
     oid, event, _ = paid_order
-    forged = dict(event, event_id="evt_forged", amount=0)          # signature no longer matches
+    forged = dict(event, event_id="evt_forged", amount=0)  # signature no longer matches
     with pytest.raises(webhooks.BadEvent) as e:
         webhooks.handle(forged)
     assert e.value.status == 401
     with pytest.raises(webhooks.BadEvent):
-        webhooks.handle({"event_id": "x"})                          # malformed: 400, never a 500
+        webhooks.handle({"event_id": "x"})  # malformed: 400, never a 500
 
 
 def test_a_paid_order_is_never_paid_or_delivered_twice(paid_order):
     oid, event, _ = paid_order
     second = dict(event, event_id="evt_second_payment")
-    second["signature"] = webhooks.sign(second)                    # validly signed, but the order is already paid
+    second["signature"] = webhooks.sign(second)  # validly signed, but the order is already paid
     res = webhooks.handle(second)
     assert res["delivered"] is False and delivery.delivery_count(oid) == 1
 
@@ -90,19 +93,23 @@ def test_webhook_endpoint_returns_4xx_not_500():
     from fastapi.testclient import TestClient
 
     from app.api import app
+
     c = TestClient(app)
     assert c.post("/webhooks/mock", json={}).status_code == 400
-    assert c.post("/webhooks/mock", content=b"not json", headers={"content-type": "application/json"}).status_code == 400
+    assert (
+        c.post("/webhooks/mock", content=b"not json", headers={"content-type": "application/json"}).status_code == 400
+    )
 
 
 def test_customer_refund_request_runs_once_approved(paid_order):
     from proveit import orchestrator
+
     oid, _, first = paid_order
     ap = refunds.request("r1", oid)
-    assert refunds.request("r1", oid).id == ap.id                 # asking twice does not open a second approval
+    assert refunds.request("r1", oid).id == ap.id  # asking twice does not open a second approval
     with pytest.raises(approval.ApprovalRequired):
         refunds.refund(oid, None)
     approval.auto_approve(ap.id)
     orchestrator.on_approval_decided(ap.id)
     with pytest.raises(delivery.AccessDenied):
-        delivery.check(first["token"])                            # access revoked: the download now returns 403
+        delivery.check(first["token"])  # access revoked: the download now returns 403

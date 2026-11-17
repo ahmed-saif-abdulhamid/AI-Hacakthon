@@ -1,8 +1,7 @@
 """Automatic delivery: a paid order gets a signed, 24-hour download token
 (itsdangerous URLSafeTimedSerializer). A refund revokes it; the download then returns 403."""
-from __future__ import annotations
 
-import os
+from __future__ import annotations
 
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
@@ -18,13 +17,16 @@ class AccessDenied(Exception):
 
 def _serializer() -> URLSafeTimedSerializer:
     from proveit.secrets_store import secret_key
+
     return URLSafeTimedSerializer(secret_key(), salt="proveit-download")
 
 
 def grant(order_id: str) -> str:
     token = _serializer().dumps({"order_id": order_id})
-    db.execute("INSERT OR REPLACE INTO deliveries (order_id, token, issued_at, revoked) VALUES (?,?,?,0)",
-               (order_id, token, utcnow()))
+    db.execute(
+        "INSERT OR REPLACE INTO deliveries (order_id, token, issued_at, revoked) VALUES (?,?,?,0)",
+        (order_id, token, utcnow()),
+    )
     order = db.query_one("SELECT run_id FROM orders WHERE id=?", (order_id,))
     log_action(order["run_id"] if order else None, "delivery", "grant_download", order_id=order_id, test=True)
     return token

@@ -9,11 +9,12 @@ A claim keeps its weight only if code confirms it is on topic (at least two spec
 keywords shared with the variant's segment + job, at least one about the job, generic business
 words excluded) and, for pain / wtp / price claims, contains a matching cue.
 """
+
 from __future__ import annotations
 
 import re
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 
 import httpx
@@ -26,9 +27,12 @@ from .models import Claim, Hit, Variant
 ARCHIVE_WEIGHT = {"hn": 0.5, "stackexchange": 0.5, "github": 0.5, "web": 0.0}
 CUE_KINDS = {"pain": "pain", "wtp": "wtp", "price_point": "price_point"}
 FIRST_PERSON = re.compile(r"\b(i|i'm|i've|i'd|me|my|we|we're|we've|our|us)\b", re.I)
-PITCH = re.compile(r"\b(i|we)('ve| have)? (built|made|created|launched|am building|'m building|are building|'re building)\b"
-                   r"|\bthe idea came from\b|\bi hear from\b|\b(my|our) (app|tool|product|startup|saas)\b"
-                   r"|\b(sign up|try it|check it out|join (the|our) waitlist|show hn|launch hn)\b", re.I)
+PITCH = re.compile(
+    r"\b(i|we)('ve| have)? (built|made|created|launched|am building|'m building|are building|'re building)\b"
+    r"|\bthe idea came from\b|\bi hear from\b|\b(my|our) (app|tool|product|startup|saas)\b"
+    r"|\b(sign up|try it|check it out|join (the|our) waitlist|show hn|launch hn)\b",
+    re.I,
+)
 WEAK_PAIN = re.compile(r"manual(ly)?|problems?|overdue|unpaid|wish|pain|expensive|costly|difficult")
 URLISH = re.compile(r"https?://|www\.|#\w")
 STRONG_WTP = re.compile(r"\b(paid|would pay|pay for|paying for|bought)\b|[$€£]\s?\d", re.I)
@@ -54,11 +58,13 @@ GENERIC = keywords(
     "app apps software digital template templates kit pack guide guides checklist checklists work working "
     "time day week month year help manage management process system service services product products "
     "free first need needs want get make use using local independent professional professionals "
-    "freelance freelancer freelancers us uk usa world")
+    "freelance freelancer freelancers us uk usa world"
+)
 
 
 class Topic(set):
     """The variant's keywords, split into who (segment) and what (job to be done)."""
+
     def __init__(self, segment: set[str], job: set[str]):
         super().__init__(segment | job)
         self.segment, self.job = segment, job
@@ -67,7 +73,7 @@ class Topic(set):
 def topic_keywords(variant: Variant) -> Topic:
     seg = keywords(variant.segment) - GENERIC
     job = keywords(variant.job_to_be_done) - GENERIC
-    if not seg:                                 # a segment made only of generic words: fall back to its words
+    if not seg:  # a segment made only of generic words: fall back to its words
         seg = keywords(variant.segment)
     if not job:
         job = keywords(variant.job_to_be_done)
@@ -113,34 +119,61 @@ def build_claims(run_id: str, hits: dict[str, Hit], items: list[dict], start: in
         kind = it.get("kind", "pain")
         claim_text = " ".join(str(it.get("claim_text", "")).split()[:15])
         if hit is None:
-            claims.append(Claim(id=f"C{n}", run_id=run_id, kind=kind, claim_text=claim_text, quote=None,
-                                url=None, source="assumption", status="unverified", weight=0.0,
-                                weight_note="hit id not found; quote could not be built"))
+            claims.append(
+                Claim(
+                    id=f"C{n}",
+                    run_id=run_id,
+                    kind=kind,
+                    claim_text=claim_text,
+                    quote=None,
+                    url=None,
+                    source="assumption",
+                    status="unverified",
+                    weight=0.0,
+                    weight_note="hit id not found; quote could not be built",
+                )
+            )
             continue
         quote, ids = build_quote(hit, list(it.get("sentence_ids", [])))
         key = (hit.id, tuple(ids))
         if key in seen:
             continue
         seen.add(key)
-        claims.append(Claim(
-            id=f"C{n}", run_id=run_id, kind=kind, claim_text=claim_text, quote=quote, url=hit.url,
-            source=hit.source, hit_id=hit.id, hit_title=hit.title, sentence_ids=ids, published_at=hit.published_at,
-            engagement=hit.engagement, status="archived_match" if quote else "unverified",
-            label="SOURCED" if quote else "ASSUMPTION",
-            weight_note="" if quote else "sentence ids invalid; quote could not be built"))
+        claims.append(
+            Claim(
+                id=f"C{n}",
+                run_id=run_id,
+                kind=kind,
+                claim_text=claim_text,
+                quote=quote,
+                url=hit.url,
+                source=hit.source,
+                hit_id=hit.id,
+                hit_title=hit.title,
+                sentence_ids=ids,
+                published_at=hit.published_at,
+                engagement=hit.engagement,
+                status="archived_match" if quote else "unverified",
+                label="SOURCED" if quote else "ASSUMPTION",
+                weight_note="" if quote else "sentence ids invalid; quote could not be built",
+            )
+        )
     for i, c in enumerate(claims, start=start):
         c.id = f"C{i}"
     return claims
 
 
-_SE_URL = re.compile(r"https?://(?:(?P<sub>[a-z0-9-]+)\.stackexchange\.com|(?P<so>stackoverflow|superuser|serverfault"
-                     r"|askubuntu)\.com)/questions/(?P<qid>\d+)")
+_SE_URL = re.compile(
+    r"https?://(?:(?P<sub>[a-z0-9-]+)\.stackexchange\.com|(?P<so>stackoverflow|superuser|serverfault"
+    r"|askubuntu)\.com)/questions/(?P<qid>\d+)"
+)
 
 
 def _fetch_stackexchange(m: re.Match, timeout: float) -> str | None:
     """Stack Exchange web pages sit behind a bot challenge, so re-read the same public post (question and
     answers, current version) through the official API instead of the HTML page."""
     import os
+
     site = m.group("sub") or m.group("so")
     params = {"site": site, "filter": "withbody"}
     if os.environ.get("SE_KEY"):
@@ -173,8 +206,9 @@ def quote_on_page(quote: str, page: str, min_chars: int = 40, threshold: int = 9
     return fuzz.partial_ratio(quote, page) >= threshold
 
 
-def verify_live(claims: list[Claim], cap: int = 8, timeout: float = 5.0, min_chars: int = 40,
-                threshold: int = 95, fetcher=None) -> dict:
+def verify_live(
+    claims: list[Claim], cap: int = 8, timeout: float = 5.0, min_chars: int = 40, threshold: int = 95, fetcher=None
+) -> dict:
     """Re-fetch up to ``cap`` distinct public URLs in parallel and set each claim's status."""
     fetch = fetcher or (lambda u: _fetch(u, timeout))
     # Prioritise claims that could count (on-topic and cue-confirmed come first).
@@ -186,8 +220,8 @@ def verify_live(claims: list[Claim], cap: int = 8, timeout: float = 5.0, min_cha
             urls.append(c.url)
     urls = urls[:cap]
     with ThreadPoolExecutor(max_workers=8) as ex:
-        pages = dict(zip(urls, ex.map(fetch, urls)))
-    now = datetime.now(timezone.utc)
+        pages = dict(zip(urls, ex.map(fetch, urls), strict=False))
+    now = datetime.now(UTC)
     stats = {"checked_urls": len(urls), "reachable": sum(1 for p in pages.values() if p), "verified_live": 0}
     for c in candidates:
         c.fetched_at = now
@@ -216,8 +250,13 @@ def apply_relevance(claims: list[Claim], variant: Variant, max_age_months: int =
         # the segment's words). The pain / payment cue must still be in the quote itself.
         c.keyword_overlap = overlap(c.quote + " " + c.hit_title, topic)
         c.on_topic = is_on_topic(c.quote + " " + c.hit_title, topic)
-        base = 1.0 if c.status == "verified_live" else ARCHIVE_WEIGHT.get(c.source, 0.0) \
-            if c.status == "archived_match" else 0.0
+        base = (
+            1.0
+            if c.status == "verified_live"
+            else ARCHIVE_WEIGHT.get(c.source, 0.0)
+            if c.status == "archived_match"
+            else 0.0
+        )
         c.label = "SOURCED"
         notes = [n for n in c.weight_note.split("; ") if n and n not in ("eligible",)]
         if not c.on_topic:
@@ -256,19 +295,24 @@ def mark_eligible(claims: list[Claim], variant: Variant) -> None:
     """Pre-verification hint so the verify cap is spent on claims that could count."""
     topic = topic_keywords(variant)
     for c in claims:
-        if c.quote and is_on_topic(c.quote + " " + c.hit_title, topic) and (c.kind not in CUE_KINDS or match_cue(c.kind, c.quote)):
+        if (
+            c.quote
+            and is_on_topic(c.quote + " " + c.hit_title, topic)
+            and (c.kind not in CUE_KINDS or match_cue(c.kind, c.quote))
+        ):
             c.weight_note = "eligible"
 
 
 def is_recent(c: Claim, max_age_months: int) -> bool:
     if c.published_at is None:
         return False
-    pub = c.published_at if c.published_at.tzinfo else c.published_at.replace(tzinfo=timezone.utc)
-    return pub >= datetime.now(timezone.utc) - timedelta(days=30.44 * max_age_months)
+    pub = c.published_at if c.published_at.tzinfo else c.published_at.replace(tzinfo=UTC)
+    return pub >= datetime.now(UTC) - timedelta(days=30.44 * max_age_months)
 
 
-def missed_qualified(hits: dict[str, Hit], shown_ids: dict[str, list[int]], claims: list[Claim],
-                     variant: Variant) -> list[str]:
+def missed_qualified(
+    hits: dict[str, Hit], shown_ids: dict[str, list[int]], claims: list[Claim], variant: Variant
+) -> list[str]:
     """Shown sentences that pass code's own on-topic + pain/wtp cue check but were not selected."""
     topic = topic_keywords(variant)
     selected = {(c.hit_id, i) for c in claims for i in c.sentence_ids}
@@ -306,7 +350,12 @@ def select_sentences(hit: Hit, topic: set[str], max_n: int = 6) -> list[int]:
     usable = [i for i in range(1, n + 1) if _prose(hit.sentences[i - 1])]
     if len(usable) <= max_n:
         return usable
-    ranked = sorted(usable,
-                    key=lambda i: (-len(keywords(hit.sentences[i - 1]) & topic),
-                                   -(1 if match_cue("pain", hit.sentences[i - 1]) else 0), i))
+    ranked = sorted(
+        usable,
+        key=lambda i: (
+            -len(keywords(hit.sentences[i - 1]) & topic),
+            -(1 if match_cue("pain", hit.sentences[i - 1]) else 0),
+            i,
+        ),
+    )
     return sorted(ranked[:max_n])

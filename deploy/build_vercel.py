@@ -7,6 +7,7 @@ recorded run without a model, and speech uses the browser's own voice.
 
 Usage:  python deploy/build_vercel.py   then   cd deploy/vercel_site && npx vercel deploy --prod
 """
+
 from __future__ import annotations
 
 import json
@@ -17,8 +18,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "deploy" / "vercel_site"
 CODE_DIRS = ["proveit", "agents", "sources", "templates", "config", "prompts", "briefs"]
-CODE_FILES = ["delivery.py", "payments.py", "refunds.py", "webhooks.py", "reconcile.py", "approval.py",
-              "gates.py", "orchestrator.py", "LICENSE"]
+CODE_FILES = [
+    "delivery.py",
+    "payments.py",
+    "refunds.py",
+    "webhooks.py",
+    "reconcile.py",
+    "approval.py",
+    "gates.py",
+    "orchestrator.py",
+    "LICENSE",
+]
 REQUIREMENTS = """fastapi==0.116.1
 Jinja2==3.1.6
 pydantic==2.11.7
@@ -62,7 +72,7 @@ def build() -> Path:
     promoted = json.loads((ROOT / "runs" / "promoted" / "runs.json").read_text(encoding="utf-8"))
     keep = [promoted["weak"], promoted["strong"]]
     OUT.mkdir(parents=True, exist_ok=True)
-    for child in OUT.iterdir():          # empty it but keep the folder (and its .vercel link)
+    for child in OUT.iterdir():  # empty it but keep the folder (and its .vercel link)
         if child.name == ".vercel":
             continue
         shutil.rmtree(child) if child.is_dir() else child.unlink()
@@ -102,9 +112,13 @@ def build() -> Path:
     (OUT / "index.py").write_text(ENTRY, encoding="utf-8")
     (OUT / "requirements.txt").write_text(REQUIREMENTS, encoding="utf-8")
     (OUT / ".python-version").write_text("3.12\n", encoding="utf-8")
-    (OUT / "vercel.json").write_text(json.dumps({"$schema": "https://openapi.vercel.sh/vercel.json",
-                                                 "functions": {"index.py": {"maxDuration": 30}}}, indent=2),
-                                     encoding="utf-8")
+    (OUT / "vercel.json").write_text(
+        json.dumps(
+            {"$schema": "https://openapi.vercel.sh/vercel.json", "functions": {"index.py": {"maxDuration": 30}}},
+            indent=2,
+        ),
+        encoding="utf-8",
+    )
     (OUT / ".vercelignore").write_text("__pycache__\n*.pyc\n.vercel\n", encoding="utf-8")
     return OUT
 

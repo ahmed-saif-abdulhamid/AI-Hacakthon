@@ -12,15 +12,18 @@
   that into REPEAT/model_failure).
 * The model has no tools: it only returns data. Only orchestrator code calls functions.
 """
+
 from __future__ import annotations
 
+import contextlib
 import json
 import os
 import re
 import threading
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, TypeVar
+from typing import TypeVar
 
 import httpx
 from pydantic import BaseModel, ValidationError
@@ -159,7 +162,7 @@ def _backoff(attempt: int, r: httpx.Response | None) -> float:
             return min(30.0, float(r.headers.get("retry-after", "")))
         except ValueError:
             pass
-    return min(20.0, 3.0 * 2 ** attempt)
+    return min(20.0, 3.0 * 2**attempt)
 
 
 _health = {"state": "ready", "at": 0.0}
@@ -177,8 +180,12 @@ def _post(body: dict, quick: bool = False) -> httpx.Response:
     for _ in range(10):
         try:
             with _limiter:
-                r = httpx.post(f"{base_url()}/chat/completions", json=body, headers=_headers(),
-                               timeout=_quick_timeout() if quick else _timeout())
+                r = httpx.post(
+                    f"{base_url()}/chat/completions",
+                    json=body,
+                    headers=_headers(),
+                    timeout=_quick_timeout() if quick else _timeout(),
+                )
         except (httpx.TimeoutException, httpx.NetworkError) as e:
             _note("unreachable")
             if quick or retries >= 2:
@@ -194,7 +201,7 @@ def _post(body: dict, quick: bool = False) -> httpx.Response:
                 return r
             body.pop(dropped)
             continue
-        if r.status_code in RETRY_STATUSES and retries < max_retries:   # free-tier rate limit or a transient error
+        if r.status_code in RETRY_STATUSES and retries < max_retries:  # free-tier rate limit or a transient error
             _note("busy" if r.status_code == 429 else "unreachable")
             time.sleep(_backoff(retries, r))
             retries += 1
@@ -209,10 +216,18 @@ def _complete(system: str, user: str, schema: dict, num_predict: int, quick: boo
         raise LLMError("no model in the hosted demo")
     body = {
         "model": model_name(),
-        "messages": [{"role": "system", "content": system + "\n\nReturn only a JSON object matching this JSON "
-                      "schema, with no other text:\n" + json.dumps(schema)},
-                     {"role": "user", "content": _no_think(user)}],
-        "temperature": 0, "seed": 7, "max_tokens": max(num_predict, 256) * 2, "stream": False,
+        "messages": [
+            {
+                "role": "system",
+                "content": system + "\n\nReturn only a JSON object matching this JSON "
+                "schema, with no other text:\n" + json.dumps(schema),
+            },
+            {"role": "user", "content": _no_think(user)},
+        ],
+        "temperature": 0,
+        "seed": 7,
+        "max_tokens": max(num_predict, 256) * 2,
+        "stream": False,
         "response_format": {"type": "json_schema", "json_schema": {"name": "output", "schema": schema}},
         "chat_template_kwargs": {"enable_thinking": False},
     }
@@ -264,8 +279,16 @@ def estimate_tokens(text: str) -> int:
     return max(1, len(text) // 4)
 
 
-def chat_json(schema_model: type[T], system: str, user: str, *, run_id: str | None = None,
-              agent: str = "", num_predict: int = 400, quick: bool = False) -> tuple[T, dict]:
+def chat_json(
+    schema_model: type[T],
+    system: str,
+    user: str,
+    *,
+    run_id: str | None = None,
+    agent: str = "",
+    num_predict: int = 400,
+    quick: bool = False,
+) -> tuple[T, dict]:
     """Ask the model for JSON matching ``schema_model``; validate; retry once."""
     schema = schema_model.model_json_schema()
     last_err = None
@@ -291,16 +314,15 @@ def chat_json(schema_model: type[T], system: str, user: str, *, run_id: str | No
     raise LLMError(f"{agent}: invalid JSON after retry: {str(last_err)[:300]}")
 
 
-def chat_stream(system: str, messages: list[dict], *, run_id: str | None = None, agent: str = "assistant",
-                num_predict: int = 200):
+def chat_stream(
+    system: str, messages: list[dict], *, run_id: str | None = None, agent: str = "assistant", num_predict: int = 200
+):
     """Plain-text streaming chat (the spoken assistant). Yields text chunks; thinking is not spoken."""
     t0 = time.time()
     if _backend is not None:
         raw = _backend(system, messages[-1]["content"] if messages else "", {}, agent)
-        try:
+        with contextlib.suppress(ValueError, AttributeError):
             raw = json.loads(raw).get("answer", raw)
-        except (ValueError, AttributeError):
-            pass
         _add_usage(run_id, estimate_tokens(system), estimate_tokens(raw), time.time() - t0)
         yield raw
         return
@@ -308,15 +330,25 @@ def chat_stream(system: str, messages: list[dict], *, run_id: str | None = None,
         raise LLMError("no model in the hosted demo")
     if messages and messages[-1].get("role") == "user":
         messages = messages[:-1] + [{**messages[-1], "content": _no_think(messages[-1]["content"])}]
-    body = {"model": model_name(), "messages": [{"role": "system", "content": system}] + messages,
-            "stream": True, "temperature": 0.3, "max_tokens": num_predict * 3,
-            "stream_options": {"include_usage": True}, "chat_template_kwargs": {"enable_thinking": False}}
+    body = {
+        "model": model_name(),
+        "messages": [{"role": "system", "content": system}] + messages,
+        "stream": True,
+        "temperature": 0.3,
+        "max_tokens": num_predict * 3,
+        "stream_options": {"include_usage": True},
+        "chat_template_kwargs": {"enable_thinking": False},
+    }
     tin = tout = 0
     in_think = False
     try:
         for attempt in range(4):
-            with _limiter, httpx.stream("POST", f"{base_url()}/chat/completions", json=body, headers=_headers(),
-                                        timeout=_timeout()) as r:
+            with (
+                _limiter,
+                httpx.stream(
+                    "POST", f"{base_url()}/chat/completions", json=body, headers=_headers(), timeout=_timeout()
+                ) as r,
+            ):
                 if r.status_code == 400 and "chat_template_kwargs" in body:
                     body.pop("chat_template_kwargs")
                     continue
@@ -355,19 +387,38 @@ def chat_stream(system: str, messages: list[dict], *, run_id: str | None = None,
         _add_usage(run_id, tin, tout, time.time() - t0)
 
 
-def agent_call(run_id: str, agent: str, action: str, schema_model: type[T], user: str, *,
-               num_predict: int = 400, sources: list[str] | None = None, prompt: str | None = None) -> T:
+def agent_call(
+    run_id: str,
+    agent: str,
+    action: str,
+    schema_model: type[T],
+    user: str,
+    *,
+    num_predict: int = 400,
+    sources: list[str] | None = None,
+    prompt: str | None = None,
+) -> T:
     """One logged agent call: prompts/<prompt or agent>.md as the system prompt."""
     from .log import log_action
+
     try:
-        obj, meta = chat_json(schema_model, load_prompt(prompt or agent), user, run_id=run_id,
-                              agent=agent, num_predict=num_predict)
+        obj, meta = chat_json(
+            schema_model, load_prompt(prompt or agent), user, run_id=run_id, agent=agent, num_predict=num_predict
+        )
     except LLMError as e:
-        log_action(run_id, agent, f"{action}_failed", sources=sources, model=model_name(), cost=0,
-                   error=str(e)[:200])
+        log_action(run_id, agent, f"{action}_failed", sources=sources, model=model_name(), cost=0, error=str(e)[:200])
         raise
-    log_action(run_id, agent, action, sources=sources, model=meta["model"], cost=0,
-               tokens_in=meta["tokens_in"], tokens_out=meta["tokens_out"], seconds=meta["seconds"])
+    log_action(
+        run_id,
+        agent,
+        action,
+        sources=sources,
+        model=meta["model"],
+        cost=0,
+        tokens_in=meta["tokens_in"],
+        tokens_out=meta["tokens_out"],
+        seconds=meta["seconds"],
+    )
     return obj
 
 

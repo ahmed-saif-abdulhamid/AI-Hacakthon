@@ -1,5 +1,6 @@
 """Reddit adapter: STUBBED. Self-serve API access is restricted, so this source is not used.
 It is left as an interface for a contributor once access allows."""
+
 from __future__ import annotations
 
 import time

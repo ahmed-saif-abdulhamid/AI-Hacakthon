@@ -1,17 +1,24 @@
 """Scoped checks work both ways: analysis is never blocked, outward copy is."""
+
 from __future__ import annotations
 
 from proveit import guard
 
 
 def test_gate_file_with_real_numbers_is_not_blocked():
-    text = "0 real sign-ups against a target of 100 sign-ups. A competitor charges $20/month. \"I'd pay $20/month\""
+    text = '0 real sign-ups against a target of 100 sign-ups. A competitor charges $20/month. "I\'d pay $20/month"'
     assert guard.check_output(text, "analysis").verdict == "allow"
 
 
 def test_landing_copy_with_social_proof_is_blocked():
-    for bad in ("Loved by 2,000 founders", "Rated 4.9/5", "Only 3 copies left", "Join 5,000+ designers",
-                "Guaranteed results in a week", "I bought this and it changed everything"):
+    for bad in (
+        "Loved by 2,000 founders",
+        "Rated 4.9/5",
+        "Only 3 copies left",
+        "Join 5,000+ designers",
+        "Guaranteed results in a week",
+        "I bought this and it changed everything",
+    ):
         assert guard.check_output(bad, "outward").blocked, bad
 
 
@@ -32,4 +39,4 @@ def test_explain_decision_vs_edit_copy():
 
 
 def test_quotes_are_exempt_by_construction():
-    assert guard.check_output("\"I hate chasing clients\" - Sam", "quote").verdict == "allow"
+    assert guard.check_output('"I hate chasing clients" - Sam', "quote").verdict == "allow"

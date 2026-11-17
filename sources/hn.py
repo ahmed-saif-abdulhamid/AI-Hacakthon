@@ -1,4 +1,5 @@
 """Hacker News via the free Algolia API (no key). Stories and comments are HTML -> normalize()."""
+
 from __future__ import annotations
 
 import time
@@ -12,8 +13,15 @@ class HackerNews(Source):
     name = "hn"
     pain_capable = True
 
-    def search(self, query: str, since_ts: int = 0, per_page: int = 20, timeout: float = 8.0,
-               tags: str = "(story,comment)", **kw):
+    def search(
+        self,
+        query: str,
+        since_ts: int = 0,
+        per_page: int = 20,
+        timeout: float = 8.0,
+        tags: str = "(story,comment)",
+        **kw,
+    ):
         """Pain queries search comments only: people describe their problems in replies, while stories are
         mostly product launches (which are competitor evidence, found via GitHub and story search)."""
         t0 = time.time()
@@ -33,9 +41,19 @@ class HackerNews(Source):
                 text = title
             if not text:
                 continue
-            if title.strip().lower() in ("[dead]", "[flagged]") or text.strip().lower().startswith(("[dead]", "[flagged]")):
-                continue                     # moderated-away posts are not evidence
-            hits.append(make_hit("hn", f"https://news.ycombinator.com/item?id={h['objectID']}", text,
-                                 title=title, published_at=ts_to_dt(h.get("created_at_i")),
-                                 engagement=h.get("points") or h.get("num_comments"), query=query))
+            if title.strip().lower() in ("[dead]", "[flagged]") or text.strip().lower().startswith(
+                ("[dead]", "[flagged]")
+            ):
+                continue  # moderated-away posts are not evidence
+            hits.append(
+                make_hit(
+                    "hn",
+                    f"https://news.ycombinator.com/item?id={h['objectID']}",
+                    text,
+                    title=title,
+                    published_at=ts_to_dt(h.get("created_at_i")),
+                    engagement=h.get("points") or h.get("num_comments"),
+                    query=query,
+                )
+            )
         return hits, self._call(query, API, t0, hits)

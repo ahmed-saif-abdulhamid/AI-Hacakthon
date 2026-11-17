@@ -1,6 +1,7 @@
 """promote: the only writer of outputs/. Copies two runs' files with -weak / -strong
 suffixes, plus payment_test_log.md, and writes runs/promoted/decision_log.json and runs.json.
 ``make promote`` (or --root) copies runs/promoted/decision_log.json to the repo root."""
+
 from __future__ import annotations
 
 import json
@@ -40,9 +41,14 @@ def promote(weak_id: str, strong_id: str, to_root: bool = False) -> dict:
     promoted.mkdir(parents=True, exist_ok=True)
     data = json.dumps(entries, indent=1, ensure_ascii=False) + "\n"
     (promoted / "decision_log.json").write_text(data, encoding="utf-8", newline="\n")
-    meta = {"weak": weak_id, "strong": strong_id, "entries": len(entries),
-            "entries_weak": sum(1 for e in entries if e["run_id"] == weak_id),
-            "entries_strong": sum(1 for e in entries if e["run_id"] == strong_id), "outputs": copied}
+    meta = {
+        "weak": weak_id,
+        "strong": strong_id,
+        "entries": len(entries),
+        "entries_weak": sum(1 for e in entries if e["run_id"] == weak_id),
+        "entries_strong": sum(1 for e in entries if e["run_id"] == strong_id),
+        "outputs": copied,
+    }
     (promoted / "runs.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8", newline="\n")
     meta["seed"] = seed.export([weak_id, strong_id])
     (promoted / "runs.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8", newline="\n")

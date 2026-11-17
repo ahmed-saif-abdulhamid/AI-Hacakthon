@@ -6,10 +6,11 @@ same relevance and cue checks the verifier uses). The founder-fit share comes fr
 brief. The highest signal is researched first; the rest stay as pivot targets. These counts
 rank angles against each other; they are never counted as evidence at a gate.
 """
+
 from __future__ import annotations
 
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from proveit.log import log_action
 from proveit.models import FounderBrief, Variant
@@ -28,7 +29,7 @@ def _fit(brief: FounderBrief, v: Variant) -> float:
 
 
 def rank(run_id: str, brief: FounderBrief, variants: list[Variant], max_age_months: int = 24) -> list[dict]:
-    since = int((datetime.now(timezone.utc) - timedelta(days=30 * max_age_months)).timestamp())
+    since = int((datetime.now(UTC) - timedelta(days=30 * max_age_months)).timestamp())
     hn, rows = HackerNews(), []
     for v in variants:
         topic, seen, on_topic, complaints, errors = topic_keywords(v), set(), 0, 0, 0
@@ -47,13 +48,29 @@ def rank(run_id: str, brief: FounderBrief, variants: list[Variant], max_age_mont
                     complaints += 1
             time.sleep(0.2)
         fit = _fit(brief, v)
-        rows.append({"n": v.n, "title": v.title, "comments_checked": len(seen), "on_topic": on_topic,
-                     "complaints": complaints, "fit": fit, "errors": errors,
-                     "signal": round(complaints + 0.25 * on_topic + 2 * fit, 2)})
+        rows.append(
+            {
+                "n": v.n,
+                "title": v.title,
+                "comments_checked": len(seen),
+                "on_topic": on_topic,
+                "complaints": complaints,
+                "fit": fit,
+                "errors": errors,
+                "signal": round(complaints + 0.25 * on_topic + 2 * fit, 2),
+            }
+        )
     best = max(rows, key=lambda r: (r["signal"], -r["n"]))
     for r in rows:
         r["chosen"] = r is best
-    log_action(run_id, "scorer", "score_alternatives", sources=[API], model=None, cost=0,
-               ranking=[{k: r[k] for k in ("n", "signal", "complaints", "on_topic", "fit")} for r in rows],
-               chosen=best["n"])
+    log_action(
+        run_id,
+        "scorer",
+        "score_alternatives",
+        sources=[API],
+        model=None,
+        cost=0,
+        ranking=[{k: r[k] for k in ("n", "signal", "complaints", "on_topic", "fit")} for r in rows],
+        chosen=best["n"],
+    )
     return rows

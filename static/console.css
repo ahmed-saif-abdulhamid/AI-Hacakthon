@@ -44,6 +44,7 @@ kbd{font:600 11.5px var(--mono);padding:1px 6px;border:1px solid var(--rule);bor
 .brand{padding:20px 20px 16px;display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
 .brand svg{width:28px;height:28px;flex:none}
 .brand b{font:700 21px/1 var(--display);letter-spacing:-.02em}
+.brand .brand-sub{display:block;font:500 11px/1.2 var(--sans, inherit);color:var(--muted, #666);letter-spacing:.02em;margin-top:2px}
 .newbtn{margin:0 16px 12px;justify-content:space-between}
 .newbtn kbd{background:transparent;color:inherit;border-color:rgba(255,255,255,.45)}
 .runs{flex:1;overflow:auto;padding:0 8px 12px}

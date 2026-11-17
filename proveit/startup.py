@@ -1,4 +1,5 @@
 """Start-up checks: writable data/outputs/runs directories, with a clear fix if not."""
+
 from __future__ import annotations
 
 import os

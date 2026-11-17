@@ -3,6 +3,7 @@
 If SECRET_KEY is unset or still the public placeholder, a random secret is generated once and kept in
 the data folder (never in git), so a value anyone can read in the repository is never the live secret.
 """
+
 from __future__ import annotations
 
 import os

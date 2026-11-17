@@ -10,6 +10,7 @@
   fallback is used by /api/voice/transcribe when ``faster-whisper`` is installed.
 No paid API is ever called.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -32,6 +33,7 @@ class VoiceUnavailable(Exception):
 
 
 # ---- persona lines --------------------------------------------------------------
+
 
 def assistant_name() -> str:
     """The assistant's name as shown in the console (ASSISTANT_NAME)."""
@@ -77,9 +79,11 @@ def _line(kind: str, **kw) -> str:
     """What the assistant says aloud during a run: plain business language, real numbers, no jargon."""
     s = address()
     if kind == "run_started":
-        return (f"Right, {s}, let's see if people actually want this. I've locked in the bar the idea has to clear "
-                "before looking at anything, so I can't move the goalposts later. First, a quick check that it's "
-                "something I can help with.")
+        return (
+            f"Right, {s}, let's see if people actually want this. I've locked in the bar the idea has to clear "
+            "before looking at anything, so I can't move the goalposts later. First, a quick check that it's "
+            "something I can help with."
+        )
     if kind == "variants":
         return f"I've sketched three angles on your idea. I'll start with the first: {kw.get('title', '')}."
     if kind == "sources_done":
@@ -89,8 +93,10 @@ def _line(kind: str, **kw) -> str:
     if kind == "verifying":
         return "Now I'm double-checking that every quote is really on the page it came from."
     if kind == "verified":
-        return (f"Done checking. {kw.get('counted', 0)} comments are genuinely about this problem, "
-                "and those are the ones I'll count.")
+        return (
+            f"Done checking. {kw.get('counted', 0)} comments are genuinely about this problem, "
+            "and those are the ones I'll count."
+        )
     if kind == "debate":
         return f"The optimist's view: {kw.get('advocate', '')} The sceptic's view: {kw.get('skeptic', '')}"
     if kind == "gate":
@@ -99,18 +105,26 @@ def _line(kind: str, **kw) -> str:
         return _refusal_line(kw.get("rule") or "", kw.get("message", ""))
     if kind == "approval_needed":
         what = kw.get("action", "").replace("_", " ")
-        return (f"{s}, the {what} is ready for you to look over. Nothing goes out until you press Approve, "
-                "and what you approve is exactly what gets used.")
+        return (
+            f"{s}, the {what} is ready for you to look over. Nothing goes out until you press Approve, "
+            "and what you approve is exactly what gets used."
+        )
     if kind == "approved":
-        return f"Thank you, {s}. Going ahead with the {kw.get('action', '').replace('_', ' ')} exactly as you approved it."
+        return (
+            f"Thank you, {s}. Going ahead with the {kw.get('action', '').replace('_', ' ')} exactly as you approved it."
+        )
     if kind == "override":
-        return (f"Understood, {s}. I'll carry on as you asked, but please treat what follows as a preview: "
-                "we haven't yet shown that people want this.")
+        return (
+            f"Understood, {s}. I'll carry on as you asked, but please treat what follows as a preview: "
+            "we haven't yet shown that people want this."
+        )
     if kind == "phase":
         return f"Moving on to step {kw.get('n')}: {str(kw.get('name', '')).lower()}."
     if kind == "payment":
-        return ("I ran a practice purchase: the buyer got their download once, even when the payment message "
-                "arrived twice. No real money was involved.")
+        return (
+            "I ran a practice purchase: the buyer got their download once, even when the payment message "
+            "arrived twice. No real money was involved."
+        )
     if kind == "refund_done":
         return "The practice refund went through with your approval, and the buyer's download link no longer works."
     if kind == "done":
@@ -122,40 +136,61 @@ def gate_line(*a, **kw) -> str:
     return tidy(_gate_line(*a, **kw))
 
 
-def _gate_line(outcome: str = "", reason: str = "", metrics: dict | None = None, thresholds: dict | None = None,
-              gate: str = "gate1_evidence", next_step: str | None = None, **_) -> str:
+def _gate_line(
+    outcome: str = "",
+    reason: str = "",
+    metrics: dict | None = None,
+    thresholds: dict | None = None,
+    gate: str = "gate1_evidence",
+    next_step: str | None = None,
+    **_,
+) -> str:
     """The verdict at each checkpoint, said the way you would say it to a business owner."""
     s, m, t = address(), metrics or {}, thresholds or {}
     if gate == "gate2_demand":
-        return (f"{s}, so far {m.get('real_signups', 0)} real people have joined the waiting list, and we were "
-                f"aiming for {t.get('waitlist_target')}. The page isn't public yet, so we can't say people want "
-                "this until real visitors sign up.")
+        return (
+            f"{s}, so far {m.get('real_signups', 0)} real people have joined the waiting list, and we were "
+            f"aiming for {t.get('waitlist_target')}. The page isn't public yet, so we can't say people want "
+            "this until real visitors sign up."
+        )
     if gate == "gate3_tests":
         return f"I've checked the product files: {m.get('passed')} of {m.get('total')} quality checks pass."
     if gate != "gate1_evidence":
         return f"This checkpoint says: {_word(outcome)}."
     pain, thr = _n(m.get("sourced_pain")), _n(t.get("min_sourced_pain"))
     if outcome == "stop" and reason == "excluded_category":
-        return (f"{s}, this is a kind of product I'm not able to help build, such as physical goods, financial "
-                "products, or health or legal advice. My advice is to stop here.")
+        return (
+            f"{s}, this is a kind of product I'm not able to help build, such as physical goods, financial "
+            "products, or health or legal advice. My advice is to stop here."
+        )
     if outcome == "stop":
-        return (f"Honestly, {s}, I'd stop here. People do talk about this, but I found only {pain} real complaints "
-                f"about the problem, and I'd want to see at least {thr} before saying it's worth building. "
-                "Better to know now than after months of work.")
+        return (
+            f"Honestly, {s}, I'd stop here. People do talk about this, but I found only {pain} real complaints "
+            f"about the problem, and I'd want to see at least {thr} before saying it's worth building. "
+            "Better to know now than after months of work."
+        )
     if outcome == "go":
-        return (f"Good news, {s}. I found {pain} real complaints about this problem from "
-                f"{m.get('distinct_sources')} different places, which clears the bar of {thr}. I think it's worth "
-                "taking to the next step.")
+        return (
+            f"Good news, {s}. I found {pain} real complaints about this problem from "
+            f"{m.get('distinct_sources')} different places, which clears the bar of {thr}. I think it's worth "
+            "taking to the next step."
+        )
     if outcome == "repeat" and reason == "insufficient_evidence":
-        return (f"{s}, I couldn't find enough people talking about this online to call it either way. That doesn't "
-                "mean nobody wants it. The best next step is to talk to five people who have this problem; I've "
-                "prepared the questions for you.")
+        return (
+            f"{s}, I couldn't find enough people talking about this online to call it either way. That doesn't "
+            "mean nobody wants it. The best next step is to talk to five people who have this problem; I've "
+            "prepared the questions for you."
+        )
     if outcome == "repeat" and reason in ("model_failure", "model_suspect"):
-        return (f"{s}, my research didn't come back clean this time, so I won't base a verdict on it. "
-                "Let's run the search again.")
+        return (
+            f"{s}, my research didn't come back clean this time, so I won't base a verdict on it. "
+            "Let's run the search again."
+        )
     if outcome == "pivot":
-        return (f"{s}, the problem looks real, but this version of the idea doesn't quite fit it. "
-                f"I'd try a different angle{': ' + next_step if next_step else ''}.")
+        return (
+            f"{s}, the problem looks real, but this version of the idea doesn't quite fit it. "
+            f"I'd try a different angle{': ' + next_step if next_step else ''}."
+        )
     return f"{s}, my recommendation is: {_word(outcome)}."
 
 
@@ -170,7 +205,8 @@ def _n(x) -> str:
 
 def _word(outcome: str) -> str:
     return {"go": "go ahead", "stop": "stop", "repeat": "look again", "pivot": "try a different angle"}.get(
-        outcome, outcome)
+        outcome, outcome
+    )
 
 
 REFUSAL_LEADS = {
@@ -194,14 +230,20 @@ def _refusal_line(rule: str, message: str, all_rules: list[str] | None = None) -
     """Said when the guard refuses. The UI marks these in red as Protocol 0; the words stay friendly."""
     s = address()
     if all_rules and {"fake_social_proof", "urgency"} <= set(all_rules):
-        return (f"I can't write fake reviews or add fake urgency, {s}. It would mislead your customers, "
-                f"and it tends to backfire. {message}")
+        return (
+            f"I can't write fake reviews or add fake urgency, {s}. It would mislead your customers, "
+            f"and it tends to backfire. {message}"
+        )
     key = rule.replace("input_", "")
     if key.startswith("output_"):
-        key = {"output_ratings": "fake_social_proof", "output_numeric_social_proof": "fake_social_proof",
-               "output_urgency": "urgency", "output_income": "income_promise"}.get(key, "")
+        key = {
+            "output_ratings": "fake_social_proof",
+            "output_numeric_social_proof": "fake_social_proof",
+            "output_urgency": "urgency",
+            "output_income": "income_promise",
+        }.get(key, "")
     lead = REFUSAL_LEADS.get(key, "I can't help with that one, {s}.").format(s=s)
-    if re.match(r"(?i)i (can't|cannot) ", message or ""):     # the rule's own refusal repeats the lead
+    if re.match(r"(?i)i (can't|cannot) ", message or ""):  # the rule's own refusal repeats the lead
         message = re.sub(r"^[^.]*\.\s*", "", message, count=1)
     return f"{lead} {message}".strip()
 
@@ -239,7 +281,9 @@ def synthesize(text: str) -> Path:
         raise VoiceUnavailable("empty text")
     voice = _piper_voice()
     CACHE.mkdir(parents=True, exist_ok=True)
-    out = CACHE / (hashlib.sha256((os.environ.get("PIPER_VOICE", DEFAULT_VOICE) + text).encode()).hexdigest()[:24] + ".wav")
+    out = CACHE / (
+        hashlib.sha256((os.environ.get("PIPER_VOICE", DEFAULT_VOICE) + text).encode()).hexdigest()[:24] + ".wav"
+    )
     if out.exists():
         return out
     with _tts_lock:
@@ -255,11 +299,13 @@ def synthesize(text: str) -> Path:
 
 def prerender(text: str) -> None:
     """Synthesize in the background so /api/voice/speak answers from the cache (no-op without Piper)."""
+
     def work():
-        try:
+        try:  # noqa: SIM105 - kept explicit: voice is optional and must never raise
             synthesize(text)
         except Exception:  # noqa: BLE001 - voice is optional
             pass
+
     if os.environ.get("PROVEIT_ENV") != "test":
         threading.Thread(target=work, daemon=True).start()
 
@@ -269,6 +315,7 @@ def warm_up() -> None:
 
 
 # ---- speech to text (local faster-whisper, optional) -------------------------------
+
 
 @lru_cache(maxsize=1)
 def _whisper():
@@ -294,7 +341,11 @@ def transcribe(audio: bytes, suffix: str = ".webm") -> str:
 def stt_status() -> dict:
     try:
         import faster_whisper  # type: ignore  # noqa: F401
+
         return {"engine": "faster-whisper tiny.en (local)", "status": "Working"}
     except ImportError:
-        return {"engine": "browser SpeechRecognition", "status": "Working",
-                "server_stt": "STUBBED (install faster-whisper to enable the local fallback)"}
+        return {
+            "engine": "browser SpeechRecognition",
+            "status": "Working",
+            "server_stt": "STUBBED (install faster-whisper to enable the local fallback)",
+        }

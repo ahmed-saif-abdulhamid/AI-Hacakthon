@@ -1,4 +1,5 @@
 """Each gate rule in precedence order, pre-registration and goalpost detection."""
+
 from __future__ import annotations
 
 import pytest
@@ -12,8 +13,15 @@ SHA = gates.thresholds_sha256(TH, BRIEF)
 
 
 def metrics(**over):
-    m = {"sourced_pain": 8.0, "distinct_sources": 2, "recent_share": 0.8, "wtp_signals": 2, "competitors": 3,
-         "founder_fit": 4.0, "coverage": 0.8}
+    m = {
+        "sourced_pain": 8.0,
+        "distinct_sources": 2,
+        "recent_share": 0.8,
+        "wtp_signals": 2,
+        "competitors": 3,
+        "founder_fit": 4.0,
+        "coverage": 0.8,
+    }
     m.update(over)
     return m
 
@@ -75,6 +83,7 @@ def test_preregistration_hash_and_goalpost_moved():
 def test_live_and_full_same_outcome():
     """The gate takes no mode argument: identical evidence gives identical answers."""
     import yaml
+
     rt = yaml.safe_load((gates.ROOT / "config" / "runtime.yaml").read_text())
     assert rt["live"]["auto_rerun"] is False
     for m in (metrics(), metrics(sourced_pain=2), metrics(coverage=0.1)):
@@ -99,9 +108,14 @@ def test_gate3(passed, outcome):
 
 def test_pivot_targets_the_next_best_scored_angle_not_the_next_number():
     from proveit.orchestrator import Run
+
     run = Run.__new__(Run)
-    run.state = {"variants": [{}, {}, {}], "variant_n": 2, "research": {"2": {}},
-                 "ranking": [{"n": 1, "signal": 1.0}, {"n": 2, "signal": 9.0}, {"n": 3, "signal": 5.0}]}
+    run.state = {
+        "variants": [{}, {}, {}],
+        "variant_n": 2,
+        "research": {"2": {}},
+        "ranking": [{"n": 1, "signal": 1.0}, {"n": 2, "signal": 9.0}, {"n": 3, "signal": 5.0}],
+    }
     assert run.next_variant() == 3
     run.state["research"]["3"] = {}
     assert run.next_variant() == 1

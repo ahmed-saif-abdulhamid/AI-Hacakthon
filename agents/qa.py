@@ -1,4 +1,5 @@
 """QA agent: deterministic product tests (no model). Feeds Gate 3."""
+
 from __future__ import annotations
 
 import csv
@@ -11,7 +12,12 @@ VERB_RE = re.compile(r"^[A-Z][a-z]+")
 NON_VERBS = {"The", "A", "An", "This", "Your", "All", "Each", "Every", "Client", "Clients", "Project", "Our", "My"}
 
 
-_PIECES = ["sco" + r"r(?:e|es|ed|ing)", "jud" + r"g\w*", "rub" + r"ric\w*", "gra" + r"d(?:ing|ed|er)\w*"]  # built from pieces, so this file holds none of the words
+_PIECES = [
+    "sco" + r"r(?:e|es|ed|ing)",
+    "jud" + r"g\w*",
+    "rub" + r"ric\w*",
+    "gra" + r"d(?:ing|ed|er)\w*",
+]  # built from pieces, so this file holds none of the words
 EVAL_WORDS = re.compile(r"\b(?:" + "|".join(_PIECES) + r")\b", re.I)
 
 
@@ -28,8 +34,11 @@ def run(spec, modules, csv_texts: list[str], docs: str, expected_modules: int) -
 
     add("modules_present", len(modules) >= expected_modules, f"{len(modules)} of {expected_modules}")
     bad = [s for m in modules for s in m.steps if not _starts_with_verb(s)]
-    add("checklist_items_start_with_verb", len(bad) <= max(1, sum(len(m.steps) for m in modules) // 10),
-        "; ".join(bad[:3]))
+    add(
+        "checklist_items_start_with_verb",
+        len(bad) <= max(1, sum(len(m.steps) for m in modules) // 10),
+        "; ".join(bad[:3]),
+    )
     banned = []
     for m in modules:
         text = " ".join([m.title, m.intro] + m.steps)
@@ -38,9 +47,16 @@ def run(spec, modules, csv_texts: list[str], docs: str, expected_modules: int) -
             banned.append(res.rule)
     add("no_banned_claims", not banned, ", ".join(banned))
     # House style for every file we ship: no evaluation vocabulary in product text.
-    every = " ".join([getattr(spec, "title", ""), getattr(spec, "audience", ""), " ".join(getattr(spec, "not_included", []) or []),
-                      " ".join(getattr(spec, "what_it_is_not", []) or []), docs]
-                     + [" ".join([m.title, m.intro] + m.steps) for m in modules])
+    every = " ".join(
+        [
+            getattr(spec, "title", ""),
+            getattr(spec, "audience", ""),
+            " ".join(getattr(spec, "not_included", []) or []),
+            " ".join(getattr(spec, "what_it_is_not", []) or []),
+            docs,
+        ]
+        + [" ".join([m.title, m.intro] + m.steps) for m in modules]
+    )
     words = sorted({m.group(0).lower() for m in EVAL_WORDS.finditer(every)})
     add("no_evaluation_words", not words, ", ".join(words))
     parsed = True

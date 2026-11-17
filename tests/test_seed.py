@@ -1,4 +1,5 @@
 """A fresh install (empty database, no key) opens the committed runs instead of an empty console."""
+
 import json
 
 from proveit import db, seed
@@ -14,4 +15,4 @@ def test_committed_runs_load_into_an_empty_database(tmp_path, monkeypatch):
         assert (tmp_path / "runs" / rid / "phase1_gate_decision.md").exists()
     assert db.query("SELECT 1 FROM actions WHERE agent IN ('assistant', 'ask')") == []
     assert db.query("SELECT 1 FROM signups") == [] and db.query("SELECT 1 FROM deliveries") == []
-    assert seed.load() == []                      # loading twice changes nothing
+    assert seed.load() == []  # loading twice changes nothing

@@ -8,6 +8,7 @@ Agents return ``list[Statement]``. This module:
   else as ``ASSUMPTION: <text>``;
 * records the spans the model wrote in runs/<id>/provenance.json.
 """
+
 from __future__ import annotations
 
 import json
@@ -19,15 +20,15 @@ from sources.base import keywords
 from .models import Claim, Statement
 
 NUM = re.compile(r"\d[\d,]*(?:\.\d+)?")
-SCALE = {"k": "000", "thousand": "000", "m": "000000", "million": "000000", "b": "000000000",
-         "billion": "000000000"}
+SCALE = {"k": "000", "thousand": "000", "m": "000000", "million": "000000", "b": "000000000", "billion": "000000000"}
 MARKET_STATEMENT = re.compile(r"\d|%|\b(most|many|every|hours|per week|struggl\w*|lose|losing)\b", re.I)
 FACTUAL = re.compile(
     r"(\d[\d,.]*\s*%?|\b(most|majority|many|millions|thousands|every)\b)(\W+\w+){0,6}?\W+"
     r"(market|industry|users|people|customers|founders|businesses|freelancers|designers|% of)\b"
     r"|\b(market|industry|users|people|customers|founders|businesses)\b(\W+\w+){0,4}?\W+(\d[\d,.]*\s*%)"
     r"|\b(save|saves|saving|lose|loses|losing|waste|wastes|wasting|cut|cuts)\b(\W+\w+){0,3}?\W+\d[\d,.]*\s*(hours?|days?|%|percent)",
-    re.I)
+    re.I,
+)
 
 
 def _numbers(text: str) -> set[str]:
@@ -101,8 +102,14 @@ def render_statement(st: Statement, ledger: dict[str, Claim], used: list[str]) -
     return text + "".join(f"[{c}]" for c in valid)
 
 
-def render_list(statements: list[Statement], ledger: dict[str, Claim], used: list[str],
-                prov: Provenance | None = None, file: str = "", bullet: str = "- ") -> str:
+def render_list(
+    statements: list[Statement],
+    ledger: dict[str, Claim],
+    used: list[str],
+    prov: Provenance | None = None,
+    file: str = "",
+    bullet: str = "- ",
+) -> str:
     lines = []
     for st in statements:
         if prov is not None:

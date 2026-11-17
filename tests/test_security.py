@@ -1,4 +1,5 @@
 """Hardening: no path can leave the runs folder, and link parameters cannot inject script."""
+
 from __future__ import annotations
 
 from fastapi.testclient import TestClient
@@ -9,8 +10,13 @@ client = TestClient(app)
 
 
 def test_run_id_path_traversal_is_refused():
-    for path in ("/api/runs/%2E%2E/files/.env", "/api/runs/../files/README.md", "/api/runs/..%2F..%2F/files/x",
-                 "/p/..%2F.env", "/store/%2E%2E"):
+    for path in (
+        "/api/runs/%2E%2E/files/.env",
+        "/api/runs/../files/README.md",
+        "/api/runs/..%2F..%2F/files/x",
+        "/p/..%2F.env",
+        "/store/%2E%2E",
+    ):
         r = client.get(path)
         assert r.status_code == 404, path
         assert "NVIDIA" not in r.text and "Apache" not in r.text
@@ -47,6 +53,7 @@ def test_cross_site_and_non_json_posts_are_refused():
 
 def test_public_placeholder_is_never_the_signing_secret(monkeypatch, tmp_path):
     from proveit import secrets_store
+
     secrets_store.secret_key.cache_clear()
     monkeypatch.setenv("PROVEIT_ENV", "dev")
     monkeypatch.setenv("SECRET_KEY", "dev-only-change-me")

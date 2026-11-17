@@ -1,5 +1,6 @@
 """outputs/: names by phase and step, a STOP gate for the weak run, the payment log,
 and every claim SOURCED or ASSUMPTION."""
+
 from __future__ import annotations
 
 import json

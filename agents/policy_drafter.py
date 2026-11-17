@@ -1,4 +1,5 @@
 """Policy drafter: terms, privacy and refund DRAFTS, never legal advice."""
+
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
@@ -15,5 +16,11 @@ class PoliciesOut(BaseModel):
 
 
 def run(run_id: str, product_title: str) -> PoliciesOut:
-    return llm.agent_call(run_id, "policy_drafter", "draft_policies", PoliciesOut,
-                          f"PRODUCT: {product_title} (a downloadable digital toolkit)", num_predict=600)
+    return llm.agent_call(
+        run_id,
+        "policy_drafter",
+        "draft_policies",
+        PoliciesOut,
+        f"PRODUCT: {product_title} (a downloadable digital toolkit)",
+        num_predict=600,
+    )

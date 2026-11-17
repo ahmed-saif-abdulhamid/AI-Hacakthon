@@ -3,6 +3,7 @@ holographic voice HUD (embedded), and Dual-Sync (both side by side).
 
 The pipeline runs in a background worker thread; the page polls SQLite every second.
 """
+
 from __future__ import annotations
 
 import sys
@@ -21,13 +22,16 @@ from proveit import approval, ask, gates, llm, orchestrator, voice  # noqa: E402
 from proveit.log import telemetry  # noqa: E402
 
 st.set_page_config(page_title="ProveIt · developer view", page_icon="✅", layout="wide")
-st.markdown("""<style>
+st.markdown(
+    """<style>
 .stApp{background:#06090F;color:#D8F6FF} code,.mono{font-family:"JetBrains Mono","Fira Code",monospace}
 .b{display:inline-block;border:1px solid #00F0FF55;padding:1px 6px;margin:1px;font:12px monospace}
 .live{color:#3CFFA0}.arch{color:#FFB800}.asm{color:#7E98AC}.red{color:#FF2A54;border-color:#FF2A54}
 .mock{color:#FFB800}.stub{color:#C38BFF}
 .verdict{font:700 26px monospace;letter-spacing:.15em}.go{color:#00F0FF}.stop{color:#FF2A54}.repeat,.pivot{color:#FFB800}
-</style>""", unsafe_allow_html=True)
+</style>""",
+    unsafe_allow_html=True,
+)
 
 FIELDS = ["idea", "skills", "budget", "hours_per_week", "target_market", "values"]
 WORKERS: dict[str, threading.Thread] = st.session_state.setdefault("workers", {})
@@ -52,7 +56,9 @@ def badge(c) -> str:
 
 # ---- sidebar ---------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("### ProveIt · developer view\nThe main console is at [localhost:8000](http://localhost:8000/hud). This view shows the same runs with their raw details.")
+    st.markdown(
+        "### ProveIt · developer view\nThe main console is at [localhost:8000](http://localhost:8000/hud). This view shows the same runs with their raw details."
+    )
     mode = st.radio("Interface", ["⌨️ Tactical Writing Mode", "🎙️ Holographic Voice HUD", "⇄ Dual-Sync"], index=0)
     ms = llm.status()
     (st.success if ms["state"] == "ready" else st.warning)(f"Model `{ms['model']}`: {ms['state']}")
@@ -63,13 +69,27 @@ with st.sidebar:
     if "run" not in st.session_state and ids:
         st.session_state.run = ids[0]
     if ids:
-        st.session_state.run = st.selectbox("Run", ids, index=ids.index(st.session_state.run)
-                                            if st.session_state.get("run") in ids else 0, format_func=labels.get)
+        st.session_state.run = st.selectbox(
+            "Run",
+            ids,
+            index=ids.index(st.session_state.run) if st.session_state.get("run") in ids else 0,
+            format_func=labels.get,
+        )
     st.markdown("**Status labels**")
-    st.markdown(" ".join(f"<span class='b {'mock' if s == 'MOCKED' else 'stub' if s == 'STUBBED' else ''}'>{n}: {s}</span>"
-                         for n, s in [("Payments", "MOCKED"), ("Reconciliation", "MOCKED"), ("Public hosting", "STUBBED"),
-                                      ("Posting adapters", "STUBBED"), ("Phase 6", "STUBBED"), ("Reddit", "STUBBED")]),
-                unsafe_allow_html=True)
+    st.markdown(
+        " ".join(
+            f"<span class='b {'mock' if s == 'MOCKED' else 'stub' if s == 'STUBBED' else ''}'>{n}: {s}</span>"
+            for n, s in [
+                ("Payments", "MOCKED"),
+                ("Reconciliation", "MOCKED"),
+                ("Public hosting", "STUBBED"),
+                ("Posting adapters", "STUBBED"),
+                ("Phase 6", "STUBBED"),
+                ("Reddit", "STUBBED"),
+            ]
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 # ---- tactical mode -------------------------------------------------------------------
@@ -110,10 +130,13 @@ def run_panel() -> None:
     s = run.state
     current = gates.thresholds_sha256(s["thresholds"], run.brief_raw)
     moved = current != run.sha
-    st.markdown(f"<span class='b {'red' if moved else 'live'}'>SHA-256 pre-registered: {run.sha[:16]}… "
-                f"GOALPOST_MOVED: {'TRUE' if moved else 'FALSE'}</span> <span class='b'>stage: {run.stage}</span> "
-                f"<span class='b'>phase {s.get('phase', 1)} / 6</span> <span class='b'>cost: $0.00 · "
-                f"{llm.usage(rid).get('calls', 0)} model calls</span>", unsafe_allow_html=True)
+    st.markdown(
+        f"<span class='b {'red' if moved else 'live'}'>SHA-256 pre-registered: {run.sha[:16]}… "
+        f"GOALPOST_MOVED: {'TRUE' if moved else 'FALSE'}</span> <span class='b'>stage: {run.stage}</span> "
+        f"<span class='b'>phase {s.get('phase', 1)} / 6</span> <span class='b'>cost: $0.00 · "
+        f"{llm.usage(rid).get('calls', 0)} model calls</span>",
+        unsafe_allow_html=True,
+    )
     if s.get("override"):
         st.warning("Phases 3-5 shown as a preview after a founder override; demand not yet proven.")
     if s.get("error"):
@@ -126,12 +149,19 @@ def run_panel() -> None:
         c1.progress(min(1.0, m["sourced_pain"] / (2 * th["min_sourced_pain"])))
         c2.caption(f"Source coverage: {m['coverage']} vs ≥ {th['min_coverage']}")
         c2.progress(min(1.0, m["coverage"]))
-    for key, title in (("gate1", "Gate 1 · evidence"), ("gate2", "Gate 2 · demand"), ("gate3", "Gate 3 · tests"),
-                       ("gate4", "Gate 4 · commercial")):
+    for key, title in (
+        ("gate1", "Gate 1 · evidence"),
+        ("gate2", "Gate 2 · demand"),
+        ("gate3", "Gate 3 · tests"),
+        ("gate4", "Gate 4 · commercial"),
+    ):
         g = s.get(key)
         if g:
-            st.markdown(f"**{title}** <span class='verdict {g['outcome']}'>{g['outcome'].upper()}</span> "
-                        f"· {g['reason']} · {g['rule_fired']}<br>{g['recommendation']}", unsafe_allow_html=True)
+            st.markdown(
+                f"**{title}** <span class='verdict {g['outcome']}'>{g['outcome'].upper()}</span> "
+                f"· {g['reason']} · {g['rule_fired']}<br>{g['recommendation']}",
+                unsafe_allow_html=True,
+            )
     if run.stage == "await_clarify" and st.button("Confirm: digital product, no advice"):
         orchestrator.founder_decide(rid, "clarify_ok")
         advance_bg(rid)
@@ -160,8 +190,14 @@ def run_panel() -> None:
             orchestrator.founder_decide(rid, "gate4_reject")
     if s.get("debate"):
         a, k = st.columns(2)
-        a.markdown("**ADVOCATE · case for GO**\n\n" + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["advocate"]))
-        k.markdown("**SKEPTIC · case for STOP**\n\n" + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["skeptic"]))
+        a.markdown(
+            "**ADVOCATE · case for GO**\n\n"
+            + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["advocate"])
+        )
+        k.markdown(
+            "**SKEPTIC · case for STOP**\n\n"
+            + "\n".join(f"- {x['text']} {x['claim_ids']}" for x in s["debate"]["skeptic"])
+        )
     st.subheader("Waiting for your approval (hash-locked)")
     pending = approval.list_approvals(rid, "pending")
     if not pending:
@@ -182,9 +218,12 @@ def run_panel() -> None:
     st.subheader("Evidence ledger")
     claims = sorted(run.claims(), key=lambda c: -c.weight)
     if claims:
-        rows = "".join(f"<tr><td>{c.id}</td><td>{badge(c)}</td><td>{c.kind}<br><small>{c.cue_matched or '-'}</small></td>"
-                       f"<td>\"{(c.quote or '')[:300]}\"<br><small style='color:#7E98AC'>{c.claim_text} {c.weight_note}</small></td>"
-                       f"<td><a href='{c.url}' target='_blank'>{c.source}</a></td></tr>" for c in claims[:40])
+        rows = "".join(
+            f"<tr><td>{c.id}</td><td>{badge(c)}</td><td>{c.kind}<br><small>{c.cue_matched or '-'}</small></td>"
+            f"<td>\"{(c.quote or '')[:300]}\"<br><small style='color:#7E98AC'>{c.claim_text} {c.weight_note}</small></td>"
+            f"<td><a href='{c.url}' target='_blank'>{c.source}</a></td></tr>"
+            for c in claims[:40]
+        )
         st.markdown(f"<table>{rows}</table>", unsafe_allow_html=True)
     st.subheader("Artifacts")
     files = sorted(p.name for p in run.dir.iterdir() if p.name.startswith(("phase", "payment")))

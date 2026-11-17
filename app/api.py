@@ -4,6 +4,7 @@ pages, the MOCKED webhook/delivery endpoints and the voice API.
 Published pages are served from the approved blob (keyed by SHA-256), never re-rendered: an
 unapproved page returns 409. Browsers get designed error pages; API clients get JSON errors.
 """
+
 from __future__ import annotations
 
 import json
@@ -20,8 +21,15 @@ from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import (FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse,
-                               Response, StreamingResponse)
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+    StreamingResponse,
+)
 from fastapi.staticfiles import StaticFiles
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel, Field
@@ -31,40 +39,54 @@ import delivery
 import payments
 import refunds
 import webhooks
-from proveit import approval, ask, db, llm, orchestrator, voice
+from proveit import approval, ask, db, llm, orchestrator, seed, voice
 from proveit.log import entries, telemetry, utcnow
-from proveit import seed
 from proveit.startup import check_writable, runs_dir
 
 ROOT = Path(__file__).resolve().parent.parent
 VERSION = "0.2.0"
-DEMO = os.environ.get("PROVEIT_DEMO") == "1"   # read-only public demo of the committed runs
+DEMO = os.environ.get("PROVEIT_DEMO") == "1"  # read-only public demo of the committed runs
 app = FastAPI(title="ProveIt", version=VERSION, docs_url=None if DEMO else "/docs", redoc_url=None)
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:8501", "http://127.0.0.1:8501",
-                                                  "http://localhost:8000", "http://127.0.0.1:8000"],
-                   allow_methods=["*"], allow_headers=["*"])
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:8501", "http://127.0.0.1:8501", "http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 _env = Environment(loader=FileSystemLoader(str(ROOT / "templates")), autoescape=select_autoescape(["html", "j2"]))
 _workers: dict[str, threading.Thread] = {}
 app.mount("/static", StaticFiles(directory=str(ROOT / "static")), name="static")
 
 STATUS_TABLE = [
-    ("Intake + eligibility check", "Working"), ("1.1 Find opportunities", "Working"),
-    ("1.2 Evidence ledger", "Working"), ("1.3 Market definition", "Working"),
-    ("1.4 Mom Test interview kit", "Working"), ("Gate 1: evidence", "Working"),
-    ("2.1 Lean Canvas", "Working"), ("2.2 Landing page + waitlist", "Working"),
-    ("Public hosting", "STUBBED"), ("Gate 2: demand", "Working"), ("3.1 Build MVP toolkit", "Working"),
-    ("Gate 3: tests", "Working"), ("4.1 Pricing", "Working"), ("4.2 Policy drafts", "Working"),
-    ("Gate 4", "Working"), ("5.1 Store page + launch post draft", "Working"),
-    ("5.2 Payment -> delivery -> refund", "MOCKED"), ("5.3 Reconciliation", "MOCKED"),
-    ("Posting to external platforms", "STUBBED"), ("6 Operate and learn", "STUBBED"),
+    ("Intake + eligibility check", "Working"),
+    ("1.1 Find opportunities", "Working"),
+    ("1.2 Evidence ledger", "Working"),
+    ("1.3 Market definition", "Working"),
+    ("1.4 Mom Test interview kit", "Working"),
+    ("Gate 1: evidence", "Working"),
+    ("2.1 Lean Canvas", "Working"),
+    ("2.2 Landing page + waitlist", "Working"),
+    ("Public hosting", "STUBBED"),
+    ("Gate 2: demand", "Working"),
+    ("3.1 Build MVP toolkit", "Working"),
+    ("Gate 3: tests", "Working"),
+    ("4.1 Pricing", "Working"),
+    ("4.2 Policy drafts", "Working"),
+    ("Gate 4", "Working"),
+    ("5.1 Store page + launch post draft", "Working"),
+    ("5.2 Payment -> delivery -> refund", "MOCKED"),
+    ("5.3 Reconciliation", "MOCKED"),
+    ("Posting to external platforms", "STUBBED"),
+    ("6 Operate and learn", "STUBBED"),
     ("Reddit source", "STUBBED"),
 ]
 
 
 def _commit() -> str:
     try:
-        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True, text=True,
-                              timeout=3).stdout.strip()
+        return subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True, text=True, timeout=3
+        ).stdout.strip()
     except Exception:  # noqa: BLE001
         return ""
 
@@ -74,16 +96,20 @@ COMMIT = _commit()
 # ---- middleware -------------------------------------------------------------------------
 
 DEMO_ALLOWED_POSTS = ("/api/ask", "/api/ask/stream", "/api/voice/speak")
-RUN_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}")   # no dots or slashes, so it cannot leave the runs folder
+RUN_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]{0,63}")  # no dots or slashes, so it cannot leave the runs folder
 _RUN_PATH = re.compile(r"^/(?:api/runs|p|store)/([^/]+)")
 
 # Script may only come from this origin; published landing/store pages run no script at all.
-CSP_CONSOLE = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
-               "font-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; "
-               "frame-src 'self'; frame-ancestors 'self' http://localhost:8501 http://127.0.0.1:8501; "
-               "base-uri 'none'; form-action 'self'; object-src 'none'")
-CSP_PUBLISHED = ("default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'self'; "
-                 "form-action 'self'; frame-ancestors 'self'; base-uri 'none'")
+CSP_CONSOLE = (
+    "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+    "font-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self'; "
+    "frame-src 'self'; frame-ancestors 'self' http://localhost:8501 http://127.0.0.1:8501; "
+    "base-uri 'none'; form-action 'self'; object-src 'none'"
+)
+CSP_PUBLISHED = (
+    "default-src 'none'; style-src 'unsafe-inline'; img-src 'self' data:; font-src 'self'; "
+    "form-action 'self'; frame-ancestors 'self'; base-uri 'none'"
+)
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
@@ -105,8 +131,11 @@ async def _security_headers(request: Request, call_next):
     return resp
 
 
-ALLOWED_HOSTS = {h.strip().lower() for h in os.environ.get(
-    "ALLOWED_HOSTS", "localhost,127.0.0.1,api,testserver").split(",") if h.strip()}
+ALLOWED_HOSTS = {
+    h.strip().lower()
+    for h in os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,api,testserver").split(",")
+    if h.strip()
+}
 FORM_POSTS = re.compile(r"^/(p/[^/]+/signup|store/[^/]+/buy|orders/[^/]+/refund-request|api/voice/transcribe)$")
 
 
@@ -124,8 +153,11 @@ async def _same_origin_only(request: Request, call_next):
             if ohost not in ALLOWED_HOSTS and not DEMO:
                 return JSONResponse({"ok": False, "error": "cross-site request refused"}, status_code=403)
         ctype = (request.headers.get("content-type") or "").split(";")[0].strip().lower()
-        if not FORM_POSTS.match(request.url.path) and int(request.headers.get("content-length") or 0) > 0 \
-                and ctype != "application/json":
+        if (
+            not FORM_POSTS.match(request.url.path)
+            and int(request.headers.get("content-length") or 0) > 0
+            and ctype != "application/json"
+        ):
             return JSONResponse({"ok": False, "error": "send JSON (Content-Type: application/json)"}, status_code=415)
     resp = await call_next(request)
     if request.url.path.startswith("/static/") and "v=" in request.url.query:
@@ -146,8 +178,14 @@ async def _valid_run_ids(request: Request, call_next):
 async def _demo_read_only(request: Request, call_next):
     """In the public demo nothing can start a run, decide a gate, approve, buy or refund."""
     if DEMO and request.method not in ("GET", "HEAD", "OPTIONS") and request.url.path not in DEMO_ALLOWED_POSTS:
-        return JSONResponse({"ok": False, "error": "This public demo is read-only. Run ProveIt on your own computer "
-                             "(docker compose up) to test ideas and make decisions."}, status_code=403)
+        return JSONResponse(
+            {
+                "ok": False,
+                "error": "This public demo is read-only. Run ProveIt on your own computer "
+                "(docker compose up) to test ideas and make decisions.",
+            },
+            status_code=403,
+        )
     return await call_next(request)
 
 
@@ -170,9 +208,15 @@ async def _rate_limit(request: Request, call_next):
                 q.popleft()
             if len(q) >= n:
                 retry = int(window - (now - q[0])) + 1
-                return JSONResponse({"ok": False, "error": "That's a lot of requests in a short time. Give me a few "
-                                     "seconds and try again.", "retry_after": retry}, status_code=429,
-                                    headers={"Retry-After": str(retry)})
+                return JSONResponse(
+                    {
+                        "ok": False,
+                        "error": "That's a lot of requests in a short time. Give me a few " "seconds and try again.",
+                        "retry_after": retry,
+                    },
+                    status_code=429,
+                    headers={"Retry-After": str(retry)},
+                )
             q.append(now)
     return await call_next(request)
 
@@ -184,10 +228,10 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 def _warm_voice() -> None:
     if os.environ.get("PROVEIT_ENV") != "test":
         try:
-            loaded = seed.load()          # the committed runs, so a fresh install is never empty
+            loaded = seed.load()  # the committed runs, so a fresh install is never empty
             if loaded:
                 print(f"[startup] loaded the committed runs {', '.join(loaded)}")
-        except Exception as e:            # a broken seed must never stop the console
+        except Exception as e:  # a broken seed must never stop the console
             print(f"[startup] could not load the committed runs: {e}")
     if not DEMO:
         voice.warm_up()
@@ -212,8 +256,10 @@ PAGES = {
     409: ("Not published", "The founder has not approved this page, so ProveIt does not show it."),
     422: ("That didn't look right", "Something in the link or form was not what ProveIt expected."),
     429: ("Slow down a little", "Too many requests in a short time. Wait a few seconds and try again."),
-    500: ("Something went wrong on our side", "Your runs are saved. Go back and try again; if it keeps happening, "
-                                              "restart ProveIt."),
+    500: (
+        "Something went wrong on our side",
+        "Your runs are saved. Go back and try again; if it keeps happening, " "restart ProveIt.",
+    ),
 }
 
 
@@ -222,10 +268,12 @@ def _wants_json(request: Request) -> bool:
     return p.startswith(("/api/", "/webhooks/", "/orders/")) or "text/html" not in request.headers.get("accept", "")
 
 
-def _render_page(status: int, title: str, body: str, back: str = "/hud", back_label: str = "Back to ProveIt",
-                 tone: str = "plain") -> HTMLResponse:
-    html = _env.get_template("status.html.j2").render(status=status, title=title, body=body, back=back,
-                                                      back_label=back_label, tone=tone)
+def _render_page(
+    status: int, title: str, body: str, back: str = "/hud", back_label: str = "Back to ProveIt", tone: str = "plain"
+) -> HTMLResponse:
+    html = _env.get_template("status.html.j2").render(
+        status=status, title=title, body=body, back=back, back_label=back_label, tone=tone
+    )
     return HTMLResponse(html, status_code=status)
 
 
@@ -265,6 +313,7 @@ async def _unexpected(request: Request, exc: Exception):
 
 # ---- console ---------------------------------------------------------------------------
 
+
 @app.get("/", include_in_schema=False)
 def root():
     return RedirectResponse("/hud")
@@ -273,14 +322,25 @@ def root():
 @app.api_route("/hud", methods=["GET", "HEAD"], response_class=HTMLResponse)
 def hud(mode: Literal["tactical", "hud", "dual"] = "tactical", embed: int = 0, api: str = ""):
     return _env.get_template("hud.html.j2").render(
-        initial_mode=mode, embed=bool(embed), api_base=api, status_table=STATUS_TABLE, demo=DEMO,
-        assistant=voice.assistant_name(), wake=voice.wake_word(), wake_re=voice.wake_pattern(), version=VERSION,
-        commit=COMMIT, model=llm.model_name())
+        initial_mode=mode,
+        embed=bool(embed),
+        api_base=api,
+        status_table=STATUS_TABLE,
+        demo=DEMO,
+        assistant=voice.assistant_name(),
+        wake=voice.wake_word(),
+        wake_re=voice.wake_pattern(),
+        version=VERSION,
+        commit=COMMIT,
+        model=llm.model_name(),
+    )
 
 
-FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" '
-           'fill="#3A35C9"/><path d="M18 33.5l9 9L46 22" fill="none" stroke="#fff" stroke-width="7" '
-           'stroke-linecap="round" stroke-linejoin="round"/></svg>')
+FAVICON = (
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" '
+    'fill="#3A35C9"/><path d="M18 33.5l9 9L46 22" fill="none" stroke="#fff" stroke-width="7" '
+    'stroke-linecap="round" stroke-linejoin="round"/></svg>'
+)
 
 
 @app.get("/favicon.svg", include_in_schema=False)
@@ -291,17 +351,26 @@ def favicon():
 
 @app.get("/manifest.webmanifest", include_in_schema=False)
 def manifest():
-    return JSONResponse({"name": "ProveIt", "short_name": "ProveIt", "start_url": "/hud", "display": "standalone",
-                         "background_color": "#EDF0F3", "theme_color": "#3A35C9",
-                         "description": "Find out if anyone wants your product idea before you build it.",
-                         "icons": [{"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml"}]},
-                        media_type="application/manifest+json")
+    return JSONResponse(
+        {
+            "name": "ProveIt",
+            "short_name": "ProveIt",
+            "start_url": "/hud",
+            "display": "standalone",
+            "background_color": "#EDF0F3",
+            "theme_color": "#3A35C9",
+            "description": "Find out if anyone wants your product idea before you build it.",
+            "icons": [{"src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml"}],
+        },
+        media_type="application/manifest+json",
+    )
 
 
 @app.get("/robots.txt", include_in_schema=False)
 def robots():
-    return PlainTextResponse("User-agent: *\nDisallow: /api/\nDisallow: /download/\nDisallow: /hud\nDisallow: /p/\n"
-                             "Disallow: /store/\n")
+    return PlainTextResponse(
+        "User-agent: *\nDisallow: /api/\nDisallow: /download/\nDisallow: /hud\nDisallow: /p/\n" "Disallow: /store/\n"
+    )
 
 
 @app.get("/api/health")
@@ -309,8 +378,16 @@ def health():
     problems = check_writable()
     model = llm.status()
     ok = not problems and model.get("state") in ("ready", "busy", "not attached in this demo")
-    body = {"ok": ok, "version": VERSION, "commit": COMMIT, "startup_problems": problems, "model": model,
-            "tts": voice.tts_status(), "stt": voice.stt_status(), "status_table": STATUS_TABLE}
+    body = {
+        "ok": ok,
+        "version": VERSION,
+        "commit": COMMIT,
+        "startup_problems": problems,
+        "model": model,
+        "tts": voice.tts_status(),
+        "stt": voice.stt_status(),
+        "status_table": STATUS_TABLE,
+    }
     return JSONResponse(body, status_code=200 if ok else 503)
 
 
@@ -336,8 +413,11 @@ _recent_starts: dict[str, tuple[float, str]] = {}
 
 @app.post("/api/runs")
 def create_run(body: RunIn):
-    fields = {k: str(v)[:MAX_IDEA if k == "idea" else 300] for k, v in (body.fields or {}).items()
-              if k in ("idea", "skills", "budget", "hours_per_week", "target_market", "values", "founder_name") and v}
+    fields = {
+        k: str(v)[: MAX_IDEA if k == "idea" else 300]
+        for k, v in (body.fields or {}).items()
+        if k in ("idea", "skills", "budget", "hours_per_week", "target_market", "values", "founder_name") and v
+    }
     if not (body.brief_text.strip() or fields.get("idea", "").strip()):
         raise HTTPException(422, "the idea is required")
     # A double click must not start the same run twice.
@@ -345,8 +425,9 @@ def create_run(body: RunIn):
     prev = _recent_starts.get(key)
     if prev and time.time() - prev[0] < 15:
         return {"run_id": prev[1], "duplicate": True}
-    run_id = orchestrator.start(body.brief_text, fields, body.mode if body.mode in ("live", "full") else "live",
-                                body.label)
+    run_id = orchestrator.start(
+        body.brief_text, fields, body.mode if body.mode in ("live", "full") else "live", body.label
+    )
     _recent_starts[key] = (time.time(), run_id)
     _advance_bg(run_id)
     return {"run_id": run_id}
@@ -381,8 +462,10 @@ def _examples() -> set[str]:
 @app.get("/api/runs")
 def runs():
     ex = _examples()
-    return [dict(r, title=_run_title(r["id"]), example=r["id"] in ex, calibration=(r.get("label") == "backtest"))
-            for r in orchestrator.list_runs(60)]
+    return [
+        dict(r, title=_run_title(r["id"]), example=r["id"] in ex, calibration=(r.get("label") == "backtest"))
+        for r in orchestrator.list_runs(60)
+    ]
 
 
 def _usage_from_log(run_id: str) -> dict:
@@ -406,31 +489,57 @@ def run_view(run_id: str) -> dict:
     try:
         run = orchestrator.load(run_id)
     except KeyError:
-        raise HTTPException(404, "unknown run")
+        raise HTTPException(404, "unknown run") from None
     s = run.state
     v = s.get("variant_n", 1)
     research = s.get("research", {}).get(str(v), {})
-    claims = [c for c in s.get("claims", []) if c.get("hit_id") in research.get("hits", {})] if research else s.get("claims", [])
+    claims = (
+        [c for c in s.get("claims", []) if c.get("hit_id") in research.get("hits", {})]
+        if research
+        else s.get("claims", [])
+    )
     from proveit import gates as g
+
     current = g.thresholds_sha256(s.get("thresholds", {}), run.brief_raw) if s.get("thresholds") else ""
     row = db.query_one("SELECT status FROM runs WHERE id=?", (run.id,)) or {}
-    narr = db.query("SELECT text FROM telemetry WHERE run_id=? AND kind IN ('narration','progress') "
-                    "ORDER BY seq DESC LIMIT 1", (run.id,))
+    narr = db.query(
+        "SELECT text FROM telemetry WHERE run_id=? AND kind IN ('narration','progress') " "ORDER BY seq DESC LIMIT 1",
+        (run.id,),
+    )
     return {
-        "run_id": run.id, "label": run.label, "mode": run.mode, "stage": run.stage, "phase": s.get("phase", 1),
-        "idea": re.sub(r"(?i)^idea\s*:\s*", "", _idea_text(run)), "title": _run_title(run.id),
-        "brief": s.get("brief"), "thresholds_sha256": run.sha, "goalpost_moved": bool(current and current != run.sha),
-        "thresholds": s.get("thresholds", {}).get("gate1_evidence"), "variants": s.get("variants", []),
-        "variant_n": v, "claims": claims, "metrics": research.get("metrics"), "coverage_rows": research.get("coverage_rows"),
-        "gate1": s.get("gate1"), "gate2": s.get("gate2"), "gate3": s.get("gate3"), "gate4": s.get("gate4"),
-        "debate": s.get("debate"), "override": s.get("override"), "clarify": s.get("clarify"),
-        "pending_approval": s.get("pending_approval"), "usage": _usage_from_log(run.id),
-        "error": s.get("error"), "error_message": s.get("error_message"),
+        "run_id": run.id,
+        "label": run.label,
+        "mode": run.mode,
+        "stage": run.stage,
+        "phase": s.get("phase", 1),
+        "idea": re.sub(r"(?i)^idea\s*:\s*", "", _idea_text(run)),
+        "title": _run_title(run.id),
+        "brief": s.get("brief"),
+        "thresholds_sha256": run.sha,
+        "goalpost_moved": bool(current and current != run.sha),
+        "thresholds": s.get("thresholds", {}).get("gate1_evidence"),
+        "variants": s.get("variants", []),
+        "variant_n": v,
+        "claims": claims,
+        "metrics": research.get("metrics"),
+        "coverage_rows": research.get("coverage_rows"),
+        "gate1": s.get("gate1"),
+        "gate2": s.get("gate2"),
+        "gate3": s.get("gate3"),
+        "gate4": s.get("gate4"),
+        "debate": s.get("debate"),
+        "override": s.get("override"),
+        "clarify": s.get("clarify"),
+        "pending_approval": s.get("pending_approval"),
+        "usage": _usage_from_log(run.id),
+        "error": s.get("error"),
+        "error_message": s.get("error_message"),
         "order": {k: s.get("order", {}).get(k) for k in ("id", "amount")} if s.get("order") else None,
         "files": sorted(p.name for p in run.dir.iterdir() if p.is_file()),
         "working": bool(_workers.get(run.id) and _workers[run.id].is_alive()),
         "actions": [] if DEMO else orchestrator.allowed_decisions(run),
-        "status": row.get("status"), "latest": narr[0]["text"] if narr else "",
+        "status": row.get("status"),
+        "latest": narr[0]["text"] if narr else "",
         "created_at": (db.query_one("SELECT created_at FROM runs WHERE id=?", (run.id,)) or {}).get("created_at"),
     }
 
@@ -459,7 +568,7 @@ def get_file(run_id: str, name: str):
         raise HTTPException(404, "no such file")
     base = (runs_dir() / run_id).resolve()
     p = (base / name).resolve()
-    if base not in p.parents or not p.is_file():          # never serve anything outside the run's folder
+    if base not in p.parents or not p.is_file():  # never serve anything outside the run's folder
         raise HTTPException(404, "no such file")
     return PlainTextResponse(p.read_text(encoding="utf-8"))
 
@@ -470,7 +579,7 @@ def continue_run(run_id: str):
     try:
         res = orchestrator.retry(run_id)
     except KeyError:
-        raise HTTPException(404, "unknown run")
+        raise HTTPException(404, "unknown run") from None
     if res.get("ok"):
         _advance_bg(run_id)
     return res
@@ -486,13 +595,14 @@ def decide(run_id: str, body: DecideIn):
     try:
         res = orchestrator.founder_decide(run_id, body.decision, body.reason)
     except KeyError:
-        raise HTTPException(404, "unknown run")
+        raise HTTPException(404, "unknown run") from None
     if res.get("ok"):
         _advance_bg(run_id)
     return res
 
 
 # ---- approvals (the hash-locked buttons) ---------------------------------------------
+
 
 @app.get("/api/approvals")
 def list_approvals(run: str | None = None, status: str | None = None):
@@ -529,6 +639,7 @@ def decide_approval(approval_id: str, body: ApproveIn):
 
 
 # ---- Ask the assistant -------------------------------------------------------------------
+
 
 class AskIn(BaseModel):
     text: str = Field(max_length=2000)
@@ -613,6 +724,7 @@ def preset(name: str):
 
 # ---- voice -----------------------------------------------------------------------------
 
+
 class SpeakIn(BaseModel):
     text: str = Field(max_length=1200)
 
@@ -643,6 +755,7 @@ def voice_status():
 
 # ---- published pages (approved bytes only) ----------------------------------------------
 
+
 def _serve(request: Request, run_id: str, kind: str):
     got = approval.published_payload(run_id, kind)
     if got is None:
@@ -662,13 +775,25 @@ def signup(request: Request, run_id: str, email: str = Form(..., max_length=320)
     if approval.published_payload(run_id, "landing") is None:
         raise HTTPException(409, "not approved")
     if not re.fullmatch(r"[^@\s]{1,64}@[^@\s]{1,255}", email):
-        return _render_page(422, "That email doesn't look right", "Go back and check the address.",
-                            back=f"/p/{run_id}", back_label="Back to the page")
+        return _render_page(
+            422,
+            "That email doesn't look right",
+            "Go back and check the address.",
+            back=f"/p/{run_id}",
+            back_label="Back to the page",
+        )
     # Public hosting is STUBBED: every sign-up is a test sign-up and is excluded from every gate.
     db.execute("INSERT INTO signups (run_id, email, ts, test) VALUES (?,?,?,1)", (run_id, email, utcnow()))
-    return _render_page(200, "You're on the list", "Thanks. We stored only your email address and the time. "
-                        "This page runs locally (public hosting is STUBBED), so this sign-up is marked as a test "
-                        "and never counts as demand.", back=f"/p/{run_id}", back_label="Back to the page", tone="ok")
+    return _render_page(
+        200,
+        "You're on the list",
+        "Thanks. We stored only your email address and the time. "
+        "This page runs locally (public hosting is STUBBED), so this sign-up is marked as a test "
+        "and never counts as demand.",
+        back=f"/p/{run_id}",
+        back_label="Back to the page",
+        tone="ok",
+    )
 
 
 @app.get("/store/{run_id}", response_class=HTMLResponse)
@@ -686,12 +811,16 @@ def buy(request: Request, run_id: str):
     order_id = provider.create_order(run_id, price)
     res = webhooks.handle(provider.create_checkout(order_id, price))
     html = _env.get_template("status.html.j2").render(
-        status=200, tone="ok", title="Practice purchase complete",
+        status=200,
+        tone="ok",
+        title="Practice purchase complete",
         body=f"This was a MOCKED test purchase of ${price:.2f} (order {order_id}). No money moved and no card "
-             "details were asked for. Your download link works for 24 hours.",
-        back=f"/store/{run_id}", back_label="Back to the store",
+        "details were asked for. Your download link works for 24 hours.",
+        back=f"/store/{run_id}",
+        back_label="Back to the store",
         actions=[{"href": f"/download/{res['token']}", "label": "Download the files"}],
-        refund_order=order_id)
+        refund_order=order_id,
+    )
     return HTMLResponse(html)
 
 
@@ -702,9 +831,14 @@ def refund_request(request: Request, order_id: str):
         raise HTTPException(404)
     ap = refunds.request(o["run_id"], order_id)
     if "text/html" in request.headers.get("accept", ""):
-        return _render_page(202, "Refund requested", "The founder has to approve this refund before anything happens. "
-                            "ProveIt never refunds money on its own; this is a MOCKED practice refund.",
-                            back=f"/store/{o['run_id']}", back_label="Back to the store")
+        return _render_page(
+            202,
+            "Refund requested",
+            "The founder has to approve this refund before anything happens. "
+            "ProveIt never refunds money on its own; this is a MOCKED practice refund.",
+            back=f"/store/{o['run_id']}",
+            back_label="Back to the store",
+        )
     return {"approval_id": ap.id, "status": ap.status, "payload_sha256": ap.payload_sha256}
 
 
@@ -713,7 +847,7 @@ async def webhook(request: Request):
     try:
         event = await request.json()
     except ValueError:
-        raise webhooks.BadEvent("body must be JSON")
+        raise webhooks.BadEvent("body must be JSON") from None
     return webhooks.handle(event)
 
 
@@ -726,4 +860,6 @@ def download(request: Request, token: str):
     o = db.query_one("SELECT run_id FROM orders WHERE id=?", (order_id,))
     files = sorted((runs_dir() / o["run_id"]).glob("phase3_step*"))
     body = "\n\n".join(f"===== {f.name} =====\n{f.read_text(encoding='utf-8')}" for f in files)
-    return PlainTextResponse(body or "product files", headers={"Content-Disposition": "attachment; filename=toolkit.txt"})
+    return PlainTextResponse(
+        body or "product files", headers={"Content-Disposition": "attachment; filename=toolkit.txt"}
+    )

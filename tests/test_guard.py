@@ -1,5 +1,6 @@
 """Guard evals (rules only). CI requires 100% on rules_only must-refuse and on must-pass.
 The model layer and the held-out set run with `pytest -m llm` (needs NVIDIA_API_KEY)."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -54,15 +55,41 @@ def test_model_layer(item):  # pragma: no cover - needs the local model
 def test_scout_angles_get_the_excluded_category_check_and_are_never_pivoted_to(monkeypatch):
     from proveit import orchestrator
     from proveit.models import Variant
-    ok = Variant(n=1, title="Late-Payment Follow-Up Toolkit", segment="freelance designers",
-                 job_to_be_done="send invoice reminders", pain_queries=["clients pay invoices late"])
-    legal = Variant(n=2, title="Client Payment Terms Pack", segment="freelance web developers",
-                    job_to_be_done="define payment terms in contracts", competitor_query="freelance contract templates")
+
+    ok = Variant(
+        n=1,
+        title="Late-Payment Follow-Up Toolkit",
+        segment="freelance designers",
+        job_to_be_done="send invoice reminders",
+        pain_queries=["clients pay invoices late"],
+    )
+    legal = Variant(
+        n=2,
+        title="Client Payment Terms Pack",
+        segment="freelance web developers",
+        job_to_be_done="define payment terms in contracts",
+        competitor_query="freelance contract templates",
+    )
     assert orchestrator.excluded_variant(ok) is None
     assert "legal" in orchestrator.excluded_variant(legal)
-    monkeypatch.setattr(orchestrator.scorer, "rank", lambda run_id, brief, vs, months: [
-        {"n": v.n, "title": v.title, "comments_checked": 1, "on_topic": 1, "complaints": 1, "fit": 1.0,
-         "errors": 0, "signal": 1.0, "chosen": True} for v in vs])
+    monkeypatch.setattr(
+        orchestrator.scorer,
+        "rank",
+        lambda run_id, brief, vs, months: [
+            {
+                "n": v.n,
+                "title": v.title,
+                "comments_checked": 1,
+                "on_topic": 1,
+                "complaints": 1,
+                "fit": 1.0,
+                "errors": 0,
+                "signal": 1.0,
+                "chosen": True,
+            }
+            for v in vs
+        ],
+    )
     run = orchestrator.Run.__new__(orchestrator.Run)
     run.id = "test"
     run.state = {"variants": [ok.model_dump(), legal.model_dump()], "variant_n": 1, "research": {"1": {}}}
@@ -73,15 +100,19 @@ def test_scout_angles_get_the_excluded_category_check_and_are_never_pivoted_to(m
 
 def test_outward_copy_never_invents_the_founders_reason_or_experience():
     from proveit import guard
-    for text in ["I made this because keeping tabs on which invoices are sent was eating up my week.",
-                 "I built this toolkit because I kept chasing clients.",
-                 "After 7 years as a freelancer I know the pain."]:
+
+    for text in [
+        "I made this because keeping tabs on which invoices are sent was eating up my week.",
+        "I built this toolkit because I kept chasing clients.",
+        "After 7 years as a freelancer I know the pain.",
+    ]:
         assert guard.check_output(text).verdict == "refuse", text
     assert guard.check_output("Made for freelance designers who track invoices across clients.").verdict == "allow"
 
 
 def test_outward_copy_never_offers_contract_or_agreement_templates():
     from proveit import guard
+
     assert guard.check_output("Ready-to-use deposit agreement and invoice templates").verdict == "refuse"
     assert guard.check_output("Can I customize the templates for my own contracts?").verdict == "refuse"
     assert guard.check_output("Invoice reminder email templates").verdict == "allow"

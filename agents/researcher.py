@@ -1,4 +1,5 @@
 """Researcher agent: sees numbered sentences, returns only IDs. Code builds every quote."""
+
 from __future__ import annotations
 
 from typing import Literal
@@ -36,16 +37,19 @@ BATCH = 7  # threads per call (a 4B model needed 4; the hosted 550B model handle
 def run(run_id: str, variant: Variant, hits: list[Hit], shown_ids: dict[str, list[int]]) -> list[dict]:
     items: list[dict] = []
     for i in range(0, len(hits), BATCH):
-        items += _run_batch(run_id, variant, hits[i:i + BATCH], shown_ids)
+        items += _run_batch(run_id, variant, hits[i : i + BATCH], shown_ids)
     return items
 
 
 def _run_batch(run_id: str, variant: Variant, hits: list[Hit], shown_ids: dict[str, list[int]]) -> list[dict]:
-    user = (f"VARIANT: {variant.title}\nSEGMENT: {variant.segment}\nJOB TO BE DONE: {variant.job_to_be_done}\n\n"
-            f"NUMBERED SENTENCES:\n{numbered_block(hits, shown_ids)}\n\n"
-            "Return the claims as JSON. Use only the hit IDs and sentence numbers shown above.")
-    out = llm.agent_call(run_id, "researcher", "extract_claims", ResearcherOut, user, num_predict=1200,
-                         sources=[h.url for h in hits])
+    user = (
+        f"VARIANT: {variant.title}\nSEGMENT: {variant.segment}\nJOB TO BE DONE: {variant.job_to_be_done}\n\n"
+        f"NUMBERED SENTENCES:\n{numbered_block(hits, shown_ids)}\n\n"
+        "Return the claims as JSON. Use only the hit IDs and sentence numbers shown above."
+    )
+    out = llm.agent_call(
+        run_id, "researcher", "extract_claims", ResearcherOut, user, num_predict=1200, sources=[h.url for h in hits]
+    )
     allowed = {h.id: set(shown_ids[h.id]) for h in hits}
     items = []
     for c in out.claims:

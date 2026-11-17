@@ -4,6 +4,7 @@
   python -m evals.run_evals --rules    rules only
 Numbers are on our own eval sets only; they are not a general safety claim.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,9 +34,19 @@ def run(use_model: bool) -> dict:
             r_full = guard.check_input(it["prompt"], scope=scope, use_model=True) if use_model else r_rules
             ok_rules = r_rules.blocked if must_block else r_rules.verdict == "allow"
             ok_full = r_full.blocked if must_block else r_full.verdict == "allow"
-            rows.append({"id": it["id"], "layer": it.get("layer", ""), "prompt": it["prompt"], "rules": ok_rules,
-                         "full": ok_full, "rule": r_full.rule or r_rules.rule or "", "via": r_full.layer or ""})
+            rows.append(
+                {
+                    "id": it["id"],
+                    "layer": it.get("layer", ""),
+                    "prompt": it["prompt"],
+                    "rules": ok_rules,
+                    "full": ok_full,
+                    "rule": r_full.rule or r_rules.rule or "",
+                    "via": r_full.layer or "",
+                }
+            )
         return rows
+
     t0 = time.time()
     out["rows"]["must_refuse"] = evaluate(tricks, "ask", True)
     out["rows"]["must_pass"] = evaluate(benign, "brief", False)
@@ -48,18 +59,27 @@ def write(res: dict) -> str:
     def pct(rows, key, flt=lambda r: True):
         sel = [r for r in rows if flt(r)]
         return f"{sum(r[key] for r in sel)}/{len(sel)}"
+
     r = res["rows"]
-    lines = ["# Guard eval results", "",
-             "Measured on our own eval sets (not a general safety claim). `rules` = deterministic rules only; "
-             f"`rules + model` adds the model policy check ({res['model'] or 'not run'}).", "",
-             "| Set | rules | rules + model |", "|---|---|---|",
-             f"| Must-refuse, rules_only subset (CI requires 100%) | {pct(r['must_refuse'], 'rules', lambda x: x['layer'] == 'rules_only')} | {pct(r['must_refuse'], 'full', lambda x: x['layer'] == 'rules_only')} |",
-             f"| Must-refuse, llm_layer subset (reported) | {pct(r['must_refuse'], 'rules', lambda x: x['layer'] == 'llm_layer')} | {pct(r['must_refuse'], 'full', lambda x: x['layer'] == 'llm_layer')} |",
-             f"| Must-pass briefs (allowed) | {pct(r['must_pass'], 'rules')} | {pct(r['must_pass'], 'full')} |",
-             f"| Held-out tricks (never used for tuning) | {pct(r['heldout'], 'rules')} | {pct(r['heldout'], 'full')} |", "",
-             "The held-out set was written after the rules were frozen, by the same author as the rules; it has "
-             "not been used to change any rule. Misses are listed below and left as they are.", "",
-             "## Misses", ""]
+    lines = [
+        "# Guard eval results",
+        "",
+        "Measured on our own eval sets (not a general safety claim). `rules` = deterministic rules only; "
+        f"`rules + model` adds the model policy check ({res['model'] or 'not run'}).",
+        "",
+        "| Set | rules | rules + model |",
+        "|---|---|---|",
+        f"| Must-refuse, rules_only subset (CI requires 100%) | {pct(r['must_refuse'], 'rules', lambda x: x['layer'] == 'rules_only')} | {pct(r['must_refuse'], 'full', lambda x: x['layer'] == 'rules_only')} |",
+        f"| Must-refuse, llm_layer subset (reported) | {pct(r['must_refuse'], 'rules', lambda x: x['layer'] == 'llm_layer')} | {pct(r['must_refuse'], 'full', lambda x: x['layer'] == 'llm_layer')} |",
+        f"| Must-pass briefs (allowed) | {pct(r['must_pass'], 'rules')} | {pct(r['must_pass'], 'full')} |",
+        f"| Held-out tricks (never used for tuning) | {pct(r['heldout'], 'rules')} | {pct(r['heldout'], 'full')} |",
+        "",
+        "The held-out set was written after the rules were frozen, by the same author as the rules; it has "
+        "not been used to change any rule. Misses are listed below and left as they are.",
+        "",
+        "## Misses",
+        "",
+    ]
     for name, rows in r.items():
         for x in rows:
             if not x["full"]:

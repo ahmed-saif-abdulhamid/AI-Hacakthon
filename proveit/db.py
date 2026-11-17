@@ -3,6 +3,7 @@
 The path comes from PROVEIT_DB. ``:memory:`` keeps one shared connection so tests
 never touch the files on disk.
 """
+
 from __future__ import annotations
 
 import os

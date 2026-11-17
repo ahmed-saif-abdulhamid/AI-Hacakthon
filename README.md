@@ -1,13 +1,13 @@
-# ProveIt
+# J.A.R.V.I.S. by ProveIt
 
-**Find out if anyone wants it before you build it.**
+**Meet J.A.R.V.I.S., the AI venture team that tells you whether anyone wants your product before you build it.** Talk to it, type to it, or hand it a founder brief: a team of agents researches real public complaints, decides each gate by rule, and only acts when you approve. It runs entirely on a local open-weight model with one command, `docker compose up`.
 
 **The problem:** first-time founders spend months building digital products nobody asked for, and most AI business tools make it worse: they write a confident business plan, promise income and never say "don't". **The user:** a solo founder or small team with an idea, a few hours a week and a small budget. **What ProveIt does:** a team of AI agents takes the founder's brief (idea, skills, budget, time, market, values) through six phases, from Discover to Operate and learn. Between phases, code-decided gates say **go, repeat, pivot or stop**, against a bar hashed before any searching starts. Nothing is published, sent or refunded without the founder approving the exact bytes.
 
 | It is | It is not |
 |---|---|
 | A six-phase pipeline whose gates are decided by code, with quotes cut by code from public posts and re-checked on their source page | A business-plan generator, an income promise, or an autopilot that posts, sells or moves money |
-| Free: open-weight NVIDIA Nemotron on NVIDIA's free hosted tier (a free key, no card) | A paid API wrapper |
+| Free and local: an open-weight model (Qwen3 8B) runs on your computer through Ollama; no key, no account | A paid API wrapper |
 | Honest about what is MOCKED or STUBBED, in this README and on screen | A demo that hides its mocks |
 
 **What the committed runs show** ([outputs/](outputs/), [decision_log.json](decision_log.json)):
@@ -23,9 +23,9 @@
 docker compose up
 ```
 
-Then open **http://localhost:8000**. The two committed runs load on first start, so you can read every verdict, quote, gate file and approval **without any key**. To test your own idea, copy `.env.example` to `.env` and set `NVIDIA_API_KEY` (a free key from [build.nvidia.com](https://build.nvidia.com): open any model page and choose **Get API Key**; no card), restart, and press **Test a new idea**. A developer view with raw details runs on http://localhost:8501.
+Then open **http://localhost:8000** and say hello to J.A.R.V.I.S. (type, or hold the talk button). **No key, no account, no paid service:** the first start downloads the local open-weight model (`qwen3:8b` through Ollama, about 5 GB, once) into a Docker volume, and the two committed runs load straight away, so every verdict, quote, gate file and approval is readable while the model downloads. Then press **Test a new idea**. A developer view with raw details runs on http://localhost:8501.
 
-Without Docker: `pip install -r requirements.txt`, put `NVIDIA_API_KEY` in `.env`, then `uvicorn app.api:app` (console) or `python -m proveit run briefs/weak.md` (command line). Tests: `python -m pytest`.
+Without Docker: `pip install -r requirements.txt`, run [Ollama](https://ollama.com) with `ollama pull qwen3:8b` (or set `LLM_PROVIDER=nvidia` and a free `NVIDIA_API_KEY` in `.env`), then `uvicorn app.api:app` (console) or `python -m proveit run briefs/weak.md` (command line). Tests: `python -m pytest`.
 
 ## What works and what is mocked
 
@@ -66,16 +66,16 @@ Eleven agents work through six phases, but only plain Python code calls tools, c
 
 ## Models and free resources
 
-- **Model:** `nvidia/nemotron-3-ultra-550b-a55b` (NVIDIA Nemotron 3 Ultra, open weights on Hugging Face under the OpenMDW-1.1 licence), with thinking switched off for speed, called through NVIDIA's OpenAI-compatible API at `https://integrate.api.nvidia.com/v1`. Change it with `NVIDIA_MODEL`; `NVIDIA_BASE_URL` points the same client at any OpenAI-compatible server, including a self-hosted one.
-- **How to run without paying:** a free developer key from build.nvidia.com (no card) in `.env`. The free tier is rate-limited (about 40 requests a minute per account); ProveIt paces itself to 30 a minute (`LLM_RPM`), backs off on HTTP 429, and when the service is still busy it pauses the run visibly and retries the same step up to three times before showing a **Try again** button. A retry reuses the search already made, so nothing is counted twice.
+- **Default model (local):** `qwen3:8b` (Qwen3 8B, open weights, Apache-2.0) served by Ollama `0.40.10` inside Docker. `docker compose up` downloads it into the `ollama-models` volume on first start; nothing leaves the computer except the public searches. Change it with `OLLAMA_MODEL` (for example `qwen3:4b` on a slower machine). Ollama uses an NVIDIA GPU when Docker exposes one, otherwise the CPU (slower: a Phase 1 verdict takes a few minutes instead of seconds).
+- **Optional hosted model:** `nvidia/nemotron-3-ultra-550b-a55b` (NVIDIA Nemotron 3 Ultra, open weights under OpenMDW-1.1) on NVIDIA's OpenAI-compatible free developer tier: set `LLM_PROVIDER=nvidia` and a free key from build.nvidia.com (no card). The committed runs used this provider. It is rate-limited (about 40 requests a minute); ProveIt paces itself to 30 (`LLM_RPM`), backs off on HTTP 429 and retries the same step before showing **Try again**, reusing the search already made.
 - **Structured output:** every agent call sends its JSON schema as `response_format`, at temperature 0; invalid JSON is retried once and then turned into a REPEAT ("the research didn't come back clean"), never into a weak-idea verdict.
-- **Privacy:** ideas, quotes and questions are sent to NVIDIA's API; searches go to Hacker News, Stack Exchange, GitHub, Wikipedia and (in Docker) a self-hosted SearXNG. Runs and decisions stay on your computer. Details are in the console under **Privacy**.
+- **Privacy:** with the default local model, ideas, quotes and questions stay on your computer (with `LLM_PROVIDER=nvidia` they go to NVIDIA's API); searches go to Hacker News, Stack Exchange, GitHub, Wikipedia and (in Docker) a self-hosted SearXNG. Runs and decisions stay on your computer. Details are in the console under **Privacy**.
 - **Optional free keys** (`SE_KEY`, `GITHUB_TOKEN`) only raise public search rate limits.
 - **Voice:** Piper text-to-speech (`requirements-voice.txt`, British voice `en_GB-alan-medium`) runs on your computer when installed; otherwise the browser's own voice. Speech recognition is the browser's. No paid speech API.
 
 ## Cost per run
 
-**About $0.00 per run** (NVIDIA's free developer tier, no card). Measured from the committed [decision_log.json](decision_log.json):
+**About $0.00 per run**: the default model runs locally (electricity only); the committed runs used NVIDIA's free developer tier, also $0.00. Measured from the committed [decision_log.json](decision_log.json):
 
 | Run | Model | Model calls | Tokens (in + out) | Model time | Cost |
 |---|---|---|---|---|---|

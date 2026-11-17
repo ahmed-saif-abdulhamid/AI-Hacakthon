@@ -8,6 +8,8 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.11" }
       - run: pip install -r requirements.txt
+      - name: Lint and format (ruff)
+        run: pip install ruff==0.8.6 && ruff check . && ruff format --check .
       # The smoke tests use a fake LLM fixture that lives only in tests/; real runs use the hosted open-weight model.
       - run: python -m pytest
       - name: No secrets committed

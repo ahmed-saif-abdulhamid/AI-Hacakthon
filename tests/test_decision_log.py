@@ -1,5 +1,6 @@
 """The committed decision_log.json: a JSON array, five required keys on every entry,
 byte-identical to runs/promoted/decision_log.json and matching runs/promoted/runs.json."""
+
 from __future__ import annotations
 
 import json
@@ -22,7 +23,7 @@ def test_is_array_with_required_keys():
             assert k in e, (k, e)
         assert isinstance(e["action"], str) and isinstance(e["sources"], list)
         assert e["model"] is None or isinstance(e["model"], str)
-        assert isinstance(e["cost"], (int, float))
+        assert isinstance(e["cost"], int | float)
         assert e["approved_by"] in (None, "founder")
 
 

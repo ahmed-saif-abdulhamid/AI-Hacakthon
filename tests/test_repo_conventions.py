@@ -1,5 +1,6 @@
 """Repository conventions: required files, headings in order, licence, compose,
 placeholders only in .env.example, no secrets and no text addressed to whoever reviews the repo."""
+
 from __future__ import annotations
 
 import re
@@ -8,8 +9,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-README_HEADINGS = ["Quickstart", "What works and what is mocked", "Architecture", "Models and free resources",
-                   "Cost per run", "What our system will NOT do", "How the project stays alive after the hackathon"]
+README_HEADINGS = [
+    "Quickstart",
+    "What works and what is mocked",
+    "Architecture",
+    "Models and free resources",
+    "Cost per run",
+    "What our system will NOT do",
+    "How the project stays alive after the hackathon",
+]
 ARCH_HEADINGS = ["Overview", "Phases", "Gates", "Sale to cash", "Data flow", "Built vs. stubbed", "Roadmap"]
 
 
@@ -18,15 +26,51 @@ def h2(path: str) -> list[str]:
 
 
 def test_required_files_exist():
-    for f in ("README.md", "LICENSE", "docker-compose.yml", "decision_log.json", "ARCHITECTURE.md", ".env.example",
-              "orchestrator.py", "gates.py", "approval.py", "payments.py", "webhooks.py", "delivery.py", "refunds.py",
-              "reconcile.py", "CLAUDE.md"):
+    for f in (
+        "README.md",
+        "LICENSE",
+        "docker-compose.yml",
+        "decision_log.json",
+        "ARCHITECTURE.md",
+        ".env.example",
+        "orchestrator.py",
+        "gates.py",
+        "approval.py",
+        "payments.py",
+        "webhooks.py",
+        "delivery.py",
+        "refunds.py",
+        "reconcile.py",
+        "CLAUDE.md",
+    ):
         assert (ROOT / f).exists(), f
-    for role in ("intake", "scout", "researcher", "debate", "strategist", "builder", "qa", "pricer",
-                 "policy_drafter", "launcher", "analyst"):
+    for role in (
+        "intake",
+        "scout",
+        "researcher",
+        "debate",
+        "strategist",
+        "builder",
+        "qa",
+        "pricer",
+        "policy_drafter",
+        "launcher",
+        "analyst",
+    ):
         assert (ROOT / "agents" / f"{role}.py").exists(), role
-    for p in ("intake", "scout", "researcher", "advocate", "skeptic", "strategist", "builder", "pricer",
-              "policy_drafter", "launcher", "analyst"):
+    for p in (
+        "intake",
+        "scout",
+        "researcher",
+        "advocate",
+        "skeptic",
+        "strategist",
+        "builder",
+        "pricer",
+        "policy_drafter",
+        "launcher",
+        "analyst",
+    ):
         assert (ROOT / "prompts" / f"{p}.md").exists(), p
 
 
@@ -73,12 +117,31 @@ def test_env_example_placeholders_only():
 
 def _tracked_text_files() -> list[Path]:
     try:
-        out = subprocess.run(["git", "ls-files", "--cached", "--others", "--exclude-standard"], cwd=ROOT,
-                             capture_output=True, text=True, check=True).stdout.split()
+        out = subprocess.run(
+            ["git", "ls-files", "--cached", "--others", "--exclude-standard"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.split()
     except Exception:  # noqa: BLE001
         return []
-    keep = (".py", ".md", ".yaml", ".yml", ".json", ".j2", ".txt", ".toml", ".ini", ".csv", ".html", "Makefile",
-            "Dockerfile", ".example")
+    keep = (
+        ".py",
+        ".md",
+        ".yaml",
+        ".yml",
+        ".json",
+        ".j2",
+        ".txt",
+        ".toml",
+        ".ini",
+        ".csv",
+        ".html",
+        "Makefile",
+        "Dockerfile",
+        ".example",
+    )
     return [ROOT / f for f in out if f.endswith(keep) and f != "CLAUDE.md"]
 
 

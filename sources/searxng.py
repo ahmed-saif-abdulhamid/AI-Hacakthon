@@ -1,5 +1,6 @@
 """SearXNG metasearch (self-hosted container). Snippets are not evidence: the top result
 pages are fetched and their text is split into sentences."""
+
 from __future__ import annotations
 
 import os

@@ -1,5 +1,6 @@
 """Reconciliation (MOCKED data): matches orders, payments, fees, net and payouts, and
 flags mismatches. Output: phase5_step3_reconciliation.csv."""
+
 from __future__ import annotations
 
 import csv
@@ -8,8 +9,19 @@ import io
 from proveit import db
 from proveit.log import log_action
 
-COLUMNS = ["order_id", "order_amount", "payment_amount", "fee", "net", "payout_id", "payout_amount",
-           "refund_amount", "order_status", "test", "check"]
+COLUMNS = [
+    "order_id",
+    "order_amount",
+    "payment_amount",
+    "fee",
+    "net",
+    "payout_id",
+    "payout_amount",
+    "refund_amount",
+    "order_status",
+    "test",
+    "check",
+]
 
 
 def run(run_id: str) -> tuple[str, dict]:
@@ -31,10 +43,21 @@ def run(run_id: str) -> tuple[str, dict]:
         if o["status"] == "refunded" and rf is None:
             problems.append("refund_missing")
         mismatches += bool(problems)
-        rows.append({"order_id": o["id"], "order_amount": o["amount"], "payment_amount": p["amount"] if p else "",
-                     "fee": p["fee"] if p else "", "net": p["net"] if p else "", "payout_id": p["payout_id"] if p else "",
-                     "payout_amount": po["amount"] if po else "", "refund_amount": rf["amount"] if rf else 0,
-                     "order_status": o["status"], "test": "true", "check": "|".join(problems) or "matched"})
+        rows.append(
+            {
+                "order_id": o["id"],
+                "order_amount": o["amount"],
+                "payment_amount": p["amount"] if p else "",
+                "fee": p["fee"] if p else "",
+                "net": p["net"] if p else "",
+                "payout_id": p["payout_id"] if p else "",
+                "payout_amount": po["amount"] if po else "",
+                "refund_amount": rf["amount"] if rf else 0,
+                "order_status": o["status"],
+                "test": "true",
+                "check": "|".join(problems) or "matched",
+            }
+        )
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=COLUMNS, lineterminator="\n")
     w.writeheader()

@@ -6,6 +6,7 @@
   ``payload_sha256`` match the bytes being executed. One changed byte voids it.
 * ``spend``, ``sign`` and ``create_account`` always raise ``NotEnabled``.
 """
+
 from __future__ import annotations
 
 import functools
@@ -17,8 +18,16 @@ from . import db
 from .log import log_action, utcnow
 from .models import Approval
 
-GATED_ACTIONS = ("publish_landing_page", "open_store", "publish_post", "send_email",
-                 "refund", "spend", "sign", "create_account")
+GATED_ACTIONS = (
+    "publish_landing_page",
+    "open_store",
+    "publish_post",
+    "send_email",
+    "refund",
+    "spend",
+    "sign",
+    "create_account",
+)
 NEVER_ENABLED = ("spend", "sign", "create_account")
 STUBBED_ADAPTERS = ("publish_post", "send_email")
 
@@ -39,20 +48,29 @@ def _row(r: dict | None) -> Approval | None:
     return Approval(**r) if r else None
 
 
-def request(run_id: str, action: str, payload: bytes, note: str = "",
-            content_type: str = "text/plain") -> Approval:
+def request(run_id: str, action: str, payload: bytes, note: str = "", content_type: str = "text/plain") -> Approval:
     if action not in GATED_ACTIONS:
         raise ValueError(f"unknown gated action {action}")
     digest = sha256(payload)
-    db.execute("INSERT OR IGNORE INTO blobs (sha256, payload, content_type) VALUES (?,?,?)",
-               (digest, payload, content_type))
-    ap = Approval(id="AP-" + uuid.uuid4().hex[:10], run_id=run_id, action=action,
-                  payload_sha256=digest, status="pending", note=note)
-    db.execute("INSERT INTO approvals (id, run_id, action, payload_sha256, status, decided_by,"
-               " decided_at, created_at, note) VALUES (?,?,?,?,?,?,?,?,?)",
-               (ap.id, run_id, action, digest, "pending", None, None, utcnow(), note))
-    log_action(run_id, "approval", f"request_approval_{action}", approved_by=None,
-               approval_id=ap.id, payload_sha256=digest)
+    db.execute(
+        "INSERT OR IGNORE INTO blobs (sha256, payload, content_type) VALUES (?,?,?)", (digest, payload, content_type)
+    )
+    ap = Approval(
+        id="AP-" + uuid.uuid4().hex[:10],
+        run_id=run_id,
+        action=action,
+        payload_sha256=digest,
+        status="pending",
+        note=note,
+    )
+    db.execute(
+        "INSERT INTO approvals (id, run_id, action, payload_sha256, status, decided_by,"
+        " decided_at, created_at, note) VALUES (?,?,?,?,?,?,?,?,?)",
+        (ap.id, run_id, action, digest, "pending", None, None, utcnow(), note),
+    )
+    log_action(
+        run_id, "approval", f"request_approval_{action}", approved_by=None, approval_id=ap.id, payload_sha256=digest
+    )
     return ap
 
 
@@ -79,11 +97,19 @@ def decide(approval_id: str, approve: bool, via: str = "cli") -> Approval:
     if ap.status != "pending":
         return ap
     status = "approved" if approve else "rejected"
-    db.execute("UPDATE approvals SET status=?, decided_by=?, decided_at=? WHERE id=?",
-               (status, "founder", utcnow(), approval_id))
-    log_action(ap.run_id, "founder", f"{'approve' if approve else 'reject'}_{ap.action}",
-               approved_by="founder" if approve else None, approval_id=approval_id,
-               payload_sha256=ap.payload_sha256, via=via)
+    db.execute(
+        "UPDATE approvals SET status=?, decided_by=?, decided_at=? WHERE id=?",
+        (status, "founder", utcnow(), approval_id),
+    )
+    log_action(
+        ap.run_id,
+        "founder",
+        f"{'approve' if approve else 'reject'}_{ap.action}",
+        approved_by="founder" if approve else None,
+        approval_id=approval_id,
+        payload_sha256=ap.payload_sha256,
+        via=via,
+    )
     return load(approval_id)
 
 
@@ -108,30 +134,44 @@ def gated(action: str):
         def inner(payload: bytes, approval_id: str | None, *a, **k):
             ap = load(approval_id) if approval_id else None
             run_id = ap.run_id if ap else k.get("run_id")
-            if not (ap and ap.status == "approved" and ap.action == action
-                    and ap.payload_sha256 == sha256(payload)):
-                log_action(run_id, "executor", f"blocked_{action}", approved_by=None,
-                           approval_id=approval_id,
-                           reason="no matching founder approval for these exact bytes")
+            if not (ap and ap.status == "approved" and ap.action == action and ap.payload_sha256 == sha256(payload)):
+                log_action(
+                    run_id,
+                    "executor",
+                    f"blocked_{action}",
+                    approved_by=None,
+                    approval_id=approval_id,
+                    reason="no matching founder approval for these exact bytes",
+                )
                 raise ApprovalRequired(action)
             if action in NEVER_ENABLED:
-                log_action(run_id, "executor", f"not_enabled_{action}", approved_by=None,
-                           approval_id=approval_id)
+                log_action(run_id, "executor", f"not_enabled_{action}", approved_by=None, approval_id=approval_id)
                 raise NotEnabled(f"{action} is never performed by this system")
-            log_action(run_id, "executor", action, approved_by="founder", approval_id=approval_id,
-                       payload_sha256=ap.payload_sha256)
+            log_action(
+                run_id,
+                "executor",
+                action,
+                approved_by="founder",
+                approval_id=approval_id,
+                payload_sha256=ap.payload_sha256,
+            )
             return fn(payload, *a, **k)
+
         inner.gated_action = action
         return inner
+
     return deco
 
 
 # ---- gated executors -------------------------------------------------------
 
+
 def _publish(kind: str, payload: bytes, run_id: str) -> str:
     digest = sha256(payload)
-    db.execute("INSERT OR REPLACE INTO published (run_id, kind, sha256, published_at) VALUES (?,?,?,?)",
-               (run_id, kind, digest, utcnow()))
+    db.execute(
+        "INSERT OR REPLACE INTO published (run_id, kind, sha256, published_at) VALUES (?,?,?,?)",
+        (run_id, kind, digest, utcnow()),
+    )
     return digest
 
 

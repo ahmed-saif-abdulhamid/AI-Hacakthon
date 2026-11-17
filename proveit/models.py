@@ -1,4 +1,5 @@
 """Pydantic data models shared by every agent, gate and renderer."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -10,8 +11,14 @@ ClaimKind = Literal["pain", "wtp", "competitor", "price_point", "market_size", "
 SourceName = Literal["hn", "stackexchange", "github", "web", "founder", "assumption"]
 Outcome = Literal["go", "repeat", "pivot", "stop"]
 GatedAction = Literal[
-    "publish_landing_page", "open_store", "publish_post", "send_email",
-    "refund", "spend", "sign", "create_account",
+    "publish_landing_page",
+    "open_store",
+    "publish_post",
+    "send_email",
+    "refund",
+    "spend",
+    "sign",
+    "create_account",
 ]
 UNSPECIFIED = "ASSUMPTION: unspecified"
 
@@ -38,11 +45,11 @@ class Variant(BaseModel):
 
 
 class Hit(BaseModel):
-    id: str                      # H1..Hn, unique within a run
+    id: str  # H1..Hn, unique within a run
     source: SourceName
     url: str
     title: str = ""
-    text: str = ""               # normalised record text
+    text: str = ""  # normalised record text
     sentences: list[str] = Field(default_factory=list)
     published_at: datetime | None = None
     engagement: int | None = None
@@ -65,18 +72,18 @@ class Claim(BaseModel):
     id: str
     run_id: str
     kind: ClaimKind
-    claim_text: str              # <= 15 words, never used by a gate
-    quote: str | None            # built by code only
+    claim_text: str  # <= 15 words, never used by a gate
+    quote: str | None  # built by code only
     url: str | None
     source: SourceName
     hit_id: str | None = None
-    hit_title: str = ""            # title of the thread the quote comes from (topic context)
+    hit_title: str = ""  # title of the thread the quote comes from (topic context)
     sentence_ids: list[int] = Field(default_factory=list)
     fetched_at: datetime | None = None
     published_at: datetime | None = None
     engagement: int | None = None
     status: Literal["verified_live", "archived_match", "unverified"] = "unverified"
-    weight: float = 0.0          # 1.0 / 0.5 / 0; 0 if the code cue disagrees
+    weight: float = 0.0  # 1.0 / 0.5 / 0; 0 if the code cue disagrees
     cue_matched: str | None = None
     on_topic: bool = False
     keyword_overlap: list[str] = Field(default_factory=list)
