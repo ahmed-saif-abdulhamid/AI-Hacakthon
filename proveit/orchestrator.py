@@ -1156,7 +1156,16 @@ def stage_phase5(run: Run) -> None:
 
     def post_text(o):
         return o.title + "\n" + o.body
-    post, pissue = guarded(run, "launch_post", lambda fb: launcher.post(run.id, title, audience, fb), post_text)
+    post, pissue = guarded(run, "launch_post", lambda fb: launcher.post(run.id, title, audience, fb, modules), post_text)
+    if pissue:   # still blocked after a redraft: code drops the sentences the guard blocks
+        from sources.base import split_sentences
+        sentences = split_sentences(post.body)
+        kept = [x for x in sentences if not guard.check_output(x, "outward").blocked]
+        if len(kept) < len(sentences):
+            log_action(run.id, "guard", "drop_blocked_copy", artifact="launch_post", dropped=len(sentences) - len(kept))
+            post.body = " ".join(kept)
+            if not guard.check_output(post_text(post), "outward").blocked:
+                pissue = None
     prov = render.Provenance()
     prov.add("phase5_step1_launch-post-draft.md", post.body)
     body = render.label_unsourced_factual(post.body)
