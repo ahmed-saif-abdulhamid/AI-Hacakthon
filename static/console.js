@@ -6,7 +6,8 @@
 const CFG = window.PROVEIT || {};
 const API = CFG.api || "";
 const DEMO = !!CFG.demo;
-const NAME = CFG.assistant || "Verity";
+const NAME = CFG.assistant || "J.A.R.V.I.S.";
+const WAKE_WORD = CFG.wake || "Jarvis";
 const PHASES = ["Discover", "Validate", "Build", "Price and policies", "Sell and deliver", "Learn"];
 const OUT = {go: "Go.", stop: "Stop.", repeat: "Look again.", pivot: "Try another angle."};
 const OUT_SHORT = {go: "Go", stop: "Stop", repeat: "Look again", pivot: "Another angle"};
@@ -676,7 +677,9 @@ async function speakOne(text, pending) {
     if (!("speechSynthesis" in window)) { speaking--; return; }
     await new Promise(res => {
       const u = new SpeechSynthesisUtterance(text); const v = pickVoice(); if (v) u.voice = v; u.lang = "en-GB"; u.rate = 1.02;
-      u.onstart = () => synthLevel = 1; u.onend = u.onerror = () => { synthLevel = 0; res(); };
+      let done = false; const finish = () => { if (!done) { done = true; synthLevel = 0; res(); } };
+      u.onstart = () => synthLevel = 1; u.onend = u.onerror = finish;
+      setTimeout(finish, 2000 + text.length * 90);           // safety net for browsers that never fire "end"
       u.onboundary = () => synthLevel = 1.5;
       speechSynthesis.speak(u);
       $("voiceInfo").textContent = "Speaking with your browser's voice" + (v ? " (" + v.name + ")" : "") + ".";
@@ -689,7 +692,10 @@ async function speakOne(text, pending) {
 /* ---------- voice in: push-to-talk and wake word (browser SpeechRecognition), local transcription fallback ---------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let rec = null, wakeRec = null, micSrc = null, micAn = null, micFreq = new Uint8Array(128), mediaRec = null;
-const WAKE = new RegExp("\\b(?:hey\\s+|ok\\s+|okay\\s+)?" + NAME.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b[\\s,.:!?-]*(.*)$", "i");
+const WAKE = new RegExp("(?:^|\\b)(?:hey\\s+|ok\\s+|okay\\s+)?(?:" + (CFG.wakeRe || "jarvis") + ")(?![a-z])[\\s,.:!?-]*(.*)$", "i");
+// Speech recognition language: English by default (the browser's own language may not be what you speak).
+let SR_LANG = "en-GB";
+try { SR_LANG = localStorage.getItem("proveit_speech_lang") || "en-GB"; } catch (e) {}
 function micError(e) {
   const name = e && (e.error || e.name);
   const msg = name === "not-allowed" || name === "NotAllowedError" || name === "service-not-allowed"
@@ -716,7 +722,7 @@ async function startListening(auto) {
   if (!(await micToAnalyser(true))) return;
   setState("listen", "Listening"); micPressed(true);
   if (!SR) { recordFallback(); return; }
-  rec = new SR(); rec.lang = navigator.language || "en-GB"; rec.interimResults = true; rec.continuous = false; let finalText = "";
+  rec = new SR(); rec.lang = SR_LANG; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 3; let finalText = "";
   rec.onresult = e => { let t = ""; for (const r of e.results) { t += r[0].transcript; if (r.isFinal) finalText = t; } $("caption").textContent = t; };
   rec.onerror = e => micError(e);
   rec.onend = () => { rec = null; micToAnalyser(false); micPressed(false);
@@ -741,22 +747,24 @@ async function recordFallback() {
 }
 function toggleWake() {
   const b = $("wake");
-  if (!SR) { showAnswer(`Saying “${NAME}” to start needs speech recognition, which works in Chrome and Edge. Typing always works.`, "refuse"); return; }
+  if (!SR) { showAnswer(`Saying “${WAKE_WORD}” to start needs speech recognition, which works in Chrome and Edge. Typing always works.`, "refuse"); return; }
   if (!S.wake) {
-    wakeRec = new SR(); wakeRec.lang = "en-GB"; wakeRec.continuous = true; wakeRec.interimResults = false;
-    wakeRec.onstart = () => { S.wake = true; b.setAttribute("aria-pressed", "true"); b.textContent = `Say “${NAME}” to start: on`; addMsg("sys", `Listening for “${NAME}”. Say it, then your question.`); };
-    wakeRec.onerror = e => { if (micError(e)) { S.wake = false; wakeRec = null; b.setAttribute("aria-pressed", "false"); b.textContent = `Say “${NAME}” to start: off`; } };
+    wakeRec = new SR(); wakeRec.lang = SR_LANG; wakeRec.continuous = true; wakeRec.interimResults = false; wakeRec.maxAlternatives = 3;
+    wakeRec.onstart = () => { S.wake = true; b.setAttribute("aria-pressed", "true"); b.textContent = `Say “${WAKE_WORD}” to start: on`; addMsg("sys", `Listening for “${WAKE_WORD}”. Say it, then your question.`); };
+    wakeRec.onerror = e => { if (micError(e)) { S.wake = false; wakeRec = null; b.setAttribute("aria-pressed", "false"); b.textContent = `Say “${WAKE_WORD}” to start: off`; } };
     wakeRec.onresult = e => {
       if (speaking || S.asking || rec) return;                     // never react to our own voice
-      const t = e.results[e.results.length - 1][0].transcript.trim();
-      const m = t.match(WAKE); if (!m) return;
+      const res = e.results[e.results.length - 1]; let m = null;
+      for (let k = 0; k < res.length && !m; k++) m = res[k].transcript.trim().match(WAKE);
+      if (!m) return;
       if (m[1].trim().length > 2) sendAsk(m[1].trim());
       else { pauseWake(); say("Yes?"); queue.then(() => startListening(true)); }
+      addMsg("sys", "Heard: “" + res[0].transcript.trim() + "”");
     };
     wakeRec.onend = () => { if (S.wake && wakeRec && !wakeRec._paused) { try { wakeRec.start(); } catch (e) {} } };
     try { wakeRec.start(); } catch (e) { micError(e); }
   } else {
-    S.wake = false; b.setAttribute("aria-pressed", "false"); b.textContent = `Say “${NAME}” to start: off`;
+    S.wake = false; b.setAttribute("aria-pressed", "false"); b.textContent = `Say “${WAKE_WORD}” to start: off`;
     if (wakeRec) { wakeRec.onend = null; try { wakeRec.stop(); } catch (e) {} wakeRec = null; }
   }
 }

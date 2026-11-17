@@ -16,12 +16,12 @@ def test_free_question_goes_to_the_model(fake_llm):
 
 
 def test_wake_word_alone_asks_for_the_request():
-    r = ask.handle("Hey Verity", None, use_model=False)
+    r = ask.handle("Hey Jarvis", None, use_model=False)
     assert r["intent"] == "wake" and r["listen"] is True
 
 
 def test_wake_word_is_stripped_before_routing(fake_llm):
-    r = ask.handle("Verity, what should I do next?", None)
+    r = ask.handle("Jarvis, what should I do next?", None)
     assert r["intent"] == "other" and "Gate 1" in r["spoken"]
 
 

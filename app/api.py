@@ -266,7 +266,8 @@ def root():
 def hud(mode: Literal["tactical", "hud", "dual"] = "tactical", embed: int = 0, api: str = ""):
     return _env.get_template("hud.html.j2").render(
         initial_mode=mode, embed=bool(embed), api_base=api, status_table=STATUS_TABLE, demo=DEMO,
-        assistant=voice.assistant_name(), version=VERSION, commit=COMMIT, model=llm.model_name())
+        assistant=voice.assistant_name(), wake=voice.wake_word(), wake_re=voice.wake_pattern(), version=VERSION,
+        commit=COMMIT, model=llm.model_name())
 
 
 FAVICON = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="14" '

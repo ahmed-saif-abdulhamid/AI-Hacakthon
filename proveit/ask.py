@@ -99,9 +99,9 @@ def run_context(run) -> str:
 
 
 def strip_wake(text: str) -> str:
-    """Drop a leading wake word (the assistant's name, "hey <name>") from a spoken or typed request."""
-    name = re.escape(voice.assistant_name().lower())
-    return re.sub(r"^\s*(hey|ok|okay)?[\s,]*" + name + r"\b[\s,.:!?-]*", "", text or "", flags=re.I).strip()
+    """Drop a leading wake word ("Jarvis", "hey Jarvis", common mishearings, or the written name) from a request."""
+    names = voice.wake_pattern() + "|" + re.escape(voice.assistant_name().lower())
+    return re.sub(r"^\s*(hey|ok|okay)?[\s,]*(" + names + r")(?![\w])[\s,.:!?-]*", "", text or "", flags=re.I).strip()
 
 
 MAX_SENTENCES = 4

@@ -1,6 +1,6 @@
 # ProveIt
 
-**Find out if anyone wants it before you build it.** ProveIt is an open-source team of AI agents that tests a founder's product idea against what real people say in public, stops them when the evidence is thin, and never publishes, sends or refunds anything without the founder's hash-locked approval. Verity, its spoken assistant, explains every verdict in plain words.
+**Find out if anyone wants it before you build it.** ProveIt is an open-source team of AI agents that tests a founder's product idea against what real people say in public, stops them when the evidence is thin, and never publishes, sends or refunds anything without the founder's hash-locked approval. J.A.R.V.I.S., its spoken assistant, explains every verdict in plain words.
 
 | It is | It is not |
 |---|---|
@@ -16,7 +16,7 @@
 docker compose up
 ```
 
-Before the first start, copy `.env.example` to `.env` and set `NVIDIA_API_KEY` (a free key from [build.nvidia.com](https://build.nvidia.com): open any model page and choose **Get API Key**). Then open **http://localhost:8000**, press **Test a new idea** (or try one of the two examples in that dialog), and ask Verity "why?" in the bar at the bottom. A developer view with raw details runs on http://localhost:8501.
+Before the first start, copy `.env.example` to `.env` and set `NVIDIA_API_KEY` (a free key from [build.nvidia.com](https://build.nvidia.com): open any model page and choose **Get API Key**). Then open **http://localhost:8000**, press **Test a new idea** (or try one of the two examples in that dialog), and ask J.A.R.V.I.S. "why?" in the bar at the bottom. A developer view with raw details runs on http://localhost:8501.
 
 Without Docker: `pip install -r requirements.txt`, put `NVIDIA_API_KEY` in `.env`, then `uvicorn app.api:app` (console) or `python -m proveit run briefs/weak.md` (command line). Tests: `python -m pytest`.
 
@@ -45,7 +45,7 @@ Without Docker: `pip install -r requirements.txt`, put `NVIDIA_API_KEY` in `.env
 | Posting to external platforms / email | **STUBBED** | Adapters are gated and raise NotEnabled |
 | 6 Operate and learn | **STUBBED** | Memo from real metrics only ("not enough data") |
 | Reddit source | **STUBBED** | Self-serve API access is restricted |
-| Console, Verity assistant, voice | **Working** | Piper voice on this computer when installed, browser voice otherwise |
+| Console, J.A.R.V.I.S. assistant, voice | **Working** | Piper voice on this computer when installed, browser voice otherwise |
 
 - **Who acted as founder:** for the committed runs, the operator of the build machine pressed every approval and gave both override reasons through the command line; the log records `approved_by: "founder"` for those actions.
 - **Later phases after an override are a preview:** Gate 2 cannot pass without real traffic, so a run reaches phases 3-5 only through a logged `founder_override_against_evidence`. Every later file says "PREVIEW after a founder override", and so does the console.

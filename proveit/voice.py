@@ -34,8 +34,23 @@ class VoiceUnavailable(Exception):
 # ---- persona lines --------------------------------------------------------------
 
 def assistant_name() -> str:
-    """The assistant's name, shown in the console and used as the wake word (one setting)."""
-    return (os.environ.get("ASSISTANT_NAME") or "Verity").strip()
+    """The assistant's name as shown in the console (ASSISTANT_NAME)."""
+    return (os.environ.get("ASSISTANT_NAME") or "J.A.R.V.I.S.").strip()
+
+
+def wake_word() -> str:
+    """What the founder says to call the assistant (WAKE_WORD); the spoken form of the name."""
+    return (os.environ.get("WAKE_WORD") or "Jarvis").strip()
+
+
+# Speech recognisers often mishear the wake word; these spellings all count.
+WAKE_ALIASES = {"jarvis": ["jarvis", "jarvas", "jervis", "javis", "jarviss", "jar vis", "garvis", "jarvi"]}
+
+
+def wake_pattern() -> str:
+    """A regex alternation of the wake word and its common mishearings."""
+    w = wake_word().lower()
+    return "|".join(re.escape(x) for x in WAKE_ALIASES.get(w, [w]))
 
 
 def address() -> str:

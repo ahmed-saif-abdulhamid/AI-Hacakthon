@@ -117,7 +117,7 @@
       <div class="caption" id="caption" aria-live="polite"></div>
       <div class="vctl">
         <button class="talk" id="ptt" type="button" aria-label="Push to talk: hold, speak, then release">Hold to talk</button>
-        <button class="ghost" id="wake" type="button" aria-pressed="false">Say “{{ assistant }}” to start: off</button>
+        <button class="ghost" id="wake" type="button" aria-pressed="false">Say “{{ wake }}” to start: off</button>
       </div>
       <p class="voicewhy" id="voiceInfo"></p>
       <div class="voice-verdict" id="voiceVerdict" hidden></div>
@@ -219,6 +219,8 @@
     demo: {{ 'true' if demo else 'false' }},
     mode: {{ initial_mode|tojson }},
     assistant: {{ assistant|tojson }},
+    wake: {{ wake|tojson }},
+    wakeRe: {{ wake_re|tojson }},
     version: {{ version|tojson }},
     model: {{ model|tojson }}
   };

@@ -2,7 +2,7 @@
 
 ## Overview
 
-ProveIt is an open-source team of eleven agents that takes a founder's brief through six phases, with a gate after every step. Plain Python code calls every tool, cuts every quote, decides every gate and executes every approved action; the open-weight model (NVIDIA Nemotron 3 Ultra, `nvidia/nemotron-3-ultra-550b-a55b`, hosted on NVIDIA's free developer API) only extracts sentence IDs, summarises and argues. Before any source is called, the gate thresholds and the brief are hashed (SHA-256) and logged as the first decision-log entry, so moving the goalposts later is visible. Verity, the spoken assistant, and the console sit on top: they narrate and explain real run data in plain words and never invent it.
+ProveIt is an open-source team of eleven agents that takes a founder's brief through six phases, with a gate after every step. Plain Python code calls every tool, cuts every quote, decides every gate and executes every approved action; the open-weight model (NVIDIA Nemotron 3 Ultra, `nvidia/nemotron-3-ultra-550b-a55b`, hosted on NVIDIA's free developer API) only extracts sentence IDs, summarises and argues. Before any source is called, the gate thresholds and the brief are hashed (SHA-256) and logged as the first decision-log entry, so moving the goalposts later is visible. J.A.R.V.I.S., the spoken assistant, and the console sit on top: they narrate and explain real run data in plain words and never invent it.
 
 ```mermaid
 flowchart LR
@@ -90,11 +90,11 @@ Phase 5 is named "Launch" in the problem statement and "Sell / deliver / get pai
 - **Agent:** Analyst (`agents/analyst.py`), STUBBED: the memo is written by code from real metrics only (real sign-ups, real orders; test orders excluded). Below the thresholds it says "Not enough data to call persevere or pivot." The interface for a future model-written memo is documented in `prompts/analyst.md`.
 - **Output:** `phase6_step1_memo`.
 
-### Interface: the console and Verity
+### Interface: the console and J.A.R.V.I.S.
 
 - **Workspace (the "tactical writing" mode):** a welcome screen with three steps for first-time founders; per idea, a six-step progress bar, the verdict card (one big word, a plain-language reason, counts of complaints / people who'd pay / existing tools, bars against the pre-registered bar), decision buttons labelled by their effect and offered only when the server says they are valid (`allowed_decisions`), a next-step card (for REPEAT: the interview kit), and tabs for Evidence (verbatim quotes with their source links and why each counted or didn't), For and against (only cited arguments count), Approvals (the exact bytes to approve, hash-locked), Files (rendered Markdown) and What's real (Working / MOCKED / STUBBED).
 - **Voice (the "holographic voice HUD" mode) and Both (dual-sync):** a canvas visual driven by WebAudio `AnalyserNode` (Piper audio or the microphone), hold-to-talk, saying the assistant's name, and the conversation.
-- **Verity:** the assistant's name is a setting (`ASSISTANT_NAME`). Typed or spoken text goes through guard rule set A and the model check first; then a fixed router sends commands (approve, change the bar, rerun, evaluate a new idea, edit copy) to code, quote questions to code (verbatim quotes, never paraphrased), and everything else to the model with the run's facts only. Answers stream sentence by sentence; each sentence passes the guard; a dropped sentence is announced, never silently skipped. "Approve" only opens the approval card: a message is never an approval.
+- **J.A.R.V.I.S.:** the assistant (you call it by saying "Jarvis"). Typed or spoken text goes through guard rule set A and the model check first; then a fixed router sends commands (approve, change the bar, rerun, evaluate a new idea, edit copy) to code, quote questions to code (verbatim quotes, never paraphrased), and everything else to the model with the run's facts only. Answers stream sentence by sentence; each sentence passes the guard; a dropped sentence is announced, never silently skipped. "Approve" only opens the approval card: a message is never an approval.
 - **Quality floor:** WCAG 2.2 AA contrast tokens, a skip link, ARIA tabs with arrow keys, live regions for verdicts and answers, keyboard shortcuts (`Ctrl K`, `N`, `1-3`, `?`), visible focus, reduced-motion support, designed 404/403/409/500 pages, a connection-lost banner with back-off, security headers (CSP with `frame-ancestors`, `nosniff`, a microphone-only Permissions-Policy), per-client rate limits on model-spending routes, self-hosted fonts and a print stylesheet for the evidence report.
 
 ## Gates
@@ -208,7 +208,7 @@ Privacy: search queries derived from the brief go to Hacker News, Stack Exchange
 | Payment, delivery, refund, reconciliation | MOCKED |
 | Phase 6 analyst memo | STUBBED (code memo from real metrics) |
 | Reddit source | STUBBED |
-| Console, Verity assistant, voice | Working |
+| Console, J.A.R.V.I.S. assistant, voice | Working |
 | Local Piper voice / faster-whisper fallback | Working when the optional voice packages are installed; otherwise the browser voice is used |
 
 ## Roadmap

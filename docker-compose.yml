@@ -28,7 +28,8 @@ services:
       NVIDIA_BASE_URL: "${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}"
       LLM_TIMEOUT: "${LLM_TIMEOUT:-120}"
       LLM_RPM: "${LLM_RPM:-30}"
-      ASSISTANT_NAME: "${ASSISTANT_NAME:-Verity}"
+      ASSISTANT_NAME: "${ASSISTANT_NAME:-J.A.R.V.I.S.}"
+      WAKE_WORD: "${WAKE_WORD:-Jarvis}"
       FOUNDER_NAME: "${FOUNDER_NAME:-}"
       API_PUBLIC_URL: "http://localhost:8000"
     volumes: ["proveit-data:/app/data"]
