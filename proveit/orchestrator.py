@@ -1156,7 +1156,7 @@ def stage_phase5(run: Run) -> None:
 
     def post_text(o):
         return o.title + "\n" + o.body
-    post, pissue = guarded(run, "launch_post", lambda fb: launcher.post(run.id, title, audience, fb, modules), post_text)
+    post, pissue = guarded(run, "launch_post", lambda fb: launcher.post(run.id, title, audience, fb, [f"{m} (a checklist and a CSV template)" for m in modules]), post_text)
     if pissue:   # still blocked after a redraft: code drops the sentences the guard blocks
         from sources.base import split_sentences
         sentences = split_sentences(post.body)
