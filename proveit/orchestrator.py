@@ -88,8 +88,10 @@ class Run:
     def next_variant(self) -> int | None:
         """The best-scored angle not researched yet (the pivot target), or None."""
         tried = set(self.state.get("research", {})) | {str(self.state.get("variant_n", 1))}
-        order = [r["n"] for r in sorted(self.state.get("ranking") or [], key=lambda r: -r.get("signal", 0))]
-        order += [i for i in range(1, len(self.state.get("variants") or []) + 1) if i not in order]
+        ranking = self.state.get("ranking") or []
+        excluded = {r["n"] for r in ranking if r.get("excluded")}
+        order = [r["n"] for r in sorted(ranking, key=lambda r: -r.get("signal", 0)) if r["n"] not in excluded]
+        order += [i for i in range(1, len(self.state.get("variants") or []) + 1) if i not in order and i not in excluded]
         return next((n for n in order if str(n) not in tried), None)
 
 
@@ -308,16 +310,33 @@ def gather(run: Run, variant: Variant, caps: dict, limits: dict, broaden: bool =
     return hits, calls, by_call, wiki
 
 
+def excluded_variant(v: Variant) -> str | None:
+    """The Scout's angles get the same excluded-category check as the founder's brief. A word that only
+    might mean an excluded category (the ask-the-founder tier) also rules an angle out: nobody confirmed it."""
+    res = guard.classify_brief(f"{v.title}. {v.segment}: {v.job_to_be_done}. {'; '.join(v.pain_queries)}; {v.competitor_query}")
+    if res.verdict == "stop":
+        return (res.category or "excluded").replace("_", " ")
+    if res.verdict == "clarify":
+        return f"may be excluded ('{res.matched}')"
+    return None
+
+
 def score_alternatives(run: Run, variants: list[Variant], max_age_months: int) -> list[dict]:
-    """Rank the Scout's angles by recent first-person complaints (code only); fall back to the first."""
+    """Rank the eligible angles by recent first-person complaints (code only); fall back to the first."""
+    excluded = {v.n: why for v in variants if (why := excluded_variant(v))}
+    for n, why in excluded.items():
+        log_action(run.id, "guard", "exclude_variant", variant=n, why=why)
+    ok = [v for v in variants if v.n not in excluded] or variants[:1]
     try:
-        rows = scorer.rank(run.id, run.brief, variants, max_age_months)
+        rows = scorer.rank(run.id, run.brief, ok, max_age_months)
     except Exception as e:  # noqa: BLE001 - ranking is advisory; research still runs
         log_action(run.id, "scorer", "score_alternatives_failed", error=str(e)[:160])
-        return [{"n": v.n, "title": v.title, "chosen": v.n == 1} for v in variants]
-    if all(r["errors"] for r in rows):
+        rows = [{"n": v.n, "title": v.title, "chosen": v.n == ok[0].n} for v in ok]
+    if rows and "errors" in rows[0] and all(r["errors"] for r in rows):
         for r in rows:
-            r["chosen"] = r["n"] == 1
+            r["chosen"] = r["n"] == ok[0].n
+    rows += [{"n": v.n, "title": v.title, "excluded": excluded[v.n], "chosen": False}
+             for v in variants if v.n in excluded and all(r["n"] != v.n for r in rows)]
     return rows
 
 
@@ -358,6 +377,21 @@ def research_variant(run: Run, variant: Variant, broaden: bool = False) -> dict:
             model_failure = True
     start_c = len(run.state.get("claims", [])) + 1
     claims = verifier.build_claims(run.id, hits_by_id, items, start=start_c)
+    # Two readers: sentences that pass code's own published test (first person, on topic, a pain or payment
+    # cue, not a question, link or pitch) but that the model skipped are added by code, then verified like
+    # every other claim. A model that under-selects can no longer hide evidence.
+    added = []
+    if not model_failure:
+        for ref in verifier.missed_qualified(hits_by_id, shown_ids, claims, variant):
+            hid, sid = ref.split(".S")
+            s = hits_by_id[hid].sentences[int(sid) - 1]
+            kind = "pain" if verifier.match_cue("pain", s) else "wtp"
+            added.append({"hit_id": hid, "sentence_ids": [int(sid)], "kind": kind,
+                          "claim_text": "Selected by code: the writer's own " + ("complaint" if kind == "pain" else "payment")})
+        if added:
+            claims += verifier.build_claims(run.id, hits_by_id, added, start=start_c + len(claims))
+            log_action(run.id, "verifier", "add_code_qualified_sentences", model=None, cost=0, n=len(added),
+                       refs=[f"{a['hit_id']}.S{a['sentence_ids'][0]}" for a in added])
     verifier.mark_eligible(claims, variant)
     say(run, "verifying")
     stats = verifier.verify_live(claims, cap=mode_cfg["caps"]["verify"], timeout=limits["verify_timeout_s"],
@@ -481,7 +515,7 @@ def opportunities_md(run: Run, variants: list[Variant]) -> str:
                      f"{v.competitor_query} | {v.se_site} |")
     lines += ["", "Variants are proposals from the Scout model and are research targets, not market claims.", ""]
     ranking = run.state.get("ranking") or []
-    if ranking and "signal" in ranking[0]:
+    if any("signal" in r for r in ranking):
         g = run.state["thresholds"]["gate1_evidence"]
         lines += ["## Scored against each other (code only, before deep research)", "",
                   f"Each angle's pain queries were run against Hacker News comments from the last {g['max_age_months']} months "
@@ -490,7 +524,10 @@ def opportunities_md(run: Run, variants: list[Variant]) -> str:
                   "angle's segment and job words found in the founder's skills, market and idea.", "",
                   "| # | Variant | Comments checked | On topic | First-person complaints | Founder fit | Signal | Researched first |",
                   "|---|---|---|---|---|---|---|---|"]
-        for r in sorted(ranking, key=lambda r: -r["signal"]):
+        for r in sorted(ranking, key=lambda r: -r.get("signal", -1)):
+            if r.get("excluded"):
+                lines.append(f"| {r['n']} | {r['title']} | - | - | - | - | - | never: {r['excluded']} |")
+                continue
             lines.append(f"| {r['n']} | {r['title']} | {r['comments_checked']} | {r['on_topic']} | {r['complaints']} | "
                          f"{r['fit']} | {r['signal']} | {'**yes**' if r.get('chosen') else 'pivot target'} |")
         lines += ["", "Signal = complaints + 0.25 x on-topic comments + 2 x fit. ASSUMPTION: these weights are a team "

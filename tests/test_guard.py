@@ -49,3 +49,23 @@ def test_ask_founder_tier_clarifies_instead_of_stopping():
 def test_model_layer(item):  # pragma: no cover - needs the local model
     res = guard.check_input(item["prompt"], scope=item["scope"], use_model=True)
     assert res.blocked
+
+
+def test_scout_angles_get_the_excluded_category_check_and_are_never_pivoted_to(monkeypatch):
+    from proveit import orchestrator
+    from proveit.models import Variant
+    ok = Variant(n=1, title="Late-Payment Follow-Up Toolkit", segment="freelance designers",
+                 job_to_be_done="send invoice reminders", pain_queries=["clients pay invoices late"])
+    legal = Variant(n=2, title="Client Payment Terms Pack", segment="freelance web developers",
+                    job_to_be_done="define payment terms in contracts", competitor_query="freelance contract templates")
+    assert orchestrator.excluded_variant(ok) is None
+    assert "legal" in orchestrator.excluded_variant(legal)
+    monkeypatch.setattr(orchestrator.scorer, "rank", lambda run_id, brief, vs, months: [
+        {"n": v.n, "title": v.title, "comments_checked": 1, "on_topic": 1, "complaints": 1, "fit": 1.0,
+         "errors": 0, "signal": 1.0, "chosen": True} for v in vs])
+    run = orchestrator.Run.__new__(orchestrator.Run)
+    run.id = "test"
+    run.state = {"variants": [ok.model_dump(), legal.model_dump()], "variant_n": 1, "research": {"1": {}}}
+    run.state["ranking"] = orchestrator.score_alternatives(run, [ok, legal], 24)
+    assert [r["n"] for r in run.state["ranking"] if r.get("excluded")] == [2]
+    assert run.next_variant() is None

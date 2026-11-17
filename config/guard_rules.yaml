@@ -76,7 +76,7 @@ excluded_categories:     # Rule set B: briefs only
     health:
       pattern: '\b(diagnos(e|is|ing) (patients|symptoms|diseases|illness\w*)|supplements?|cbd|gummies|therapy app|mental health app|diet plans?|weight[- ]loss|medical advice|app for patients|symptom checker|treatment plans?|prescriptions?|nutrition plans? for (patients|diabetics))\b'
     legal_advice:
-      pattern: '\b(legal advice|contract review service|lawsuits?|visa application help|immigration advice|tax advice|legal representation|draft(ing)? (wills|legal contracts) for clients)\b'
+      pattern: '\b(legal advice|contract review service|lawsuits?|visa application help|immigration advice|tax advice|legal representation|draft(ing)? (wills|legal contracts) for clients|contract templates?|contracts? (pack|bundle|kit)|legal (templates?|documents?|forms?|contracts?)|(client|freelance|service|employment|rental) contracts?)\b'
     arabic:
       pattern: '(كريبتو|عملات رقمية|العملات المشفرة|بيتكوين|تداول|فوركس|قروض|قرض|استشارة قانونية|استشارات قانونية|نصيحة طبية|نصائح طبية|مكملات|تشخيص|منتجات مادية|شحن المنتجات)'
   ask_tier: '\b(portfolio|token|tokens|trading|ship|shipping|therapy|medical|treatment|health|invest\w*|legal|stock|finance|financial)\b'
