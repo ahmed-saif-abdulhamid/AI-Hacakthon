@@ -4,7 +4,7 @@
 
 input_intent:            # Rule set A: imperative requests, not mere words
   fake_social_proof:
-    pattern: '\b(write|writ|generate|create|make|add|draft|produce|invent|fake|post|give me|need)\b\W+(\w+\W+){0,6}?(reviews?|testimonials?|5[- ]?stars?|five[- ]stars?|ratings?|endorsements?|customer quotes)\b|\b(fake|made[- ]up|invented)\W+(\w+\W+){0,3}?(reviews?|testimonials?|quotes)\b|\bglowing\W+(\w+\W+){0,2}?(quotes|reviews?|testimonials?)|\b\d{1,5}\W+(\w+\W+){0,2}?(reviews|testimonials|ratings)\b'
+    pattern: '\b(write|writ|generate|create|make|add|draft|produce|invent|fake|post|give me|need)\b\W+(\w+\W+){0,6}?(reviews?|testimonials?|5[- ]?stars?|five[- ]stars?|ratings?|endorsements?|customer quotes)\b|\b(fake|made[- ]up|invented|fabricated|fictional)\W+(\w+\W+){0,3}?(reviews?|testimonials?|quotes)\b|\bglowing\W+(\w+\W+){0,2}?(quotes|reviews?|testimonials?)|\b\d{1,5}\W+(\w+\W+){0,2}?(reviews|testimonials|ratings)\b'
     exclude: '\b(code reviews?|review checklists?|peer reviews?|review process|design reviews?|reviewing code)\b'
     refusal: "I can't write reviews, testimonials or ratings."
     alternative: "I can draft a feedback request to send to real buyers after purchase, for your approval."
@@ -14,7 +14,7 @@ input_intent:            # Rule set A: imperative requests, not mere words
     refusal: "I can't create fake sign-ups, users, orders or traffic."
     alternative: "I can show the real sign-up count and suggest honest places to share the landing page."
   urgency:
-    pattern: '\b(add|include|put|create|show|insert|make|use|display)\b\W+(\w+\W+){0,6}?(count-?downs?|timers?|only \d+ (\w+ )?(left|spots|remain\w*)|offer ends|limited[- ]time|scarcity|expires? in)\b|\bonly \d+ (\w+ )?(copies|spots|seats) (left|remain\w*)'
+    pattern: '\b(add|include|put|create|show|insert|make|use|display)\b\W+(\w+\W+){0,6}?(count-?downs?|timers?|only \d+ (\w+ )?(left|spots|remain\w*)|offer ends|limited[- ]time|scarcity|expires? in)\b|\bonly \d+ (\w+ )?(copies|spots|seats) (left|remain\w*)|\b(artificial|fake|false) (urgency|scarcity)\b'
     refusal: "I can't add countdown timers or false scarcity."
     alternative: "I can state the real launch price plainly, with no deadline pressure."
   income_promise:
@@ -47,7 +47,7 @@ input_intent:            # Rule set A: imperative requests, not mere words
     refusal: "I can't post or send anything for you; that stays in your hands."
     alternative: "I can prepare a draft for you to approve and post under your own name."
   bypass:
-    pattern: '\bignore\W+(\w+\W+){0,2}?(rules|instructions|guardrails|policy)\b|\bfounder\W+(\w+\W+){0,2}?(already\W+)?approved\b|\bdeveloper mode\b|\bjailbreak\b|\bbypass\W+(\w+\W+){0,2}?(guard\w*|rules|approval\w*)\b|\bwithout (asking|approval|my approval)\b|\bskip (the )?approval|\bfounder\W+(\w+\W+){0,3}?(said yes|gave permission|agreed|ok''?d)\b|\bgo ahead and (publish|post|send|approve)\b'
+    pattern: '\bignore\W+(\w+\W+){0,2}?(rules|instructions|guardrails|policy)\b|\bfounder\W+(\w+\W+){0,2}?(already\W+)?approved\b|\bdeveloper mode\b|\bjailbreak\b|\bbypass\W+(\w+\W+){0,2}?(guard\w*|rules|approval\w*)\b|\bwithout (asking|approval|my approval)\b|\bskip (the )?approval|\bfounder\W+(\w+\W+){0,3}?(said yes|gave permission|agreed|ok''?d)\b|\bgo ahead and (publish|post|send|approve)\b|\balready approved (offline|elsewhere|by (me|the founder))\b|\bapproved (it )?offline\b|\bact on (my|the founder''?s) behalf\b|\b(send|post|sign|publish)\W+(\w+\W+){0,2}?as (the founder|me)\b|\bauto-?approv\w*|\bpretend (to be|you are) the founder\b'
     refusal: "I can't skip the rules or treat a message as an approval."
     alternative: "Only you can approve things, by pressing the Approve button yourself."
   arabic_intent:
@@ -74,7 +74,7 @@ excluded_categories:     # Rule set B: briefs only
     financial_crypto:
       pattern: '\b(crypto\w*|bitcoin|ethereum|nfts?|defi|token sale|trading signals?|signals group|forex|stocks? (picks|tips|signals)|stock picks?|etfs?|index funds?|investing (advice|tips|picks)|investment (picks|tips)|day trading|loans?|lending|investment advice|portfolio management|robo-?advisor|insurance products?)\b'
     health:
-      pattern: '\b(diagnos(e|is|ing) (patients|symptoms|diseases|illness\w*)|supplements?|cbd|gummies|therapy app|mental health app|diet plans?|weight[- ]loss|medical advice|app for patients|symptom checker|treatment plans?|prescriptions?|nutrition plans? for (patients|diabetics))\b'
+      pattern: '\b(diagnos(e|es|is|ing) (patients|symptoms|diseases|illness\w*|(skin|medical|mental health) conditions)|supplements?|cbd|gummies|therapy app|mental health app|diet plans?|weight[- ]loss|medical advice|app for patients|symptom checker|treatment plans?|prescriptions?|nutrition plans? for (patients|diabetics))\b'
     legal_advice:
       pattern: '\b(legal advice|contract review service|lawsuits?|visa application help|immigration advice|tax advice|legal representation|draft(ing)? (wills|legal contracts) for clients|contract templates?|contracts? (pack|bundle|kit)|legal (templates?|documents?|forms?|contracts?)|(client|freelance|service|employment|rental) contracts?)\b'
     arabic:
@@ -86,7 +86,8 @@ output_copy:             # Rule set C: outward-facing copy only
   ratings: '\b\d(\.\d)?\s*(/\s*5|stars?|★)|\brated\b|\bloved by\b|\btrusted by\b|\bas seen (in|on)\b|★'
   attributed_quote: '"[^"]{10,200}"\s*[-–—]\s*[A-Z][a-z]+'
   urgency: '\bonly \d+\W+(\w+\W+){0,2}?(left|remain\w*)|\blast chance\b|\bends (today|soon|in)\b|\bcount-?down\b|\bhurry\b|\blimited[- ]time\b'
-  income: '\bguarantee(d)?\W+(\w+\W+){0,2}?(results|income|success|earnings)\b|\bpays? for itself\b|\b(make|earn|making|earning)\W+(\w+\W+){0,2}?\$\d|\bpassive income\b|\bget rich\b|\bwill (succeed|grow your)\b'
+  income: '\bguarantee(d)?\W+(\w+\W+){0,2}?(results|income|success|earnings)\b|\bpays? for itself\b|\b(make|earn|making|earning)\W+(\w+\W+){0,2}?\$\d|\bpassive income\b|\bget rich\b|\bwill (succeed|grow your)\b|\bguaranteed (revenue|profits?|returns?|sales|roi|clients)\b|\b\d{2,4}\s*% (roi|returns?|profit)\b|\broi of \d'
+  credentials: '(?<!never )(?<!not )(?<!n''t )\b(store|save|keep|collect)s?\W+(\w+\W+){0,2}?(passwords?|credit cards?( numbers?)?|card numbers?|cvv|cvc)\b|\b(enter|provide|type|share|send)\W+(\w+\W+){0,2}?(cvv|cvc|card numbers?|passwords?)\b'
   customer_voice: '\b(as a (customer|user|buyer)|I (bought|used|tried) this)\b'
   # Counts of deliverables are promises; landing copy is written before the product is built.
   unbuilt_count: '\b\d+\+?\s+(ready[- ]to[- ]use\s+|done[- ]for[- ]you\s+|customi[sz]able\s+|printable\s+|editable\s+)?(email\s+|message\s+)?(templates?|checklists?|guides?|modules?|scripts?|worksheets?|spreadsheets?|trackers?|lessons?|videos?)\b'
