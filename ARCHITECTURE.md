@@ -2,7 +2,7 @@
 
 ## Overview
 
-ProveIt is an open-source team of eleven agents that takes a founder's brief through six phases, with a gate after every step. Plain Python code calls every tool, cuts every quote, decides every gate and executes every approved action; the open-weight model (NVIDIA Nemotron 3 Ultra, `nvidia/nemotron-3-ultra-550b-a55b`, hosted on NVIDIA's free developer API) only extracts sentence IDs, summarises and argues. Before any source is called, the gate thresholds and the brief are hashed (SHA-256) and logged as the first decision-log entry, so moving the goalposts later is visible. J.A.R.V.I.S., the spoken assistant, and the console sit on top: they narrate and explain real run data in plain words and never invent it.
+ProveIt is an open-source team of eleven agents that takes a founder's brief through six phases, with a gate after every step. Plain Python code calls every tool, cuts every quote, decides every gate and executes every approved action; the open-weight model only extracts sentence IDs, summarises and argues. By default the model runs locally: `docker compose up` starts Ollama and downloads `qwen3:4b-instruct-2507-q4_K_M` into a volume, so no key or account is needed; `LLM_PROVIDER=nvidia` switches the same OpenAI-compatible client (`proveit/llm.py`) to NVIDIA Nemotron 3 Ultra on NVIDIA's free hosted tier, which the committed demo runs used. Before any source is called, the gate thresholds and the brief are hashed (SHA-256) and logged as the first decision-log entry, so moving the goalposts later is visible. J.A.R.V.I.S., the spoken assistant, and the console sit on top: they narrate and explain real run data in plain words and never invent it.
 
 ```mermaid
 flowchart LR
@@ -26,7 +26,8 @@ flowchart LR
   G4 --> P5[Phase 5 Launch<br/>store, post draft]
   P5 --> A2{{Founder approval<br/>open_store}}
   A2 --> S2C[Sale to cash<br/>MOCKED]
-  S2C --> P6[Phase 6 Operate and learn<br/>STUBBED memo]
+  S2C --> P6[Phase 6 Operate and learn<br/>support, metrics]
+  P6 --> G6{Gate 6 persevere or pivot<br/>real records only}
 ```
 
 | Gate | Checks | Outcomes |
@@ -36,6 +37,7 @@ flowchart LR
 | Gate 2 demand | real waitlist sign-ups vs pre-registered target (test sign-ups excluded) | go / repeat / pivot / stop |
 | Gate 3 tests | deterministic QA of the product files | go / repeat |
 | Gate 4 commercial | founder approves price and policy drafts | go / stop |
+| Gate 6 operate | real orders, refund rate, real sign-ups vs pre-registered bars | go / repeat / pivot / stop |
 | Every publish, refund | founder approval bound to the payload SHA-256 | executed / blocked |
 
 ## Phases
@@ -190,7 +192,9 @@ Statements --> render.py --> [C1][C3] footnotes + Sources, or "ASSUMPTION: ..."
 
 Storage: SQLite in WAL mode (`busy_timeout=5000`) on a named Docker volume holds runs, the action log, approvals, payload blobs keyed by SHA-256, sign-ups and the mocked orders. Every run writes only to `runs/<run_id>/`; `python -m proveit promote` is the only writer of `outputs/` and `runs/promoted/decision_log.json`, and `make promote` copies that log to the repository root. The decision log has one row per agent action with `action`, `sources`, `model`, `cost` and `approved_by`, plus `timestamp`, `agent` and `run_id`.
 
-Privacy: search queries derived from the brief go to Hacker News, Stack Exchange, GitHub and SearXNG's engines; the waitlist stores only an email and a timestamp.
+Privacy: with the default local model, briefs, evidence and questions never leave the computer; search queries derived from the brief go to Hacker News, Stack Exchange, GitHub and SearXNG's engines; the waitlist stores only an email and a timestamp.
+
+Code layout: `proveit/orchestrator.py` runs the stages and founder decisions; `proveit/reports.py` writes every output file; `proveit/gates.py` decides gates (pure functions); `proveit/verifier.py` builds and checks quotes; `proveit/guard.py` holds the rule sets; `proveit/llm.py` is the model client; `agents/` holds one module per agent role; `app/api.py` serves the console and `app/security.py` its HTTP security layer; the sale-to-cash modules (`payments.py`, `webhooks.py`, `delivery.py`, `refunds.py`, `reconcile.py`) sit at the repository root.
 
 ## Built vs. stubbed
 
