@@ -793,6 +793,9 @@ def founder_decide(run_id: str, decision: str, reason: str = "") -> dict:
         if n is None:
             return {"ok": False, "error": "Every angle has already been researched."}
         log_action(run.id, "founder", f"pivot_to_variant_{n}", approved_by="founder")
+        old = run.dir / "phase1_gate_decision.md"            # keep the verdict on the angle left behind
+        if old.exists():
+            old.replace(run.dir / f"phase1_gate_variant-{run.state.get('variant_n', 1)}.md")
         run.state["variant_n"] = n
         run.save("phase1", status="running")
         return {"ok": True, "stage": "phase1"}
