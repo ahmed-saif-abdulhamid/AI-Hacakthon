@@ -16,9 +16,13 @@ def payload_for(order_id: str) -> bytes:
 
 
 def request(run_id: str, order_id: str):
-    """Open a pending refund approval for the founder (UI order page or CLI)."""
-    return approval.request(run_id, "refund", payload_for(order_id), note=f"refund {order_id}",
-                            content_type="application/json")
+    """Open a pending refund approval for the founder (UI order page or CLI). Asking twice for the same
+    order returns the approval that is already waiting instead of opening another one."""
+    payload = payload_for(order_id)
+    for ap in approval.list_approvals(run_id, "pending"):
+        if ap.action == "refund" and ap.note == f"refund {order_id}":
+            return ap
+    return approval.request(run_id, "refund", payload, note=f"refund {order_id}", content_type="application/json")
 
 
 @approval.gated("refund")

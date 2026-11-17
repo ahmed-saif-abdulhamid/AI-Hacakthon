@@ -93,3 +93,16 @@ def test_webhook_endpoint_returns_4xx_not_500():
     c = TestClient(app)
     assert c.post("/webhooks/mock", json={}).status_code == 400
     assert c.post("/webhooks/mock", content=b"not json", headers={"content-type": "application/json"}).status_code == 400
+
+
+def test_customer_refund_request_runs_once_approved(paid_order):
+    from proveit import orchestrator
+    oid, _, first = paid_order
+    ap = refunds.request("r1", oid)
+    assert refunds.request("r1", oid).id == ap.id                 # asking twice does not open a second approval
+    with pytest.raises(approval.ApprovalRequired):
+        refunds.refund(oid, None)
+    approval.auto_approve(ap.id)
+    orchestrator.on_approval_decided(ap.id)
+    with pytest.raises(delivery.AccessDenied):
+        delivery.check(first["token"])                            # access revoked: the download now returns 403

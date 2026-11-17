@@ -722,10 +722,26 @@ def on_approval_decided(approval_id: str) -> str | None:
     ap = approval.load(approval_id)
     if ap is None:
         return None
-    run = load(ap.run_id)
-    pending = run.state.get("pending_approval") or {}
+    try:
+        run = load(ap.run_id)
+        pending = run.state.get("pending_approval") or {}
+    except KeyError:
+        run, pending = None, {}
     if pending.get("id") != approval_id:
-        return run.stage
+        # A refund a customer asked for from the store page is not a pipeline step: run it whenever the
+        # founder approves it (or just log the rejection), whatever stage the run is at.
+        if ap.action == "refund":
+            import json as _json
+
+            import refunds
+            order_id = _json.loads(approval.blob(ap.payload_sha256)[0]).get("order_id")
+            if ap.status == "approved":
+                refunds.refund(order_id, approval_id)
+                log_action(ap.run_id, "orchestrator", "customer_refund_executed", order_id=order_id,
+                           approved_by="founder", test=True)
+            else:
+                log_action(ap.run_id, "orchestrator", "customer_refund_rejected", order_id=order_id)
+        return run.stage if run else None
     payload, _ = approval.blob(ap.payload_sha256)
     run.state.pop("pending_approval", None)
     if ap.status == "rejected":
