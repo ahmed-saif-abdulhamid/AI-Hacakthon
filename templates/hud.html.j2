@@ -362,7 +362,7 @@ const EMBED = {{ 'true' if embed else 'false' }};
 const DEMO = {{ 'true' if demo else 'false' }};
 const PHASES = ["Discover","Validate","Build","Commercial setup","Sell and deliver","Operate and learn"];
 const OUT = {go:"Go.", stop:"Stop.", repeat:"Repeat.", pivot:"Pivot."};
-let S = {mode:"{{ initial_mode }}", run:null, seq:0, view:null, voice:true, state:"idle", stateText:"", wake:false,
+let S = {mode:{{ initial_mode|tojson }}, run:null, seq:0, view:null, voice:true, state:"idle", stateText:"", wake:false,
          filesSeen:"", history:[], tab:"evidence", showZero:false, runs:[]};
 
 async function api(path, opts={}) {

@@ -9,13 +9,14 @@ from __future__ import annotations
 import json
 import os
 import re
+from typing import Literal
 import threading
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse, RedirectResponse
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pydantic import BaseModel
 
 import delivery
@@ -32,7 +33,7 @@ app = FastAPI(title="ProveIt - J.A.R.V.I.S. edition", version="0.1.0")
 app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:8501", "http://127.0.0.1:8501",
                                                   "http://localhost:8000", "http://127.0.0.1:8000"],
                    allow_methods=["*"], allow_headers=["*"])
-_env = Environment(loader=FileSystemLoader(str(ROOT / "templates")), autoescape=False)
+_env = Environment(loader=FileSystemLoader(str(ROOT / "templates")), autoescape=select_autoescape(["html", "j2"]))
 _workers: dict[str, threading.Thread] = {}
 STATUS_TABLE = [
     ("Intake + eligibility check", "Working"), ("1.1 Find opportunities", "Working"),
@@ -49,6 +50,18 @@ STATUS_TABLE = [
 
 
 DEMO_ALLOWED_POSTS = ("/api/ask", "/api/ask/stream", "/api/voice/speak")
+RUN_ID = re.compile(r"r\d{8}-\d{6}-[0-9a-f]{4}")
+_RUN_PATH = re.compile(r"^/(?:api/runs|p|store)/([^/]+)")
+
+
+@app.middleware("http")
+async def _valid_run_ids(request: Request, call_next):
+    """A run id in the path must look like one, so no path can climb out of the runs folder."""
+    m = _RUN_PATH.match(request.url.path)
+    if m and not RUN_ID.fullmatch(m.group(1)):
+        return JSONResponse({"ok": False, "error": "not found"}, status_code=404)
+    return await call_next(request)
+
 
 
 @app.middleware("http")
@@ -83,7 +96,7 @@ def root():
 
 
 @app.get("/hud", response_class=HTMLResponse)
-def hud(mode: str = "tactical", embed: int = 0, api: str = ""):
+def hud(mode: Literal["tactical", "hud", "dual"] = "tactical", embed: int = 0, api: str = ""):
     return _env.get_template("hud.html.j2").render(initial_mode=mode, embed=bool(embed), api_base=api,
                                                    status_table=STATUS_TABLE, demo=DEMO)
 
@@ -179,10 +192,11 @@ def get_log(run_id: str):
 
 @app.get("/api/runs/{run_id}/files/{name}")
 def get_file(run_id: str, name: str):
-    if not re.fullmatch(r"[A-Za-z0-9_.-]+", name):
-        raise HTTPException(400, "bad name")
-    p = runs_dir() / run_id / name
-    if not p.exists():
+    if not RUN_ID.fullmatch(run_id) or not re.fullmatch(r"[A-Za-z0-9_-][A-Za-z0-9_.-]*", name) or ".." in name:
+        raise HTTPException(404, "no such file")
+    base = (runs_dir() / run_id).resolve()
+    p = (base / name).resolve()
+    if base not in p.parents or not p.is_file():          # never serve anything outside the run's folder
         raise HTTPException(404, "no such file")
     return PlainTextResponse(p.read_text(encoding="utf-8"))
 
