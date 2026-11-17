@@ -37,7 +37,8 @@ def tiers(claims: list[Claim]) -> dict:
     if len(pts) < 2:
         return {"basis": "ASSUMPTION", "points": pts, "good": DEFAULT_TIERS[0], "better": DEFAULT_TIERS[1],
                 "best": DEFAULT_TIERS[2],
-                "note": f"Only {len(pts)} verified price point(s); tiers are an illustrative ASSUMPTION."}
+                "note": ("No verified price point was found" if not pts else "Only one verified price point was found")
+                + "; the tiers are an illustrative ASSUMPTION."}
     vals = sorted(v for v, _ in pts)
     q = statistics.quantiles(vals, n=4) if len(vals) >= 3 else [vals[0], statistics.median(vals), vals[-1]]
     r = lambda x: float(max(5, round(x)))  # noqa: E731

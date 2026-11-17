@@ -120,11 +120,13 @@ def classify_brief(text: str) -> GuardResult:
     for cat, spec in b["categories"].items():
         m = rx(spec["pattern"]).search(probe)
         if m:
-            label = {"arabic": "excluded category (Arabic keyword)"}.get(cat, cat.replace("_", " "))
+            label = {"arabic": "an excluded category", "physical_goods": "physical goods",
+                     "financial_crypto": "a financial or crypto product", "health_advice": "a health advice product",
+                     "legal_advice": "a legal advice product"}.get(cat, cat.replace("_", " "))
             return GuardResult("stop", "rules", f"excluded_{cat}",
-                               f"This is an excluded product category ({label}): physical goods, financial or "
-                               "crypto products, and health or legal advice products are not built. "
-                               "I can help explore a digital product in an eligible category instead.",
+                               f"This looks like {label}, which ProveIt can't help build. It works on digital "
+                               "products such as templates, guides, checklists or small tools that give no "
+                               "financial, medical or legal advice.",
                                category=cat, matched=m.group(0))
     m = rx(b["ask_tier"]).search(probe)
     if m:

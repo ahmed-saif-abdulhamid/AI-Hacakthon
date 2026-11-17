@@ -147,23 +147,27 @@ async function refreshRuns() {
   let runs; try { runs = await api("/api/runs"); } catch (e) { return; }
   S.runs = runs; $("latestbtn").hidden = !runs.length;
   const groups = []; const seen = new Map();
-  for (const r of runs) {                      // newest first; repeats of the same idea collapse into one row
+  const visible = S.showAll ? runs : runs.filter(r => !r.calibration);
+  const examples = visible.filter(r => r.example);
+  for (const r of visible.filter(r => !r.example)) {                      // newest first; repeats of the same idea collapse into one row
     const key = (r.title || r.id).toLowerCase();
     if (seen.has(key)) { seen.get(key).n++; continue; }
     const g = {r, n: 1}; seen.set(key, g); groups.push(g);
   }
-  const rows = S.showAll ? runs.map(r => ({r, n: 1})) : groups.slice(0, 8);
-  $("showall").hidden = groups.length <= 8 && groups.length === runs.length;
+  const rows = S.showAll ? visible.filter(r => !r.example).map(r => ({r, n: 1})) : groups.slice(0, 8);
+  $("showall").hidden = groups.length <= 8 && groups.length === visible.length - examples.length && !runs.some(r => r.calibration);
   $("showall").textContent = S.showAll ? "Show fewer" : "Show all";
   const box = $("runlist");
   if (!runs.length) { box.innerHTML = `<p class="empty" style="padding:8px 12px">No ideas tested yet.</p>`; return; }
-  const html = rows.map(({r, n}) => {
+  const item = ({r, n}) => {
     const title = r.title || "Untitled idea"; const dot = runDot(r);
     const state = r.status === "error" ? "Needs attention" : (r.status === "running" ? "Working…" : (r.outcome ? OUT_SHORT[r.outcome] || r.outcome : "Waiting for you"));
     return `<button class="runitem" type="button" data-run="${esc(r.id)}" aria-current="${r.id === S.run}" title="${esc(title)}">
       <span class="t" dir="auto">${esc(title)}</span>
-      <span class="m"><i class="status-dot ${dot}" aria-hidden="true"></i>${esc(state)} · ${esc(ago(r.created_at))}${n > 1 ? `<span class="x" title="${n} runs of this idea">×${n}</span>` : ""}</span></button>`;
-  }).join("");
+      <span class="m"><i class="status-dot ${dot}" aria-hidden="true"></i>${esc(state)} · ${esc(ago(r.created_at))}${n > 1 ? `<span class="x" title="${n} attempts of this idea; the newest opens">${n} tries</span>` : ""}</span></button>`;
+  };
+  const html = (examples.length ? `<p class="group">Examples</p>` + examples.map(r => item({r, n: 1})).join("") + `<p class="group">Your ideas</p>` : "")
+    + (rows.length ? rows.map(item).join("") : `<p class="empty" style="padding:4px 12px">None yet.</p>`);
   setOnce("runlist", html, html);
 }
 
@@ -239,7 +243,7 @@ function onTelemetry(t) {
   }
   if (t.kind === "approval") { setState("hold", "Waiting for your approval"); announce("Something is waiting for your approval."); }
   if (t.kind === "error") { addMsg("sys", t.text); setState("alert", "Needs attention"); announce(t.text, true); }
-  if (t.kind === "protocol0") setState("alert", "Request refused");
+  if (t.kind === "protocol0") setState("alert", "I couldn't help with that one");
 }
 
 /* ---------- rendering ---------- */
@@ -330,7 +334,8 @@ function renderVerdict(v) {
       ${c.price ? `<span class="chip"><b>${c.price}</b> ${c.price === 1 ? "price" : "prices"} seen</span>` : ""}</div>`;
   const bars = elig ? `<p class="why" style="margin:0">ProveIt builds digital products only, and never financial, crypto, health or legal advice products or physical goods.</p>` : [
     m.sourced_pain != null ? bar("Real complaints found", Math.round(m.sourced_pain * 10) / 10, th.min_sourced_pain, Math.max(th.min_sourced_pain * 1.6, m.sourced_pain), "", "Quotes count only if they're about this problem and checked on their source page") : "",
-    m.coverage != null ? bar("Searches that found the topic", Math.round(m.coverage * 100), Math.round(th.min_coverage * 100), 100, "%") : "",
+    m.coverage != null ? (() => { const rows = (v.coverage_rows || []).length || 5; const got = Math.round(m.coverage * rows), need = Math.ceil(th.min_coverage * rows);
+        return bar("Searches that found people discussing it", got, need, rows, "", `${got} of ${rows} searches`); })() : "",
     m.distinct_sources != null && th.min_distinct_sources != null ? bar("Different places online", m.distinct_sources, th.min_distinct_sources, Math.max(th.min_distinct_sources * 2, m.distinct_sources), "") : "",
   ].join("") + `<p class="lockline" title="Fingerprint ${esc(v.thresholds_sha256 || "")}">${v.goalpost_moved ? '<span class="moved">The bar was changed after the search started.</span>' : "🔒 The bar was set before searching, so it can't be moved to fit the result."}</p>`;
   const html = `<div class="verdict ${g.outcome}"><div class="lead"><div class="which">${elig ? "Before searching: can ProveIt help with this?" : "First checkpoint: do people have this problem?"}</div>
@@ -361,7 +366,7 @@ function renderDecide(v) {
     if (acts.includes("pivot")) btns += `<button class="btn" type="button" data-decide="pivot">Try another angle (${next} of ${n})</button>`;
     if (acts.includes("stop")) btns += `<button class="btn stop" type="button" data-decide="stop">Stop here</button>`;
   }
-  const ovr = acts.includes("override") ? `<div class="override"><label for="ovr">Carry on anyway (needs a reason, saved with the run)</label>
+  const ovr = acts.includes("override") ? `<div class="override"><label for="ovr">Or carry on anyway, against the advice. Write why; it's saved with the run, and every later step is marked as a preview.</label>
       <div class="row"><input id="ovr" maxlength="1000" dir="auto" placeholder="Why carry on despite the evidence?"><button class="btn hold" type="button" data-decide="override">Carry on as a preview</button></div></div>` : "";
   $("decide").innerHTML = `<section class="decide" aria-labelledby="decide-h"><h2 id="decide-h">${title}</h2><p>${lead}</p><div class="actions">${btns}</div>${ovr}<p class="formerr" id="decide-err" role="alert" hidden></p></section>`;
 }
@@ -384,7 +389,8 @@ function renderLater(v) {
   const items = [["Did people sign up?", v.gate2], ["Is the product ready?", v.gate3], ["Price and policies", v.gate4]].filter(x => x[1]);
   const R = {insufficient_evidence: "No real sign-ups yet", all_required_pass: "All checks passed", founder_approved_pricing_and_policies: "You approved them",
     founder_rejected: "You asked for a redraft", checks_failed: "Some checks failed"};
-  const html = items.map(([k, g]) => `<div><div class="k">${k}</div><div class="v ${g.outcome}">${OUT_SHORT[g.outcome] || esc(g.outcome)}</div><div class="k">${esc(R[g.reason] || human(g.reason))}</div></div>`).join("");
+  const html = items.map(([k, g]) => { const pv = v.override && g.outcome === "go";
+    return `<div><div class="k">${k}</div><div class="v ${pv ? "" : g.outcome}">${pv ? "Preview" : (OUT_SHORT[g.outcome] || esc(g.outcome))}</div><div class="k">${esc(pv ? (R[g.reason] || human(g.reason)) + " (after carrying on anyway)" : (R[g.reason] || human(g.reason)))}</div></div>`; }).join("");
   setOnce("later", html, html);
 }
 
@@ -434,6 +440,12 @@ function renderEvidence(v) {
   const list = S.showZero ? all : counted;
   const key = JSON.stringify([all.length, counted.length, S.showZero, v.variant_n]);
   if (S.keys.evidence === key) return; S.keys.evidence = key;
+  if (!all.length && !isBusy(v) && (v.coverage_rows || []).length) {
+    const P = {hn: "Hacker News", stackexchange: "Stack Exchange", github: "GitHub", searxng: "the web"};
+    $("pane-evidence").innerHTML = `<p class="empty">No quote counted toward the verdict. Here is what was searched:</p><ul>` +
+      v.coverage_rows.map(r => `<li>${esc(P[r.source] || r.source)}: “${esc(String(r.query).replace(/ @ .*/, ""))}”, ${r.on_topic} of ${r.hits} results on topic${r.ok ? "" : " (did not answer)"}</li>`).join("") + `</ul>`;
+    return;
+  }
   if (!all.length && isBusy(v)) { $("pane-evidence").innerHTML = `<div class="skeleton" aria-hidden="true"><i></i><i style="width:70%"></i><i style="width:85%"></i></div><p class="empty">Quotes appear here as they're checked.</p>`; return; }
   const head = `<div class="filterrow"><span>${counted.length} of ${plural(all.length, "quote")} count toward the verdict.</span>
     ${all.length > counted.length ? `<label><input type="checkbox" id="showzero" ${S.showZero ? "checked" : ""}> Show the ones that didn't count, and why</label>` : ""}</div>`;
@@ -508,7 +520,7 @@ async function viewFile(name, btn) {
 }
 function renderCost(v) {
   const u = v.usage || {};
-  $("costline").textContent = `This run: ${plural(u.calls || 0, "AI call")}, ${((u.tokens_in || 0) + (u.tokens_out || 0)).toLocaleString("en-GB")} tokens, about ${Math.round(u.seconds || 0)} seconds of AI time. Cost: $0.00.`;
+  $("costline").textContent = `This run, including questions asked about it: ${plural(u.calls || 0, "AI call")}, ${((u.tokens_in || 0) + (u.tokens_out || 0)).toLocaleString("en-GB")} tokens, about ${Math.round(u.seconds || 0)} seconds of AI time. Cost: $0.00.`;
 }
 
 /* approvals */
@@ -575,7 +587,9 @@ function addMsg(kind, text) {
   c.appendChild(d); c.scrollTop = c.scrollHeight; return d;
 }
 async function sendAsk(text) {
-  const inp = $("askq"); text = (text ?? inp.value).trim(); if (!text || S.asking) return; inp.value = "";
+  const inp = $("askq"); text = (text ?? inp.value).trim(); if (!text) return;
+  if (S.asking) { showAnswer("One moment, I'm still answering. Your question is still in the box.", "plain"); return; }
+  inp.value = "";
   S.asking = true; S.lastAsk = text; addMsg("you", text); setState("think", "Thinking");
   const bubble = addMsg("him", "…"); let full = "", meta = null, failed = null;
   const inBar = S.mode !== "hud";

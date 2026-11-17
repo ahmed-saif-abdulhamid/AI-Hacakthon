@@ -49,6 +49,7 @@ kbd{font:600 11.5px var(--mono);padding:1px 6px;border:1px solid var(--rule);bor
 .runs{flex:1;overflow:auto;padding:0 8px 12px}
 .runs-head{display:flex;align-items:center;justify-content:space-between;margin:6px 12px 6px}
 .runs-head h2{font:600 12.5px/1 var(--ui);color:var(--ink-3);margin:0}
+.runs .group{font:600 12px var(--ui);color:var(--ink-3);margin:12px 12px 4px}
 .linkbtn{background:none;border:0;padding:4px 2px;color:var(--accent);cursor:pointer;font-size:12.5px;text-decoration:underline;text-underline-offset:2px}
 .runitem{display:block;width:100%;text-align:left;background:none;border:0;border-radius:var(--r-s);padding:9px 12px;cursor:pointer;color:var(--ink);min-height:44px}
 .runitem:hover{background:var(--sunk)}

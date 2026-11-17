@@ -1048,7 +1048,7 @@ def stage_phase5(run: Run) -> None:
     p = run.state["pricing"]
     tiers = [{"name": "Good", "price": p["good"], "what": "Module 1 checklist and template"},
              {"name": "Better", "price": p["better"], "what": "All modules and templates"},
-             {"name": "Best", "price": p["best"], "what": "All modules, templates and an email Q&A"}]
+             {"name": "Best", "price": p["best"], "what": "All modules and templates, plus the buyer guide"}]
     note = ("Prices: " + p["basis"] + ". " + p["note"]) if p["basis"] == "verified_price_points" else \
         "ASSUMPTION: " + p["note"]
     html = TEMPLATES.get_template("store.html.j2").render(run_id=run.id, tiers=tiers, pricing_note=note, **fields)
@@ -1126,7 +1126,7 @@ def stage_refund(run: Run) -> None:
     log += [f"8. Founder approved the refund; refund executed: ${res['refunded']:.2f} (test=true).",
             f"9. Download after refund: {after}.",
             f"10. Reconciliation: {summary['orders']} order(s), {summary['mismatches']} mismatch(es), "
-            f"balanced={summary['balanced']}. See phase5_step3_reconciliation.csv."]
+            f"balanced={summary['balanced']}. See the reconciliation file (Phase 5, step 3)."]
     md = ["# Payment and delivery test log (MOCKED)", "",
           "Everything below ran through the in-process MockPaymentProvider. No real or sandbox payment was made, "
           "no card details exist anywhere, and every order is test=true and excluded from every gate.", "",

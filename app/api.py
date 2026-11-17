@@ -361,9 +361,19 @@ def _run_title(run_id: str) -> str | None:
     return idea[:80] or None
 
 
+def _examples() -> set[str]:
+    try:
+        meta = json.loads((ROOT / "runs" / "promoted" / "runs.json").read_text(encoding="utf-8"))
+        return {meta.get("weak"), meta.get("strong")} - {None}
+    except (OSError, ValueError):
+        return set()
+
+
 @app.get("/api/runs")
 def runs():
-    return [dict(r, title=_run_title(r["id"])) for r in orchestrator.list_runs(60)]
+    ex = _examples()
+    return [dict(r, title=_run_title(r["id"]), example=r["id"] in ex, calibration=(r.get("label") == "backtest"))
+            for r in orchestrator.list_runs(60)]
 
 
 def _usage_from_log(run_id: str) -> dict:
