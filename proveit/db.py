@@ -72,7 +72,6 @@ _initialised: set[str] = set()
 
 
 def db_path() -> str:
-    """The SQLite path from ``PROVEIT_DB`` (default ``data/proveit.db``)."""
     return os.environ.get("PROVEIT_DB", str(ROOT / "data" / "proveit.db"))
 
 
@@ -115,19 +114,16 @@ def connect() -> Iterator[sqlite3.Connection]:
 
 
 def execute(sql: str, params: tuple = ()) -> None:
-    """Run one write statement and commit it."""
     with connect() as c:
         c.execute(sql, params)
 
 
 def query(sql: str, params: tuple = ()) -> list[dict]:
-    """Every row of a query, as dicts."""
     with connect() as c:
         return [dict(r) for r in c.execute(sql, params).fetchall()]
 
 
 def query_one(sql: str, params: tuple = ()) -> dict | None:
-    """The first row of a query as a dict, or None."""
     rows = query(sql, params)
     return rows[0] if rows else None
 
@@ -154,7 +150,6 @@ def acquire_run_lock(run_id: str, ttl_s: float = RUN_LOCK_TTL_SECONDS) -> bool:
 
 
 def release_run_lock(run_id: str) -> None:
-    """Release the run's lock so another process can advance it."""
     execute("DELETE FROM run_locks WHERE run_id=?", (run_id,))
 
 

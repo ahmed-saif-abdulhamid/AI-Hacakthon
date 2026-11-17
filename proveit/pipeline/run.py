@@ -92,7 +92,6 @@ class Run:
     # ---- persistence -------------------------------------------------------------
 
     def save(self, stage: str | None = None, outcome: str | None = None, status: str | None = None) -> None:
-        """Persist the state, plus the stage, outcome and status when given."""
         if stage:
             self.stage = stage
         if status:
@@ -119,7 +118,6 @@ class Run:
 
     @property
     def phase(self) -> int:
-        """The phase (1-6) the run is in."""
         return self.state.get("phase", 1)
 
     def say(self, kind: str, **fields) -> None:
@@ -129,7 +127,6 @@ class Run:
         voice.prerender(text)
 
     def progress(self, phase: int, text: str, **data) -> None:
-        """Enter a phase and tell the console what is happening."""
         self.state["phase"] = phase
         emit(self.id, phase, "progress", text, **data)
 
@@ -137,24 +134,19 @@ class Run:
 
     @property
     def brief(self) -> FounderBrief:
-        """The founder brief as structured by the Intake agent."""
         return FounderBrief(**self.state["brief"])
 
     @property
     def thresholds(self) -> dict:
-        """The gate thresholds pre-registered for this run."""
         return self.state["thresholds"]
 
     def claims(self) -> list[Claim]:
-        """Every claim in the run's evidence ledger."""
         return [Claim(**c) for c in self.state.get("claims", [])]
 
     def ledger(self) -> dict[str, Claim]:
-        """The claims by id, for resolving citations."""
         return {c.id: c for c in self.claims()}
 
     def variant(self, n: int | None = None) -> Variant:
-        """Variant ``n`` (the current one by default)."""
         n = n or self.state.get("variant_n", 1)
         return Variant(**self.state["variants"][n - 1])
 
@@ -177,7 +169,6 @@ class Run:
 
 
 def new_run_id() -> str:
-    """A sortable, unique run id: r<UTC date>-<time>-<4 hex digits>."""
     return datetime.now(UTC).strftime("r%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
 
 
@@ -203,7 +194,6 @@ def create(brief_raw: dict, mode: str, label: str | None, thresholds: dict, sha:
 
 
 def load(run_id: str) -> Run:
-    """The run with this id; raises KeyError when there is none."""
     row = db.query_one("SELECT * FROM runs WHERE id=?", (run_id,))
     if row is None:
         raise KeyError(run_id)
@@ -211,7 +201,6 @@ def load(run_id: str) -> Run:
 
 
 def list_runs(limit: int = 30) -> list[dict]:
-    """The most recent runs, newest first, as summary rows."""
     return db.query(
         "SELECT id, created_at, label, mode, stage, status, outcome FROM runs ORDER BY created_at DESC LIMIT ?",
         (limit,),

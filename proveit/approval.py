@@ -36,7 +36,6 @@ class NotEnabled(Exception):
 
 
 def sha256(payload: bytes) -> str:
-    """Hex SHA-256 of the payload: the identity an approval is bound to."""
     return hashlib.sha256(payload).hexdigest()
 
 
@@ -72,12 +71,10 @@ def request(run_id: str, action: str, payload: bytes, note: str = "", content_ty
 
 
 def load(approval_id: str) -> Approval | None:
-    """The approval with this id, or None."""
     return _row(db.query_one("SELECT * FROM approvals WHERE id = ?", (approval_id,)))
 
 
 def list_approvals(run_id: str | None = None, status: str | None = None) -> list[Approval]:
-    """Approvals, optionally filtered by run and by status."""
     sql, params = "SELECT * FROM approvals WHERE 1=1", []
     if run_id:
         sql += " AND run_id = ?"
@@ -120,7 +117,6 @@ def auto_approve(approval_id: str) -> Approval:
 
 
 def blob(digest: str) -> tuple[bytes, str] | None:
-    """The stored payload bytes and content type for a SHA-256, or None."""
     r = db.query_one("SELECT payload, content_type FROM blobs WHERE sha256 = ?", (digest,))
     return (bytes(r["payload"]), r["content_type"]) if r else None
 
@@ -195,35 +191,29 @@ def open_store(payload: bytes, run_id: str) -> str:
 
 @gated("publish_post")
 def publish_post(payload: bytes, run_id: str) -> str:
-    """STUBBED: this system never posts; always raises NotEnabled."""
     raise NotEnabled("publish_post adapter is STUBBED: drafts are never posted by this system")
 
 
 @gated("send_email")
 def send_email(payload: bytes, run_id: str) -> str:
-    """STUBBED: this system never sends anything; always raises NotEnabled."""
     raise NotEnabled("send_email adapter is STUBBED: nothing is ever sent by this system")
 
 
 @gated("spend")
 def spend(payload: bytes, run_id: str) -> None:  # pragma: no cover - always raises in the decorator
-    """Spending money is never enabled; always raises NotEnabled."""
     raise NotEnabled("spend")
 
 
 @gated("sign")
 def sign(payload: bytes, run_id: str) -> None:  # pragma: no cover
-    """Signing anything is never enabled; always raises NotEnabled."""
     raise NotEnabled("sign")
 
 
 @gated("create_account")
 def create_account(payload: bytes, run_id: str) -> None:  # pragma: no cover
-    """Creating accounts is never enabled; always raises NotEnabled."""
     raise NotEnabled("create_account")
 
 
 def published_payload(run_id: str, kind: str) -> tuple[bytes, str] | None:
-    """The approved bytes and content type published for a run's page (landing or store), or None."""
     r = db.query_one("SELECT sha256 FROM published WHERE run_id=? AND kind=?", (run_id, kind))
     return blob(r["sha256"]) if r else None

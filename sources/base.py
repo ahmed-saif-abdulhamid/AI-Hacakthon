@@ -93,13 +93,11 @@ def split_sentences(text: str, lang: str = "en") -> list[str]:
 
 @lru_cache(maxsize=1)
 def cues() -> dict:
-    """Cue patterns and stopwords from ``config/cues.yaml``."""
     return yaml.safe_load((ROOT / "config" / "cues.yaml").read_text(encoding="utf-8"))
 
 
 @lru_cache(maxsize=1)
 def stopwords() -> frozenset[str]:
-    """Words ignored when building short queries and keywords."""
     return frozenset(cues()["stopwords"].split())
 
 
@@ -119,7 +117,6 @@ def _cache_path(key: str) -> Path:
 
 
 def cache_get(key: str) -> object | None:
-    """A cached source response younger than the cache lifetime, or None."""
     p = _cache_path(key)
     if not p.exists() or time.time() - p.stat().st_mtime >= CACHE_TTL_SECONDS:
         return None
@@ -130,7 +127,6 @@ def cache_get(key: str) -> object | None:
 
 
 def cache_put(key: str, value: object) -> None:
-    """Cache a source response (skipped in tests)."""
     if os.environ.get("PROVEIT_ENV") == "test":
         return
     p = _cache_path(key)
@@ -182,7 +178,6 @@ def _fetch_json(url: str, source: str, params: dict | None, headers: dict, timeo
 
 
 def ts_to_dt(ts: float | int | None) -> datetime | None:
-    """A UTC datetime from a Unix timestamp, or None."""
     if not ts:
         return None
     return datetime.fromtimestamp(int(ts), tz=UTC)
@@ -195,7 +190,6 @@ class Source:
     pain_capable = False
 
     def search(self, query: str, **kw) -> tuple[list[Hit], SourceCall]:
-        """Search this source for a query; every adapter implements it."""
         raise NotImplementedError
 
     def _get_json(
@@ -236,7 +230,6 @@ def make_hit(
     query: str = "",
     lang: str = "en",
 ) -> Hit:
-    """A Hit with normalised text, split into sentences."""
     text = normalize(raw_text)[:MAX_HIT_CHARS]
     return Hit(
         id="",

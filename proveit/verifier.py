@@ -63,13 +63,11 @@ STRONG_WTP = re.compile(r"\b(paid|would pay|pay for|paying for|bought)\b|[$€£
 
 @lru_cache(maxsize=8)
 def cue_regex(kind: str) -> re.Pattern:
-    """The compiled English and Arabic pattern for one cue kind."""
     c = cues()[kind]
     return re.compile(f"(?:{c['en']})|(?:{c['ar']})", re.I)
 
 
 def match_cue(kind: str, text: str) -> str | None:
-    """The match of a cue of this kind in the text, or None."""
     if kind not in CUE_KINDS:
         return None
     m = cue_regex(CUE_KINDS[kind]).search(text or "")
@@ -109,7 +107,6 @@ class Topic(set):
 
 
 def topic_keywords(variant: Variant) -> Topic:
-    """Stemmed keywords from a variant's segment and job, used by the on-topic check."""
     seg = keywords(variant.segment) - GENERIC
     job = keywords(variant.job_to_be_done) - GENERIC
     if not seg:  # a segment made only of generic words: fall back to its words
@@ -132,7 +129,6 @@ def topic_context(c: Claim, variant: Variant) -> str:
 
 
 def overlap(text: str, topic: set[str]) -> list[str]:
-    """The topic keywords that appear in the text, sorted."""
     return sorted(keywords(text) & topic)
 
 
@@ -161,7 +157,6 @@ def contiguous_run(ids: list[int]) -> list[int]:
 
 
 def build_quote(hit: Hit, sentence_ids: list[int]) -> tuple[str | None, list[int]]:
-    """The verbatim quote for a hit's sentence ids (one contiguous run): cut by code, never written by the model."""
     run = [i for i in contiguous_run(sentence_ids) if 1 <= i <= len(hit.sentences)]
     if not run:
         return None, []
@@ -281,7 +276,6 @@ def _fetch(url: str, timeout: float) -> str | None:
 
 
 def quote_on_page(quote: str, page: str, min_chars: int = FUZZY_MIN_CHARS, threshold: int = FUZZY_THRESHOLD) -> bool:
-    """True if the quote is on the page: exact match for short quotes, fuzzy match at or above the threshold otherwise."""
     if len(quote) < min_chars:
         return quote in page
     return fuzz.partial_ratio(quote, page) >= threshold
@@ -415,7 +409,6 @@ def mark_eligible(claims: list[Claim], variant: Variant) -> None:
 
 
 def is_recent(c: Claim, max_age_months: int) -> bool:
-    """True if the claim was published within ``max_age_months``."""
     if c.published_at is None:
         return False
     pub = c.published_at if c.published_at.tzinfo else c.published_at.replace(tzinfo=UTC)

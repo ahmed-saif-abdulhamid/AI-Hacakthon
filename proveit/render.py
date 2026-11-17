@@ -79,11 +79,9 @@ class Provenance:
         self.spans: dict[str, list[str]] = {}
 
     def add(self, file: str, text: str) -> None:
-        """Record a statement written into an output file."""
         self.spans.setdefault(file, []).append(text)
 
     def write(self, run_dir: Path) -> None:
-        """Merge the recorded statements into the run's ``provenance.json``."""
         p = run_dir / "provenance.json"
         old = json.loads(p.read_text(encoding="utf-8")) if p.exists() else {}
         for k, v in self.spans.items():
@@ -92,7 +90,6 @@ class Provenance:
 
 
 def render_statement(st: Statement, ledger: dict[str, Claim], used: list[str]) -> str:
-    """One statement with its supporting citations, or labelled ASSUMPTION when none supports it."""
     valid, _ = validate(st, ledger)
     text = st.text.strip()
     if text.upper().startswith("ASSUMPTION:"):
@@ -113,7 +110,6 @@ def render_list(
     file: str = "",
     bullet: str = "- ",
 ) -> str:
-    """Statements as a Markdown list, each recorded in the provenance file."""
     lines = []
     for st in statements:
         if prov is not None:
@@ -123,7 +119,6 @@ def render_list(
 
 
 def sources_section(used: list[str], ledger: dict[str, Claim]) -> str:
-    """The Sources section for the claims cited in one output file."""
     if not used:
         return "### Sources\n\nNo statement in this file carries a verified citation; every claim above is labelled ASSUMPTION.\n"
     rows = ["### Sources", ""]
