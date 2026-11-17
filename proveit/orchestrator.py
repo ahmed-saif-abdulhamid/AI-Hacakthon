@@ -951,8 +951,21 @@ def stage_phase2(run: Run) -> None:
     fields["benefits"] = [lab(b) for b in fields["benefits"]]
     fields["faq"] = [{"q": f["q"], "a": lab(f["a"])} for f in fields["faq"]]
     if issue:
-        log_action(run.id, "guard", "flag_for_founder", artifact="landing_copy", issue=issue[:200])
-        run.state["landing_issue"] = issue
+        # Still blocked after a redraft: code removes the questions and benefits the guard blocks, so the
+        # founder is never offered copy that breaks a rule; anything left is flagged for the founder.
+        def blocked(text: str) -> bool:
+            return guard.check_output(text, "outward").blocked
+        kept_faq = [f for f in fields["faq"] if not blocked(f["q"] + " " + f["a"])]
+        kept_benefits = [b for b in fields["benefits"] if not blocked(b)]
+        dropped = len(fields["faq"]) - len(kept_faq) + len(fields["benefits"]) - len(kept_benefits)
+        if dropped:
+            fields["faq"], fields["benefits"] = kept_faq, kept_benefits
+            log_action(run.id, "guard", "drop_blocked_copy", artifact="landing_copy", dropped=dropped)
+        rest = "\n".join([fields["headline"], fields["subheadline"]] + fields["benefits"]
+                         + [f["q"] + " " + f["a"] for f in fields["faq"]])
+        if blocked(rest):
+            log_action(run.id, "guard", "flag_for_founder", artifact="landing_copy", issue=issue[:200])
+            run.state["landing_issue"] = issue
     for s in [copy.headline, copy.subheadline] + copy.benefits + [f.a for f in copy.faq]:
         prov.add("phase2_step2_landing-page.html", s)
     html = TEMPLATES.get_template("landing.html.j2").render(run_id=run.id, content_note="shown in the approval console",
