@@ -83,5 +83,7 @@ def test_qwen3_is_asked_to_answer_without_a_reasoning_block(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "ollama")
     monkeypatch.setenv("OLLAMA_MODEL", "qwen3:8b")
     assert llm._no_think("hello").endswith("/no_think")
+    monkeypatch.setenv("OLLAMA_MODEL", "qwen3:4b-instruct-2507-q4_K_M")  # instruct: no reasoning block anyway
+    assert llm._no_think("hello") == "hello"
     monkeypatch.setenv("OLLAMA_MODEL", "llama3.2")
     assert llm._no_think("hello") == "hello"

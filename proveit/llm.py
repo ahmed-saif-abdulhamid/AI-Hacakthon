@@ -2,7 +2,7 @@
 
 * ``ollama`` (the Docker default): a local model served by Ollama, downloaded on first start by
   ``docker compose up``. No key, no account, nothing leaves the computer. ``OLLAMA_MODEL``
-  (default ``qwen3:8b``), ``OLLAMA_URL`` (default ``http://localhost:11434``).
+  (default ``qwen3:4b-instruct-2507-q4_K_M``), ``OLLAMA_URL`` (default ``http://localhost:11434``).
 * ``nvidia``: open-weight NVIDIA Nemotron on build.nvidia.com's free developer tier
   (``NVIDIA_API_KEY``, roughly 40 requests a minute). Override the model with ``NVIDIA_MODEL``.
 
@@ -33,7 +33,7 @@ PROMPTS = ROOT / "prompts"
 NVIDIA_URL = "https://integrate.api.nvidia.com/v1"
 DEFAULT_MODEL = "nvidia/nemotron-3-ultra-550b-a55b"
 OLLAMA_URL = "http://localhost:11434"
-OLLAMA_MODEL = "qwen3:8b"
+OLLAMA_MODEL = "qwen3:4b-instruct-2507-q4_K_M"
 
 T = TypeVar("T", bound=BaseModel)
 Backend = Callable[[str, str, dict, str], str]
@@ -109,7 +109,8 @@ def _no_model() -> bool:
 
 def _no_think(text: str) -> str:
     """Qwen3's switch for answering without a reasoning block (faster on a local CPU)."""
-    return text + " /no_think" if "qwen3" in model_name().lower() else text
+    name = model_name().lower()
+    return text + " /no_think" if "qwen3" in name and "instruct" not in name else text
 
 
 def _strip_reasoning(text: str) -> str:

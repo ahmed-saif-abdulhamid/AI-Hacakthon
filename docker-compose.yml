@@ -1,7 +1,7 @@
 # One-command setup: docker compose up  ->  open http://localhost:8000 (the ProveIt console).
 # A developer view (Streamlit) is also served on http://localhost:8501.
-# Works on any computer with no key and no account: the AI model is an open-weight model (qwen3:8b)
-# served by Ollama in its own container and downloaded into a volume on first start (about 5 GB, once).
+# Works on any computer with no key and no account: the AI model is an open-weight model (qwen3:4b-instruct-2507-q4_K_M)
+# served by Ollama in its own container and downloaded into a volume on first start (about 2.5 GB, once).
 # The committed runs load immediately, so the console is usable while the model downloads.
 # Optional: LLM_PROVIDER=nvidia plus NVIDIA_API_KEY in .env uses NVIDIA's hosted free tier instead.
 # Ports are bound to 127.0.0.1 only, so nobody on the local network can press Approve.
@@ -20,7 +20,7 @@ services:
     image: ollama/ollama:0.40.10
     environment:
       OLLAMA_HOST: "http://ollama:11434"
-    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-qwen3:8b}"]
+    entrypoint: ["ollama", "pull", "${OLLAMA_MODEL:-qwen3:4b-instruct-2507-q4_K_M}"]
     depends_on:
       ollama: { condition: service_healthy }
     restart: "no"
@@ -47,7 +47,7 @@ services:
       # Local open-weight model by default; set LLM_PROVIDER=nvidia and NVIDIA_API_KEY for the hosted tier.
       LLM_PROVIDER: "${LLM_PROVIDER:-ollama}"
       OLLAMA_URL: "http://ollama:11434"
-      OLLAMA_MODEL: "${OLLAMA_MODEL:-qwen3:8b}"
+      OLLAMA_MODEL: "${OLLAMA_MODEL:-qwen3:4b-instruct-2507-q4_K_M}"
       NVIDIA_API_KEY: "${NVIDIA_API_KEY:-}"
       NVIDIA_MODEL: "${NVIDIA_MODEL:-nvidia/nemotron-3-ultra-550b-a55b}"
       NVIDIA_BASE_URL: "${NVIDIA_BASE_URL:-https://integrate.api.nvidia.com/v1}"

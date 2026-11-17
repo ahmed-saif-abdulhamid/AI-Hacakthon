@@ -7,7 +7,7 @@
 | It is | It is not |
 |---|---|
 | A six-phase pipeline whose gates are decided by code, with quotes cut by code from public posts and re-checked on their source page | A business-plan generator, an income promise, or an autopilot that posts, sells or moves money |
-| Free and local: an open-weight model (Qwen3 8B) runs on your computer through Ollama; no key, no account | A paid API wrapper |
+| Free and local: an open-weight model (Qwen3 4B Instruct) runs on your computer through Ollama; no key, no account | A paid API wrapper |
 | Honest about what is MOCKED or STUBBED, in this README and on screen | A demo that hides its mocks |
 
 **What the committed runs show** ([outputs/](outputs/), [decision_log.json](decision_log.json)):
@@ -23,14 +23,15 @@
 docker compose up
 ```
 
-Then open **http://localhost:8000** and say hello to J.A.R.V.I.S. (type, or hold the talk button). **No key, no account, no paid service:** the first start downloads the local open-weight model (`qwen3:8b` through Ollama, about 5 GB, once) into a Docker volume, and the two committed runs load straight away, so every verdict, quote, gate file and approval is readable while the model downloads. Then press **Test a new idea**. A developer view with raw details runs on http://localhost:8501.
+Then open **http://localhost:8000** and say hello to J.A.R.V.I.S. (type, or hold the talk button). **No key, no account, no paid service:** the first start downloads the local open-weight model (`qwen3:4b-instruct-2507-q4_K_M` through Ollama, about 2.5 GB, once) into a Docker volume, and the two committed runs load straight away, so every verdict, quote, gate file and approval is readable while the model downloads. Then press **Test a new idea**. A developer view with raw details runs on http://localhost:8501.
 
-Without Docker: `pip install -r requirements.txt`, run [Ollama](https://ollama.com) with `ollama pull qwen3:8b` (or set `LLM_PROVIDER=nvidia` and a free `NVIDIA_API_KEY` in `.env`), then `uvicorn app.api:app` (console) or `python -m proveit run briefs/weak.md` (command line). Tests: `python -m pytest`.
+Without Docker: `pip install -r requirements.txt`, run [Ollama](https://ollama.com) with `ollama pull qwen3:4b-instruct-2507-q4_K_M` (or set `LLM_PROVIDER=nvidia` and a free `NVIDIA_API_KEY` in `.env`), then `uvicorn app.api:app` (console) or `python -m proveit run briefs/weak.md` (command line). Tests: `python -m pytest`.
 
 ## What works and what is mocked
 
 | Step | Status | Notes |
 |---|---|---|
+| Local model through Ollama (default with Docker) | **Working** | Phase 1 run end to end on `qwen3:4b-instruct-2507-q4_K_M` (5 model calls, ~110 s on a 4 GB laptop GPU); the committed demo runs used the optional hosted NVIDIA model |
 | Intake + eligibility check (step 0) | **Working** | Excluded categories stop before any search; the founder cannot override them |
 | 1.1 Find opportunities (Core) | **Working** | Scout proposes 3 angles; each passes the excluded-category check; code ranks them by recent first-person complaints and researches the strongest; PIVOT goes to the next-best |
 | 1.2 Evidence ledger | **Working** | Quotes cut by code, re-checked on the source page, relevance and complaint cues checked by code; sentences the model skipped but code qualifies are added and verified too |
@@ -66,7 +67,7 @@ Eleven agents work through six phases, but only plain Python code calls tools, c
 
 ## Models and free resources
 
-- **Default model (local):** `qwen3:8b` (Qwen3 8B, open weights, Apache-2.0) served by Ollama `0.40.10` inside Docker. `docker compose up` downloads it into the `ollama-models` volume on first start; nothing leaves the computer except the public searches. Change it with `OLLAMA_MODEL` (for example `qwen3:4b` on a slower machine). Ollama uses an NVIDIA GPU when Docker exposes one, otherwise the CPU (slower: a Phase 1 verdict takes a few minutes instead of seconds).
+- **Default model (local):** `qwen3:4b-instruct-2507-q4_K_M` (Qwen3 4B Instruct 2507, 4-bit, open weights, Apache-2.0; no reasoning block, so answers come straight away) served by Ollama `0.40.10` inside Docker. `docker compose up` downloads it into the `ollama-models` volume on first start; nothing leaves the computer except the public searches. Change it with `OLLAMA_MODEL` (for example `qwen3:8b` on a machine with more memory). Ollama uses an NVIDIA GPU when Docker exposes one, otherwise the CPU (slower: on a 4 GB laptop GPU a Phase 1 verdict took about 2 minutes, 5 model calls).
 - **Optional hosted model:** `nvidia/nemotron-3-ultra-550b-a55b` (NVIDIA Nemotron 3 Ultra, open weights under OpenMDW-1.1) on NVIDIA's OpenAI-compatible free developer tier: set `LLM_PROVIDER=nvidia` and a free key from build.nvidia.com (no card). The committed runs used this provider. It is rate-limited (about 40 requests a minute); ProveIt paces itself to 30 (`LLM_RPM`), backs off on HTTP 429 and retries the same step before showing **Try again**, reusing the search already made.
 - **Structured output:** every agent call sends its JSON schema as `response_format`, at temperature 0; invalid JSON is retried once and then turned into a REPEAT ("the research didn't come back clean"), never into a weak-idea verdict.
 - **Privacy:** with the default local model, ideas, quotes and questions stay on your computer (with `LLM_PROVIDER=nvidia` they go to NVIDIA's API); searches go to Hacker News, Stack Exchange, GitHub, Wikipedia and (in Docker) a self-hosted SearXNG. Runs and decisions stay on your computer. Details are in the console under **Privacy**.
