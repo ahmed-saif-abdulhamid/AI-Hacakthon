@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "deploy" / "vercel_site"
-CODE_DIRS = ["proveit", "agents", "sources", "templates", "config", "prompts", "briefs"]
+CODE_DIRS = ["proveit", "agents", "sources", "templates", "static", "config", "prompts", "briefs"]
 CODE_FILES = [
     "delivery.py",
     "payments.py",
@@ -80,9 +80,7 @@ def build() -> Path:
         shutil.copytree(ROOT / d, OUT / d, ignore=ignore)
     for f in CODE_FILES:
         shutil.copy(ROOT / f, OUT / f)
-    (OUT / "app").mkdir()
-    shutil.copy(ROOT / "app" / "__init__.py", OUT / "app" / "__init__.py")
-    shutil.copy(ROOT / "app" / "api.py", OUT / "app" / "api.py")
+    shutil.copytree(ROOT / "app", OUT / "app", ignore=ignore)
     for rid in keep:
         shutil.copytree(ROOT / "runs" / rid, OUT / "runs" / rid, ignore=ignore)
 

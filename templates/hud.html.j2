@@ -215,6 +215,7 @@
 <script>
   window.PROVEIT = {
     api: {{ api_base|tojson }} || "",
+    apiPrefix: {{ api_prefix|tojson }},
     embed: {{ 'true' if embed else 'false' }},
     demo: {{ 'true' if demo else 'false' }},
     mode: {{ initial_mode|tojson }},

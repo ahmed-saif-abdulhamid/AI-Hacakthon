@@ -84,6 +84,6 @@ def test_ui_approval_requires_the_hash_the_founder_saw():
 
     c = TestClient(app)
     ap = approval.request("r8", "publish_landing_page", b"<p>x</p>")
-    r = c.post(f"/api/approvals/{ap.id}", json={"approve": True, "payload_sha256": "0" * 64})
+    r = c.post(f"/api/v1/approvals/{ap.id}", json={"approve": True, "payload_sha256": "0" * 64})
     assert r.status_code == 409
     assert approval.load(ap.id).status == "pending"

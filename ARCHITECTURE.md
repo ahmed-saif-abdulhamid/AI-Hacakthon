@@ -194,7 +194,7 @@ Storage: SQLite in WAL mode (`busy_timeout=5000`) on a named Docker volume holds
 
 Privacy: with the default local model, briefs, evidence and questions never leave the computer; search queries derived from the brief go to Hacker News, Stack Exchange, GitHub and SearXNG's engines; the waitlist stores only an email and a timestamp.
 
-Code layout: `proveit/orchestrator.py` runs the stages; `proveit/decisions.py` applies founder decisions and approvals; `proveit/reports.py` writes every output file; `proveit/gates.py` decides gates (pure functions); `proveit/verifier.py` builds and checks quotes; `proveit/guard.py` holds the rule sets; `proveit/llm.py` is the model client; `agents/` holds one module per agent role; `app/api.py` serves the console and `app/security.py` its HTTP security layer; the sale-to-cash modules (`payments.py`, `webhooks.py`, `delivery.py`, `refunds.py`, `reconcile.py`) sit at the repository root.
+Code layout: `proveit/orchestrator.py` runs the stages; `proveit/decisions.py` applies founder decisions and approvals; `proveit/reports.py` writes every output file; `proveit/gates.py` decides gates (pure functions); `proveit/verifier.py` builds and checks quotes; `proveit/guard.py` holds the rule sets; `proveit/llm.py` is the model client; `agents/` holds one module per agent role; `app/api.py` assembles the web service from the routers in `app/routes/` (the JSON API is versioned under `/api/v1/`, with Prometheus counters at `/api/v1/metrics`) and `app/security.py` is its HTTP security layer; the sale-to-cash modules (`payments.py`, `webhooks.py`, `delivery.py`, `refunds.py`, `reconcile.py`) sit at the repository root.
 
 ## Built vs. stubbed
 

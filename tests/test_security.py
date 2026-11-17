@@ -11,9 +11,9 @@ client = TestClient(app)
 
 def test_run_id_path_traversal_is_refused():
     for path in (
-        "/api/runs/%2E%2E/files/.env",
-        "/api/runs/../files/README.md",
-        "/api/runs/..%2F..%2F/files/x",
+        "/api/v1/runs/%2E%2E/files/.env",
+        "/api/v1/runs/../files/README.md",
+        "/api/v1/runs/..%2F..%2F/files/x",
         "/p/..%2F.env",
         "/store/%2E%2E",
     ):
@@ -24,7 +24,7 @@ def test_run_id_path_traversal_is_refused():
 
 def test_file_name_cannot_climb_out():
     for name in ("..", ".env", "..%2F..%2F.env"):
-        r = client.get(f"/api/runs/r20261117-000000-abcd/files/{name}")
+        r = client.get(f"/api/v1/runs/r20261117-000000-abcd/files/{name}")
         assert r.status_code == 404, name
 
 
@@ -41,13 +41,13 @@ def test_api_base_parameter_is_escaped():
 
 
 def test_dns_rebinding_host_is_refused():
-    assert client.get("/api/approvals", headers={"host": "evil.example"}).status_code == 400
+    assert client.get("/api/v1/approvals", headers={"host": "evil.example"}).status_code == 400
 
 
 def test_cross_site_and_non_json_posts_are_refused():
-    r = client.post("/api/ask", json={"text": "hi"}, headers={"origin": "https://evil.example"})
+    r = client.post("/api/v1/ask", json={"text": "hi"}, headers={"origin": "https://evil.example"})
     assert r.status_code == 403
-    r = client.post("/api/runs", content=b'{"fields":{"idea":"x"}}', headers={"content-type": "text/plain"})
+    r = client.post("/api/v1/runs", content=b'{"fields":{"idea":"x"}}', headers={"content-type": "text/plain"})
     assert r.status_code == 415
 
 

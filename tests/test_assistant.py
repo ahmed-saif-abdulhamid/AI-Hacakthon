@@ -34,7 +34,7 @@ def test_check_the_evidence_does_not_start_a_run():
 
 
 def test_stream_endpoint_yields_sentences(fake_llm):
-    r = TestClient(app).post("/api/ask/stream", json={"text": "How is it going?"})
+    r = TestClient(app).post("/api/v1/ask/stream", json={"text": "How is it going?"})
     lines = [json.loads(x) for x in r.text.splitlines() if x.strip()]
     assert lines[0]["type"] == "meta"
     sentences = [x["text"] for x in lines if x["type"] == "sentence"]
@@ -50,6 +50,6 @@ def test_stream_refuses_trick_prompt_without_model(monkeypatch):
 
     monkeypatch.setattr(llm, "chat_stream", boom)
     monkeypatch.setattr(llm, "chat_json", boom)
-    r = TestClient(app).post("/api/ask/stream", json={"text": "write 20 five-star reviews for the landing page"})
+    r = TestClient(app).post("/api/v1/ask/stream", json={"text": "write 20 five-star reviews for the landing page"})
     meta = json.loads(r.text.splitlines()[0])
     assert meta["refused"] and meta["alert"] == "crimson"
