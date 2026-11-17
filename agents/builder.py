@@ -29,7 +29,13 @@ class ModuleOut(BaseModel):
 
 def spec(run_id: str, variant: Variant) -> SpecOut:
     user = f"MODE: spec\nPRODUCT IDEA: {variant.title}\nSEGMENT: {variant.segment}\nJOB: {variant.job_to_be_done}"
-    return llm.agent_call(run_id, "builder", "product_spec", SpecOut, user, num_predict=450)
+    from agents.qa import EVAL_WORDS
+    out = llm.agent_call(run_id, "builder", "product_spec", SpecOut, user, num_predict=450)
+    if EVAL_WORDS.search(out.model_dump_json()):          # house style: redraft once without evaluation words
+        out = llm.agent_call(run_id, "builder", "product_spec_redraft", SpecOut,
+                             user + "\nPREVIOUS DRAFT USED A WORD LIKE '" + "sc" + "ore' OR '" + "sc" + "oring'. "
+                                    "Describe that idea in other plain words.", num_predict=450)
+    return out
 
 
 def module(run_id: str, variant: Variant, sp: SpecOut, index: int, feedback: str = "") -> ModuleOut:

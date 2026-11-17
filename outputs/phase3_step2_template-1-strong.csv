@@ -1,4 +1,4 @@
-Client Name,Invoice Number,Amount Due,Due Date,Reminder Stage,Send Date
-Acme Corp,INV-1023,"$4,500",2024-01-15,First,2024-01-22
-Bright Design Studio,INV-0876,"$2,200",2024-02-01,Second,2024-02-08
-Global Tech Ltd,INV-1150,"$7,800",2024-01-30,Final,2024-02-13
+Invoice ID,Client Name,Due Date,Reminder Stage,Scheduled Send Date,Channel
+INV-001,Acme Corp,2024-06-01,First Reminder,2024-06-02,Email
+INV-001,Acme Corp,2024-06-01,Second Reminder,2024-06-08,Email
+INV-001,Acme Corp,2024-06-01,Final Notice,2024-07-01,Call

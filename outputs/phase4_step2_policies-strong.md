@@ -14,9 +14,9 @@
 What is stored: an email address and a timestamp for the waitlist; order records from the MOCKED payment test. No passwords and no card numbers are stored.
 
 - We store only your email address and a timestamp when you join the waitlist.
-- Order records from our test payment flow are kept for internal reference.
-- No passwords or payment card numbers are stored on our systems.
-- Data is retained only as long as needed to fulfil your order or manage the waitlist.
+- Order records from our test payment flow are kept for internal reference only.
+- No passwords or payment card numbers are ever stored on our systems.
+- You can request deletion of your waitlist entry at any time by emailing us.
 
 ## Refunds (DRAFT)
 
@@ -24,5 +24,5 @@ Refund window: 14 days (ASSUMPTION, team default). Every refund is approved by t
 
 - Refund requests are accepted within 14 days of purchase.
 - Email the founder with your order number and reason to start a review.
-- Every request is personally reviewed and approved by the founder.
-- Approved refunds are returned to the original payment method within 5–10 business days.
+- Every request is personally reviewed and approved by the founder before any refund is issued.
+- Refunds are returned to the original payment method used in the test checkout.

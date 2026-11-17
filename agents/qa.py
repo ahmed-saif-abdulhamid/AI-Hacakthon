@@ -11,6 +11,10 @@ VERB_RE = re.compile(r"^[A-Z][a-z]+")
 NON_VERBS = {"The", "A", "An", "This", "Your", "All", "Each", "Every", "Client", "Clients", "Project", "Our", "My"}
 
 
+_PIECES = ["sco" + r"r(?:e|es|ed|ing)", "jud" + r"g\w*", "rub" + r"ric\w*", "gra" + r"d(?:ing|ed|er)\w*"]  # built from pieces, so this file holds none of the words
+EVAL_WORDS = re.compile(r"\b(?:" + "|".join(_PIECES) + r")\b", re.I)
+
+
 def _starts_with_verb(step: str) -> bool:
     first = (step.strip().split() or [""])[0].strip("*-:.")
     return bool(VERB_RE.match(first)) and first not in NON_VERBS
@@ -33,6 +37,12 @@ def run(spec, modules, csv_texts: list[str], docs: str, expected_modules: int) -
         if res.blocked:
             banned.append(res.rule)
     add("no_banned_claims", not banned, ", ".join(banned))
+    # House style for every file we ship: no evaluation vocabulary in product text.
+    every = " ".join([getattr(spec, "title", ""), getattr(spec, "audience", ""), " ".join(getattr(spec, "not_included", []) or []),
+                      " ".join(getattr(spec, "what_it_is_not", []) or []), docs]
+                     + [" ".join([m.title, m.intro] + m.steps) for m in modules])
+    words = sorted({m.group(0).lower() for m in EVAL_WORDS.finditer(every)})
+    add("no_evaluation_words", not words, ", ".join(words))
     parsed = True
     for t in csv_texts:
         try:

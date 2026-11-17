@@ -1,18 +1,18 @@
-# Reminder Email Templates
+# Reminder Sequence Planner
 
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-This module gives you three courteous email scripts you can copy, personalize, and send at the right intervals. Each template balances professionalism with a friendly tone so you maintain client relationships while getting paid.
+This module helps you design a clear timeline for every invoice reminder so you never miss a follow‑up. It gives you a repeatable structure you can apply to each client and project.
 
 ## Checklist
 
-- [ ] Open the template that matches the reminder stage (first, second, or final).
-- [ ] Replace all placeholder fields with the client’s name, invoice number, amount, and due date.
-- [ ] Add a brief reference to the original project or deliverable for context.
-- [ ] Attach the original invoice PDF or include a secure payment link.
-- [ ] Set a clear next‑action date or payment deadline in the email body.
-- [ ] Proofread for tone, spelling, and correct attachment before sending.
-- [ ] Send the email from your business address and BCC your tracking spreadsheet.
-- [ ] Log the send date, template used, and any client reply in your payment tracker.
-- [ ] Schedule the next reminder stage if payment is not received by the deadline.
-- [ ] Archive the sent email in a dedicated “Payment Reminders” folder for future reference.
+- [ ] List every invoice you have sent and note its due date
+- [ ] Define the first reminder to go out one day after the due date
+- [ ] Schedule a second reminder for seven days overdue
+- [ ] Plan a third reminder at fourteen days overdue with a firmer tone
+- [ ] Add a final notice at thirty days overdue that mentions next steps
+- [ ] Choose the communication channel for each reminder (email, message, call)
+- [ ] Write a short template for each reminder stage
+- [ ] Set calendar alerts or task reminders for each send date
+- [ ] Log the actual send date and any client response in your tracker
+- [ ] Review the sequence after each payment cycle and adjust timing if needed

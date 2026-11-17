@@ -1,20 +1,20 @@
-# Escalation Decision Guide
+# Payment Tracker Dashboard
 
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-This module helps you choose the right escalation step based on how overdue an invoice is and how the client has responded so far. Follow the checklist to move from a friendly nudge to a formal demand or third‑party collection with confidence.
+This module gives you a single spreadsheet to record every invoice, its due date, reminder actions, and payment confirmation. Use it each week to see what needs follow‑up and what has been settled.
 
 ## Checklist
 
-- [ ] Review the invoice aging report to identify invoices past 30 days overdue
-- [ ] Check the communication log for any client replies or promises to pay
-- [ ] Send a friendly reminder if the invoice is 1–30 days overdue and no response has been received
-- [ ] Send a firm reminder with a clear due date if the invoice is 31–60 days overdue
-- [ ] Issue a formal demand letter referencing contract terms if the invoice is 61–90 days overdue
-- [ ] Evaluate the cost‑benefit of engaging a collection agency for invoices over 90 days overdue
-- [ ] Document every contact attempt and client response in your tracking sheet
-- [ ] Set a calendar reminder to reassess the account after each escalation step
-- [ ] Consult your contract or engagement letter for any required notice periods before escalation
-- [ ] Prepare a summary of all communications for potential legal or collection use
-- [ ] Decide whether to pause future work for the client until the overdue balance is cleared
-- [ ] Record the final escalation decision and next action date in your tracker
+- [ ] Create a new sheet using the column headings provided
+- [ ] Enter each outstanding invoice with client name, invoice number, amount, and due date
+- [ ] Mark the reminder status as Not Sent, First Sent, Second Sent, or Final Sent
+- [ ] Set a calendar alert for the due date and each reminder milestone
+- [ ] Send the first reminder email on the due date using your standard template
+- [ ] Update the reminder status to First Sent after the email goes out
+- [ ] Send a second reminder three business days later if payment has not arrived
+- [ ] Update the reminder status to Second Sent after the second email
+- [ ] Send a final notice seven business days after the due date if still unpaid
+- [ ] Record the payment date and method once the money is received
+- [ ] Change the reminder status to Paid and archive the row
+- [ ] Review the dashboard every Monday to catch any overdue items

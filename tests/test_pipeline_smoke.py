@@ -119,3 +119,13 @@ def test_no_unsourced_market_claims_in_prose(fake_llm, offline_sources):
                 idx = body.find(flagged)
                 assert idx == -1 or body[max(0, idx - 12):idx].endswith("ASSUMPTION: ") or \
                     re.search(r"\[C\d+\]", body[idx: idx + len(flagged) + 12]), (fname, flagged)
+
+
+def test_qa_rejects_evaluation_words_in_product_files():
+    from types import SimpleNamespace
+
+    from agents import qa
+    m = SimpleNamespace(title="Module", intro="Use this checklist for each new client.", steps=["Send the intake form"])
+    spec = SimpleNamespace(title="Kit", audience="designers", not_included=["Client risk-" + "sco" + "ring features"])
+    res = {r["name"]: r for r in qa.run(spec, [m], [], "", 1)}
+    assert not res["no_evaluation_words"]["passed"] and "sco" + "ring" in res["no_evaluation_words"]["detail"]

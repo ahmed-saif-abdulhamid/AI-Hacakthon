@@ -8,7 +8,7 @@
 | Free: open-weight NVIDIA Nemotron on NVIDIA's free hosted tier (a free key, no card) | A paid API wrapper |
 | Honest about what is MOCKED or STUBBED, in this README and on screen | A demo that hides its mocks |
 
-**Two committed runs show it working** ([outputs/](outputs/), [decision_log.json](decision_log.json)): a weak idea (an ebook of inspirational quotes) gets **STOP** in about a minute; a stronger idea (a late-payment toolkit for freelancers) also gets **STOP**: one verified complaint (a freelancer owed two $2,000 payments), while the vendor pitches it found count only as existing tools. The founder then carries on against the evidence with a logged reason, so phases 2-6 run as a clearly labelled preview through to a MOCKED sale, delivery and refund.
+**Two committed runs show it working** ([outputs/](outputs/), [decision_log.json](decision_log.json)): a weak idea (an ebook of inspirational quotes) gets **STOP** in about a minute; a stronger idea (a late-payment toolkit for freelancers) does not pass either: its first search failed (the gate refused to give a verdict on broken research), and the wider second search said **look again** (the forums didn't show enough people discussing it). The founder then carries on against the evidence with a logged reason, so phases 2-6 run as a clearly labelled preview through to a MOCKED sale, delivery and refund; on the way the founder rejected a launch-post draft that invented their own experience, and it was redrafted.
 
 ## Quickstart
 
@@ -71,9 +71,9 @@ Eleven agents work through six phases, but only plain Python code calls tools, c
 | Run | Model | Model calls | Tokens (in + out) | Model time | Cost |
 |---|---|---|---|---|---|
 | Weak brief, Phase 1 to STOP | Nemotron 3 Ultra | 7 | 7,465 + 495 = ~8k | ~71 s | $0.00 |
-| Strong brief, all six phases (preview after override) | Nemotron 3 Ultra | 34 | 30,985 + 6,316 = ~37k | ~6 min | $0.00 |
+| Strong brief, all six phases (preview after override) | Nemotron 3 Ultra | 41 | 31,928 + 8,022 = ~40k | ~11 min | $0.00 |
 
-Model time includes ProveIt's own pacing for the free tier's rate limit. A Phase 1 verdict typically arrives in 30-90 seconds of wall-clock time.
+Model time includes ProveIt's own pacing for the free tier's rate limit (the strong run shared the tier with a calibration run). The strong run's 41 calls include one research retry and two redrafts the founder asked for. A Phase 1 verdict typically arrives in 30-90 seconds of wall-clock time.
 
 ## What our system will NOT do
 

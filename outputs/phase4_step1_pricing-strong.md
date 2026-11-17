@@ -17,8 +17,9 @@ No revenue projections or scenarios are produced.
 
 ## Rationale
 
-- ASSUMPTION: Pricing tiers are set as assumptions (good=$19, better=$39, best=$79) because the available verified price point (C28) contains only a placeholder [$X,XXX] and no concrete amount to anchor the model.
-- ASSUMPTION: Competitor claims (C3, C6, C8) describe invoicing automation, integrated payments, and smart invoice insights but do not disclose any pricing, so they provide feature context without a price benchmark.
+- ASSUMPTION: Pricing tiers are set as assumptions (good=$19, better=$39, best=$79) because no verified price points were provided for this service.
+- ASSUMPTION: Competitor C10 describes a freelancer services agreement template with pricing/rates sections but does not disclose specific price levels.
+- ASSUMPTION: Competitor C21 highlights invoicing intelligence features (e.g., overdue payment alerts, anomaly detection) without revealing any pricing information.
 
 ### Sources
 
