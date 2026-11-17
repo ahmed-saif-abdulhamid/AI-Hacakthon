@@ -1,9 +1,9 @@
 {
   "weak": "r20261117-105529-93d0",
-  "strong": "r20261117-105650-2561",
-  "entries": 106,
+  "strong": "r20261117-132954-34f7",
+  "entries": 117,
   "entries_weak": 19,
-  "entries_strong": 87,
+  "entries_strong": 98,
   "outputs": [
     "phase1_gate_decision-weak.md",
     "phase1_step1_opportunities-weak.md",

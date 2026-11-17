@@ -1,18 +1,18 @@
-# Reminder Sequence Planner
+# Reminder Email Templates
 
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-This module helps you design a clear, escalating reminder schedule so every overdue invoice gets timely follow‑up without manual guesswork. You will map out dates, channels, and message tone for each stage of the collection process.
+This module gives you three courteous email scripts you can copy, personalize, and send at the right intervals. Each template balances professionalism with a friendly tone so you maintain client relationships while getting paid.
 
 ## Checklist
 
-- [ ] List all outstanding invoices with due dates and client contacts
-- [ ] Define reminder intervals (e.g., 3 days before due, due date, 7 days overdue, 14 days overdue, 30 days overdue)
-- [ ] Choose communication channel for each interval (email, SMS, phone call, client portal)
-- [ ] Draft polite message templates for each stage, escalating firmness gradually
-- [ ] Set up calendar events or automation triggers for each reminder date
-- [ ] Assign responsibility if you work with a virtual assistant or accountant
-- [ ] Create a tracking spreadsheet with columns for invoice, stage, sent date, and response
-- [ ] Test the sequence with one client to verify timing and tone
-- [ ] Document the finalized sequence in a shared reference document
-- [ ] Review and adjust intervals quarterly based on payment patterns
+- [ ] Open the template that matches the reminder stage (first, second, or final).
+- [ ] Replace all placeholder fields with the client’s name, invoice number, amount, and due date.
+- [ ] Add a brief reference to the original project or deliverable for context.
+- [ ] Attach the original invoice PDF or include a secure payment link.
+- [ ] Set a clear next‑action date or payment deadline in the email body.
+- [ ] Proofread for tone, spelling, and correct attachment before sending.
+- [ ] Send the email from your business address and BCC your tracking spreadsheet.
+- [ ] Log the send date, template used, and any client reply in your payment tracker.
+- [ ] Schedule the next reminder stage if payment is not received by the deadline.
+- [ ] Archive the sent email in a dedicated “Payment Reminders” folder for future reference.

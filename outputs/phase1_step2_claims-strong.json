@@ -1,12 +1,12 @@
 {
-  "run_id": "r20261117-105650-2561",
+  "run_id": "r20261117-132954-34f7",
   "thresholds_sha256": "b367a0d1338c03a8f7d6318d971398eb4139dff4b5fc0ed3444023704ce5ef90",
   "note": "quotes are extracted by code from the source record and re-checked against the public page where reachable; a claim counts only if code confirms it is on-topic and contains a pain or payment cue.",
   "claims": [
     {
       "id": "C1",
       "kind": "pain",
-      "claim_text": "Client owes $4000 overdue, ignores invoices",
+      "claim_text": "Client owes $4000, ignores invoices, calls payment a favor",
       "quote": "At that time, there were two payment pending worth $2000 each on him. I was able to do the project #1 upto the expectations agreed and send him to review back in April (but he never replied).",
       "url": "https://freelancing.stackexchange.com/questions/9768/client-feels-he-is-doing-a-favor-on-me-by-paying-invoice-because-his-requirement",
       "source": "stackexchange",
@@ -16,25 +16,25 @@
         4,
         5
       ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
       "published_at": "2020-06-13T09:29:11Z",
       "engagement": 257,
       "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
+      "weight": 1.0,
+      "cue_matched": "payment pending",
       "on_topic": true,
       "keyword_overlap": [
         "invoic",
         "payment",
         "send"
       ],
-      "weight_note": "label not confirmed by code",
+      "weight_note": "",
       "label": "SOURCED"
     },
     {
       "id": "C2",
       "kind": "pain",
-      "claim_text": "Invoice sent but client hasn't paid",
+      "claim_text": "Invoice sent after confirmation but client still hasn't paid",
       "quote": "I sent him the invoice yesterday after getting a confirmation from him, but he not paid yet.",
       "url": "https://freelancing.stackexchange.com/questions/9768/client-feels-he-is-doing-a-favor-on-me-by-paying-invoice-because-his-requirement",
       "source": "stackexchange",
@@ -43,7 +43,7 @@
       "sentence_ids": [
         24
       ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
       "published_at": "2020-06-13T09:29:11Z",
       "engagement": 257,
       "status": "verified_live",
@@ -59,86 +59,7 @@
     {
       "id": "C3",
       "kind": "competitor",
-      "claim_text": "Momentum offers integrated invoicing and payments",
-      "quote": "Integrated Invoicing & Payments: Beyond project tracking, clients can pay invoices directly through the platform. This reduces the need for manual follow-ups or switching between tools, making it easier for freelancers to get paid on time.",
-      "url": "https://news.ycombinator.com/item?id=42914012",
-      "source": "hn",
-      "hit_id": "H2",
-      "hit_title": "Show HN: Momentum - Project Management and Invoicing for Freelancers",
-      "sentence_ids": [
-        7,
-        8
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2025-02-03T01:45:14Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": null,
-      "on_topic": true,
-      "keyword_overlap": [
-        "invoic",
-        "payment"
-      ],
-      "weight_note": "",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C4",
-      "kind": "pain",
-      "claim_text": "Manual follow-ups needed to get paid on time",
-      "quote": "This reduces the need for manual follow-ups or switching between tools, making it easier for freelancers to get paid on time.",
-      "url": "https://news.ycombinator.com/item?id=42914012",
-      "source": "hn",
-      "hit_id": "H2",
-      "hit_title": "Show HN: Momentum - Project Management and Invoicing for Freelancers",
-      "sentence_ids": [
-        8
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2025-02-03T01:45:14Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [
-        "invoic"
-      ],
-      "weight_note": "off topic for this variant (code keyword check)",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C5",
-      "kind": "competitor",
-      "claim_text": "Splitify tracks costs and sends payment reminders",
-      "quote": "Bills can change, Splitify tracks costs each billing cycle using your bank account and then sends out a request with latest amount via email AND text. Plus it sends reminders until you get paid.",
-      "url": "https://news.ycombinator.com/item?id=45431193",
-      "source": "hn",
-      "hit_id": "H3",
-      "hit_title": "[dead]",
-      "sentence_ids": [
-        1,
-        2
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2025-09-30T21:01:32Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": null,
-      "on_topic": true,
-      "keyword_overlap": [
-        "remind",
-        "send"
-      ],
-      "weight_note": "",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C6",
-      "kind": "competitor",
-      "claim_text": "PayPrompt automates invoice creation and reminders",
+      "claim_text": "PayPrompt automates invoice creation and payment reminders",
       "quote": "I'm building PayPrompt, a simple but powerful tool for freelancers and solopreneurs to automate invoice creation and payment reminders. One of the biggest struggles I hear from independent workers is late or forgotten payments, and existing invoicing tools often feel too bloated or expensive.",
       "url": "https://news.ycombinator.com/item?id=43381182",
       "source": "hn",
@@ -148,7 +69,7 @@
         2,
         3
       ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
       "published_at": "2025-03-16T18:46:41Z",
       "engagement": null,
       "status": "verified_live",
@@ -164,9 +85,9 @@
       "label": "SOURCED"
     },
     {
-      "id": "C7",
+      "id": "C4",
       "kind": "pain",
-      "claim_text": "Existing invoicing tools feel bloated and expensive",
+      "claim_text": "Existing invoicing tools feel too bloated or expensive",
       "quote": "One of the biggest struggles I hear from independent workers is late or forgotten payments, and existing invoicing tools often feel too bloated or expensive.",
       "url": "https://news.ycombinator.com/item?id=43381182",
       "source": "hn",
@@ -175,51 +96,24 @@
       "sentence_ids": [
         3
       ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
       "published_at": "2025-03-16T18:46:41Z",
       "engagement": null,
       "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": "struggl",
+      "weight": 0.0,
+      "cue_matched": null,
       "on_topic": true,
       "keyword_overlap": [
         "invoic",
         "payment"
       ],
-      "weight_note": "",
+      "weight_note": "product pitch or feature list, not a complaint",
       "label": "SOURCED"
     },
     {
-      "id": "C8",
+      "id": "C5",
       "kind": "pain",
-      "claim_text": "Late or forgotten payments are a major struggle",
-      "quote": "- Automated, non-intrusive reminders that follow up with clients for overdue payments.",
-      "url": "https://news.ycombinator.com/item?id=43381182",
-      "source": "hn",
-      "hit_id": "H4",
-      "hit_title": "Freelancers, how do you handle late payments?",
-      "sentence_ids": [
-        5
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2025-03-16T18:46:41Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": "overdue",
-      "on_topic": true,
-      "keyword_overlap": [
-        "overdu",
-        "payment",
-        "remind"
-      ],
-      "weight_note": "",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C9",
-      "kind": "pain",
-      "claim_text": "Freelancers track invoices manually or use software",
+      "claim_text": "Freelancers struggle with late payments and manual tracking",
       "quote": "Why I'm here: I'd love to hear how you currently handle invoicing & payment follow-ups. - Do you use existing invoicing software, or do you track invoices manually?",
       "url": "https://news.ycombinator.com/item?id=43381182",
       "source": "hn",
@@ -229,12 +123,39 @@
         8,
         9
       ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
       "published_at": "2025-03-16T18:46:41Z",
       "engagement": null,
       "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "a question, not someone's own experience",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C6",
+      "kind": "competitor",
+      "claim_text": "Momentum offers integrated invoicing and direct client payments",
+      "quote": "Integrated Invoicing & Payments: Beyond project tracking, clients can pay invoices directly through the platform. This reduces the need for manual follow-ups or switching between tools, making it easier for freelancers to get paid on time.",
+      "url": "https://news.ycombinator.com/item?id=42914012",
+      "source": "hn",
+      "hit_id": "H3",
+      "hit_title": "Show HN: Momentum - Project Management and Invoicing for Freelancers",
+      "sentence_ids": [
+        7,
+        8
+      ],
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
+      "published_at": "2025-02-03T01:45:14Z",
+      "engagement": null,
+      "status": "verified_live",
       "weight": 1.0,
-      "cue_matched": "manually",
+      "cue_matched": null,
       "on_topic": true,
       "keyword_overlap": [
         "invoic",
@@ -244,129 +165,20 @@
       "label": "SOURCED"
     },
     {
-      "id": "C10",
+      "id": "C7",
       "kind": "pain",
-      "claim_text": "freelancers lose time to admin just to get paid",
-      "quote": "The idea came from repeatedly watching freelancers (and honestly, myself) lose time to admin just to get paid. Most tools I tried felt like full accounting suites when all I really wanted was: • create an invoice quickly • send it • see what's paid / overdue • and automatically chase unpaid ones So I built Experi to focus only on that.",
-      "url": "https://news.ycombinator.com/item?id=46771990",
+      "claim_text": "Manual follow-ups and tool-switching delay getting paid",
+      "quote": "This reduces the need for manual follow-ups or switching between tools, making it easier for freelancers to get paid on time.",
+      "url": "https://news.ycombinator.com/item?id=42914012",
       "source": "hn",
-      "hit_id": "H9",
-      "hit_title": "[dead]",
-      "sentence_ids": [
-        2,
-        3
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2026-01-26T21:45:00Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": "lose time",
-      "on_topic": true,
-      "keyword_overlap": [
-        "invoic",
-        "overdu",
-        "send"
-      ],
-      "weight_note": "",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C11",
-      "kind": "pain",
-      "claim_text": "existing tools feel like full accounting suites",
-      "quote": "Most tools I tried felt like full accounting suites when all I really wanted was: • create an invoice quickly • send it • see what's paid / overdue • and automatically chase unpaid ones So I built Experi to focus only on that.",
-      "url": "https://news.ycombinator.com/item?id=46771990",
-      "source": "hn",
-      "hit_id": "H9",
-      "hit_title": "[dead]",
-      "sentence_ids": [
-        3
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2026-01-26T21:45:00Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": "overdue",
-      "on_topic": true,
-      "keyword_overlap": [
-        "invoic",
-        "overdu",
-        "send"
-      ],
-      "weight_note": "",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C12",
-      "kind": "competitor",
-      "claim_text": "Experi: automatic chasing of overdue invoices",
-      "quote": "It currently supports: • fast invoice creation • client and project management • scheduled and recurring invoices • automatic chasing of overdue invoices • clear tracking of paid vs outstanding The goal is not to replace accounting software, but to be the \"background invoicing engine\" for people running small operations.",
-      "url": "https://news.ycombinator.com/item?id=46771990",
-      "source": "hn",
-      "hit_id": "H9",
-      "hit_title": "[dead]",
-      "sentence_ids": [
-        4
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2026-01-26T21:45:00Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": null,
-      "on_topic": true,
-      "keyword_overlap": [
-        "invoic",
-        "overdu"
-      ],
-      "weight_note": "",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C13",
-      "kind": "pain",
-      "claim_text": "new freelancer unsure how to tell client no more changes until paid",
-      "quote": "How to tell client I cant do any more changes till they pay invoice? I am new to freelancing. I have developed a project for a client.",
-      "url": "https://freelancing.stackexchange.com/questions/7724/how-to-tell-client-i-cant-do-any-more-changes-till-they-pay-invoice",
-      "source": "stackexchange",
-      "hit_id": "H13",
-      "hit_title": "How to tell client I cant do any more changes till they pay invoice?",
-      "sentence_ids": [
-        1,
-        2,
-        3
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2018-05-26T15:22:08Z",
-      "engagement": 406,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": true,
-      "keyword_overlap": [
-        "develop",
-        "invoic"
-      ],
-      "weight_note": "label not confirmed by code",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C14",
-      "kind": "pain",
-      "claim_text": "difficulty phrasing payment boundary with client",
-      "quote": "I'm unsure how to phrase or communicate that I cannot do anymore change till my previous invoice has been paid.",
-      "url": "https://freelancing.stackexchange.com/questions/7724/how-to-tell-client-i-cant-do-any-more-changes-till-they-pay-invoice",
-      "source": "stackexchange",
-      "hit_id": "H13",
-      "hit_title": "How to tell client I cant do any more changes till they pay invoice?",
+      "hit_id": "H3",
+      "hit_title": "Show HN: Momentum - Project Management and Invoicing for Freelancers",
       "sentence_ids": [
         8
       ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2018-05-26T15:22:08Z",
-      "engagement": 406,
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
+      "published_at": "2025-02-03T01:45:14Z",
+      "engagement": null,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
@@ -378,98 +190,18 @@
       "label": "SOURCED"
     },
     {
-      "id": "C15",
-      "kind": "pain",
-      "claim_text": "contract clauses for late payment interest and fees",
-      "quote": "These are now the clauses we require in every project we do: - Payment is due X days after receipt of invoice, or immediately after the consultant has addressed any quality issues, whichever is sooner - Late payment shall incur interest at 8% above the BoE base rate and a late fee of 100 GBP as per the UK Late Payment Legislation. Partial payments on invoices shall apply to late fees, interest, and then principal, in that order. - In the event of a late payment the invoice for the next deliverable shall immediately fall due.",
-      "url": "https://news.ycombinator.com/item?id=47660815",
-      "source": "hn",
-      "hit_id": "H14",
-      "hit_title": "What being ripped off taught me",
-      "sentence_ids": [
-        2,
-        3,
-        4
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2026-04-06T13:41:19Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": true,
-      "keyword_overlap": [
-        "invoic",
-        "payment"
-      ],
-      "weight_note": "label not confirmed by code",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C16",
-      "kind": "pain",
-      "claim_text": "late payment triggers next deliverable invoice due",
-      "quote": "- In the event of a late payment the invoice for the next deliverable shall immediately fall due. - The consultant shall be entitled to shift deadlines on deliverables in the event of a late payment as a result of any work disruption, without incurring any liability.",
-      "url": "https://news.ycombinator.com/item?id=47660815",
-      "source": "hn",
-      "hit_id": "H14",
-      "hit_title": "What being ripped off taught me",
-      "sentence_ids": [
-        4,
-        5
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2026-04-06T13:41:19Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": true,
-      "keyword_overlap": [
-        "invoic",
-        "payment"
-      ],
-      "weight_note": "label not confirmed by code",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C17",
-      "kind": "pain",
-      "claim_text": "consultant shifts deadlines due to late payment disruption",
-      "quote": "- The consultant shall be entitled to shift deadlines on deliverables in the event of a late payment as a result of any work disruption, without incurring any liability.",
-      "url": "https://news.ycombinator.com/item?id=47660815",
-      "source": "hn",
-      "hit_id": "H14",
-      "hit_title": "What being ripped off taught me",
-      "sentence_ids": [
-        5
-      ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
-      "published_at": "2026-04-06T13:41:19Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [
-        "payment"
-      ],
-      "weight_note": "off topic for this variant (code keyword check)",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C18",
+      "id": "C8",
       "kind": "competitor",
-      "claim_text": "Frihet ERP warns about client overdue payments",
+      "claim_text": "Frihet ERP flags overdue payments when creating invoices",
       "quote": "For example, when creating an invoice, the system can tell you that the client has overdue payments or that the new invoice is 40% above their usual average.",
       "url": "https://news.ycombinator.com/item?id=47427522",
       "source": "hn",
-      "hit_id": "H8",
+      "hit_id": "H7",
       "hit_title": "Frihet MCP Server - 35 tools to let AI agents run your business operations",
       "sentence_ids": [
         5
       ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
       "published_at": "2026-03-18T16:08:00Z",
       "engagement": null,
       "status": "verified_live",
@@ -485,18 +217,121 @@
       "label": "SOURCED"
     },
     {
-      "id": "C19",
+      "id": "C9",
       "kind": "competitor",
-      "claim_text": "NudgePe chases late invoices automatically",
+      "claim_text": "AirSend converts fiat invoice payments to stablecoins",
+      "quote": "I've been working on AirSend - we help workers to get paid in fiat currency but spend in stablecoins. Clients can pay invoices in fiat (like USD or EUR), and it's automatically converted into USDC inside your wallet (0.5% platform fees).",
+      "url": "https://news.ycombinator.com/item?id=45565432",
+      "source": "hn",
+      "hit_id": "H5",
+      "hit_title": "Ask HN: What are you working on? (October 2025)",
+      "sentence_ids": [
+        1,
+        2
+      ],
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
+      "published_at": "2025-10-13T06:46:17Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C10",
+      "kind": "pain",
+      "claim_text": "Freelancers want faster payments and avoid PayPal fees",
+      "quote": "It's still early, but we're testing with a small group of users who want to receive payments faster and avoid PayPal or wire fees.",
+      "url": "https://news.ycombinator.com/item?id=45565432",
+      "source": "hn",
+      "hit_id": "H5",
+      "hit_title": "Ask HN: What are you working on? (October 2025)",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
+      "published_at": "2025-10-13T06:46:17Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "payment"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C11",
+      "kind": "pain",
+      "claim_text": "Freelancer struggles to tell client no more changes until invoice paid",
+      "quote": "How to tell client I cant do any more changes till they pay invoice?",
+      "url": "https://freelancing.stackexchange.com/questions/7724/how-to-tell-client-i-cant-do-any-more-changes-till-they-pay-invoice",
+      "source": "stackexchange",
+      "hit_id": "H11",
+      "hit_title": "How to tell client I cant do any more changes till they pay invoice?",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
+      "published_at": "2018-05-26T15:22:08Z",
+      "engagement": 406,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C12",
+      "kind": "pain",
+      "claim_text": "Waiting for final invoice settlement on fixed price project",
+      "quote": "I have developed a project for a client. I am waiting for the final invoice to be settled - fixed price project.",
+      "url": "https://freelancing.stackexchange.com/questions/7724/how-to-tell-client-i-cant-do-any-more-changes-till-they-pay-invoice",
+      "source": "stackexchange",
+      "hit_id": "H11",
+      "hit_title": "How to tell client I cant do any more changes till they pay invoice?",
+      "sentence_ids": [
+        3,
+        4
+      ],
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
+      "published_at": "2018-05-26T15:22:08Z",
+      "engagement": 406,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "develop",
+        "invoic"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C13",
+      "kind": "competitor",
+      "claim_text": "NudgePe SaaS chases late invoices automatically",
       "quote": "- NudgePe, my own SaaS that chases late invoices automatically (Next.js, FastAPI, PostgreSQL, Supabase).",
       "url": "https://news.ycombinator.com/item?id=50495351",
       "source": "hn",
-      "hit_id": "H16",
+      "hit_id": "H14",
       "hit_title": "Ask HN: Who wants to be hired? (November 2026)",
       "sentence_ids": [
         7
       ],
-      "fetched_at": "2026-11-17T10:58:24.978636Z",
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
       "published_at": "2026-11-14T09:04:23Z",
       "engagement": null,
       "status": "verified_live",
@@ -510,9 +345,36 @@
       "label": "SOURCED"
     },
     {
-      "id": "C20",
+      "id": "C14",
       "kind": "pain",
-      "claim_text": "Recent PayPal disputes on service transactions",
+      "claim_text": "Late payment clauses include interest and fees per UK legislation",
+      "quote": "These are now the clauses we require in every project we do: - Payment is due X days after receipt of invoice, or immediately after the consultant has addressed any quality issues, whichever is sooner - Late payment shall incur interest at 8% above the BoE base rate and a late fee of 100 GBP as per the UK Late Payment Legislation. Partial payments on invoices shall apply to late fees, interest, and then principal, in that order.",
+      "url": "https://news.ycombinator.com/item?id=47660815",
+      "source": "hn",
+      "hit_id": "H12",
+      "hit_title": "What being ripped off taught me",
+      "sentence_ids": [
+        2,
+        3
+      ],
+      "fetched_at": "2026-11-17T13:30:35.485694Z",
+      "published_at": "2026-04-06T13:41:19Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C15",
+      "kind": "pain",
+      "claim_text": "PayPal disputes on service transactions",
       "quote": "In the past I have had little to no issues with receiving payments through PayPal for my web design or development services. For some reason, I have had close to 10 recent transactions involving a service (design or development), and each one of them are now within disputes.",
       "url": "https://freelancing.stackexchange.com/questions/2688/handling-online-transactions-for-services-rendered",
       "source": "stackexchange",
@@ -522,7 +384,7 @@
         2,
         3
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
       "published_at": "2014-12-09T19:43:30Z",
       "engagement": 191,
       "status": "verified_live",
@@ -530,55 +392,186 @@
       "cue_matched": null,
       "on_topic": true,
       "keyword_overlap": [
+        "design",
         "develop",
-        "payment",
-        "web"
+        "payment"
       ],
       "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C16",
+      "kind": "pain",
+      "claim_text": "PayPal does not cover service transactions",
+      "quote": "To top it off apparently PayPal does not cover service related transactions - I should have read their terms.",
+      "url": "https://freelancing.stackexchange.com/questions/2688/handling-online-transactions-for-services-rendered",
+      "source": "stackexchange",
+      "hit_id": "H21",
+      "hit_title": "Handling Online Transactions for Services Rendered",
+      "sentence_ids": [
+        7
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2014-12-09T19:43:30Z",
+      "engagement": 191,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "term"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C17",
+      "kind": "pain",
+      "claim_text": "Wants to force payment responsibility onto clients",
+      "quote": "What options do I have to have this cleared and force responsibility of payment onto my clients.",
+      "url": "https://freelancing.stackexchange.com/questions/2688/handling-online-transactions-for-services-rendered",
+      "source": "stackexchange",
+      "hit_id": "H21",
+      "hit_title": "Handling Online Transactions for Services Rendered",
+      "sentence_ids": [
+        14
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2014-12-09T19:43:30Z",
+      "engagement": 191,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "clear",
+        "payment"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C18",
+      "kind": "pain",
+      "claim_text": "Lacks formal templates for quotes, terms, contracts",
+      "quote": "My problem is, I don't have any formal templates to submit my quote.",
+      "url": "https://freelancing.stackexchange.com/questions/429/freelance-web-developer-stationary-for-estimates-proposals-contracts",
+      "source": "stackexchange",
+      "hit_id": "H22",
+      "hit_title": "Freelance Web Developer Stationary for Estimates, Proposals, Contracts",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2013-06-11T07:54:18Z",
+      "engagement": 2802,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "problem",
+      "on_topic": true,
+      "keyword_overlap": [
+        "contract",
+        "develop",
+        "propos"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C19",
+      "kind": "pain",
+      "claim_text": "Confused about proposals vs contracts and when to send each",
+      "quote": "I've been freelancing as a UX designer for a year and a half, and I'm now in the midst of writing more project proposals.",
+      "url": "https://freelancing.stackexchange.com/questions/998/are-proposals-and-contracts-the-same-thing",
+      "source": "stackexchange",
+      "hit_id": "H23",
+      "hit_title": "Are proposals and contracts the same thing?",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2013-11-26T04:17:03Z",
+      "engagement": 9079,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "contract",
+        "design",
+        "propos",
+        "write"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C20",
+      "kind": "pain",
+      "claim_text": "Unclear which stage to send proposal vs contract",
+      "quote": "In which stages of the project would I send a proposal, and in which stages of the project would I send a contract?",
+      "url": "https://freelancing.stackexchange.com/questions/998/are-proposals-and-contracts-the-same-thing",
+      "source": "stackexchange",
+      "hit_id": "H23",
+      "hit_title": "Are proposals and contracts the same thing?",
+      "sentence_ids": [
+        13
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2013-11-26T04:17:03Z",
+      "engagement": 9079,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "contract",
+        "propos"
+      ],
+      "weight_note": "a question, not someone's own experience",
       "label": "SOURCED"
     },
     {
       "id": "C21",
       "kind": "pain",
-      "claim_text": "PayPal doesn't cover service transactions",
-      "quote": "I assisted with everything from getting the site online to small bug fixes (usually server plugins, etc.), then I wake up and the PayPal payment is disputed message, and the client removes and blocks me from Skype and emails. To top it off apparently PayPal does not cover service related transactions - I should have read their terms.",
-      "url": "https://freelancing.stackexchange.com/questions/2688/handling-online-transactions-for-services-rendered",
+      "claim_text": "Requirement gathering unpaid before contract signed",
+      "quote": "so i set up a session with the client for 1-1.5 hours (before gaining the contract) to understand the requirements then i give them an estimation with +/- 15%-20% variation i completed around 10 projects in this way.",
+      "url": "https://freelancing.stackexchange.com/questions/10523/is-it-normal-to-charge-the-customer-on-the-requirement-gathering-sessions-for-a",
       "source": "stackexchange",
-      "hit_id": "H21",
-      "hit_title": "Handling Online Transactions for Services Rendered",
+      "hit_id": "H24",
+      "hit_title": "Is it normal to charge the customer on the requirement gathering sessions for a large project, which i need time to understand its scope",
       "sentence_ids": [
-        6,
-        7
+        5
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
-      "published_at": "2014-12-09T19:43:30Z",
-      "engagement": 191,
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2022-10-20T13:28:18Z",
+      "engagement": 199,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
-      "on_topic": true,
+      "on_topic": false,
       "keyword_overlap": [
-        "payment",
-        "term"
+        "contract"
       ],
-      "weight_note": "label not confirmed by code",
+      "weight_note": "off topic for this variant (code keyword check)",
       "label": "SOURCED"
     },
     {
       "id": "C22",
-      "kind": "pain",
-      "claim_text": "Signed contracts but clients still dispute payments",
-      "quote": "I have Contracts from each of the client they are signed via Adobe Echosign.",
-      "url": "https://freelancing.stackexchange.com/questions/2688/handling-online-transactions-for-services-rendered",
-      "source": "stackexchange",
-      "hit_id": "H21",
-      "hit_title": "Handling Online Transactions for Services Rendered",
+      "kind": "competitor",
+      "claim_text": "Fivani AI contract review highlights weak payment terms",
+      "quote": "Fivani: AI Contract Management That Turns Every Deal Into a Deliverable Fivani is an AI-powered legal operations layer between your contracts and your projects. Instead of leaving agreements unused, Fivani reads, understands, and transforms them into actionable project plans-helping you prevent scope creep, avoid unpaid work, and never miss a deliverable.",
+      "url": "https://news.ycombinator.com/item?id=46120204",
+      "source": "hn",
+      "hit_id": "H26",
+      "hit_title": "Fivani",
       "sentence_ids": [
-        12
+        1,
+        2
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
-      "published_at": "2014-12-09T19:43:30Z",
-      "engagement": 191,
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2025-12-02T11:33:38Z",
+      "engagement": null,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
@@ -591,62 +584,33 @@
     },
     {
       "id": "C23",
-      "kind": "pain",
-      "claim_text": "No formal templates for quotes, terms, contracts",
-      "quote": "My problem is, I don't have any formal templates to submit my quote.",
-      "url": "https://freelancing.stackexchange.com/questions/429/freelance-web-developer-stationary-for-estimates-proposals-contracts",
-      "source": "stackexchange",
-      "hit_id": "H22",
-      "hit_title": "Freelance Web Developer Stationary for Estimates, Proposals, Contracts",
+      "kind": "competitor",
+      "claim_text": "Fivani provides AI negotiation playbook for freelancers",
+      "quote": "AI Negotiation Playbook It provides suggested alternative wording you can paste into your contract and negotiation strategies tailored to freelancers, agencies, and SMBs.",
+      "url": "https://news.ycombinator.com/item?id=46120204",
+      "source": "hn",
+      "hit_id": "H26",
+      "hit_title": "Fivani",
       "sentence_ids": [
-        5
+        8
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
-      "published_at": "2013-06-11T07:54:18Z",
-      "engagement": 2802,
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2025-12-02T11:33:38Z",
+      "engagement": null,
       "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": "problem",
-      "on_topic": true,
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
       "keyword_overlap": [
-        "contract",
-        "develop",
-        "propos",
-        "web"
+        "contract"
       ],
-      "weight_note": "",
+      "weight_note": "off topic for this variant (code keyword check)",
       "label": "SOURCED"
     },
     {
       "id": "C24",
       "kind": "pain",
-      "claim_text": "Confusion about proposals vs contracts and when to send each",
-      "quote": "So I have several related questions: Are proposals and contracts the same thing?",
-      "url": "https://freelancing.stackexchange.com/questions/998/are-proposals-and-contracts-the-same-thing",
-      "source": "stackexchange",
-      "hit_id": "H26",
-      "hit_title": "Are proposals and contracts the same thing?",
-      "sentence_ids": [
-        11
-      ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
-      "published_at": "2013-11-26T04:17:03Z",
-      "engagement": 9079,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": true,
-      "keyword_overlap": [
-        "contract",
-        "propos"
-      ],
-      "weight_note": "label not confirmed by code",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C25",
-      "kind": "pain",
-      "claim_text": "No direct contract, only platform terms with delayed payments",
+      "claim_text": "No direct contract, only platform terms with dispute period",
       "quote": "We had no contract directly between the two of us, only through the platform itself. TL;DR The freelancing platform I am using has a period of time in which the company/freelance hirer can dispute any logged hours before payment is made (a week for employer to review, then funds are held for a little while longer) Payments are not instant.",
       "url": "https://freelancing.stackexchange.com/questions/4685/employer-via-freelancing-platform-threatening-to-take-legal-action-against-me",
       "source": "stackexchange",
@@ -656,7 +620,7 @@
         6,
         7
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
       "published_at": "2016-07-04T01:08:11Z",
       "engagement": 772,
       "status": "verified_live",
@@ -671,21 +635,21 @@
       "label": "SOURCED"
     },
     {
-      "id": "C26",
-      "kind": "competitor",
-      "claim_text": "Fivani AI contract management for freelancers and agencies",
-      "quote": "Fivani: AI Contract Management That Turns Every Deal Into a Deliverable Fivani is an AI-powered legal operations layer between your contracts and your projects. Instead of leaving agreements unused, Fivani reads, understands, and transforms them into actionable project plans-helping you prevent scope creep, avoid unpaid work, and never miss a deliverable.",
-      "url": "https://news.ycombinator.com/item?id=46120204",
-      "source": "hn",
-      "hit_id": "H25",
-      "hit_title": "Fivani",
+      "id": "C25",
+      "kind": "pain",
+      "claim_text": "Freelancer seeks contract to prevent client exploitation",
+      "quote": "Freelance Contract to prevent exploitation? Any Freelance Contract do you use to prevent exploitation from your clients?",
+      "url": "https://freelancing.stackexchange.com/questions/10101/freelance-contract-to-prevent-exploitation",
+      "source": "stackexchange",
+      "hit_id": "H29",
+      "hit_title": "Freelance Contract to prevent exploitation?",
       "sentence_ids": [
         1,
         2
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
-      "published_at": "2025-12-02T11:33:38Z",
-      "engagement": null,
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2021-05-02T22:57:42Z",
+      "engagement": 190,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
@@ -697,21 +661,48 @@
       "label": "SOURCED"
     },
     {
-      "id": "C27",
-      "kind": "competitor",
-      "claim_text": "AI contract review highlights weak payment terms and risks",
-      "quote": "Phase 1: Instant AI Contract Review & Risk Protection Fivani's AI contract review engine protects you before you sign. AI-Powered Contract Analysis It scans your contract in seconds, highlighting hidden risks like liability traps, unfair indemnities, non-competes, and termination terms, plus payment and performance risks such as weak payment terms, vague acceptance criteria, and milestones that cause scope creep or non-payment.",
-      "url": "https://news.ycombinator.com/item?id=46120204",
-      "source": "hn",
-      "hit_id": "H25",
-      "hit_title": "Fivani",
+      "id": "C26",
+      "kind": "pain",
+      "claim_text": "Template lacks clauses to prevent exploitation",
+      "quote": "I found this template, but it does not have any clauses that can prevent the exploitation: Freelance Contract Template Created by freelancermap.com [Your Name/Business name] <> [Client Company] Contractor Agreement [Freelancer Name] (herein known as \"Contractor\") will provide [Client/Brand Name] (herein known as \"Client\") with [Insert an overview of work deliverables] as outlined in the specifications listed in the Terms and Conditions below. Description of the Services Freelancer will [insert services provided] Pricing/Rates [Insert prices discussed - include rates for changes and revision work] Payment Terms/Schedule 30% up front, the rest upon completion of the project.",
+      "url": "https://freelancing.stackexchange.com/questions/10101/freelance-contract-to-prevent-exploitation",
+      "source": "stackexchange",
+      "hit_id": "H29",
+      "hit_title": "Freelance Contract to prevent exploitation?",
       "sentence_ids": [
         4,
         5
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
-      "published_at": "2025-12-02T11:33:38Z",
-      "engagement": null,
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2021-05-02T22:57:42Z",
+      "engagement": 190,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "contract",
+        "payment",
+        "term"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C27",
+      "kind": "competitor",
+      "claim_text": "freelancermap.com contract template referenced",
+      "quote": "Description of the Services Freelancer will [insert services provided] Pricing/Rates [Insert prices discussed - include rates for changes and revision work] Payment Terms/Schedule 30% up front, the rest upon completion of the project.",
+      "url": "https://freelancing.stackexchange.com/questions/10101/freelance-contract-to-prevent-exploitation",
+      "source": "stackexchange",
+      "hit_id": "H29",
+      "hit_title": "Freelance Contract to prevent exploitation?",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2021-05-02T22:57:42Z",
+      "engagement": 190,
       "status": "verified_live",
       "weight": 1.0,
       "cue_matched": null,
@@ -726,18 +717,92 @@
     },
     {
       "id": "C28",
+      "kind": "price_point",
+      "claim_text": "Contract specifies payment amount and schedule",
+      "quote": "Contract in effect beginning: [Insert Start date] Terms and Conditions The following rates and terms apply: Client will pay the sum of [$X,XXX - mention if it's per hour, per month or for the entire contract] to Contractor via [Payment method agreed upon] as agreed to by both parties, no later than the [insert final payment date] of the agreed-upon payment schedule, for work delivered and accepted by the Client.",
+      "url": "https://freelancing.stackexchange.com/questions/10101/freelance-contract-to-prevent-exploitation",
+      "source": "stackexchange",
+      "hit_id": "H29",
+      "hit_title": "Freelance Contract to prevent exploitation?",
+      "sentence_ids": [
+        7
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2021-05-02T22:57:42Z",
+      "engagement": 190,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "per month",
+      "on_topic": true,
+      "keyword_overlap": [
+        "contract",
+        "payment",
+        "term"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C29",
       "kind": "pain",
-      "claim_text": "Lost trust in payment without signed contract",
-      "quote": "In this whole process I lost trust that whatever features I am doing work for, I will not get paid for as well. Before 100% payment goal, I have committed all code and shared with him a month before.",
+      "claim_text": "Client expanded scope then demanded refund",
+      "quote": "Client expanding the scope - now demands refund. I agreed to work for a remote client (USA). He had almost no specs defined.",
       "url": "https://freelancing.stackexchange.com/questions/2619/client-expanding-the-scope-now-demands-refund",
       "source": "stackexchange",
-      "hit_id": "H28",
+      "hit_id": "H34",
       "hit_title": "Client expanding the scope - now demands refund",
       "sentence_ids": [
-        9,
+        1,
+        2,
+        3
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2014-11-12T19:14:32Z",
+      "engagement": 608,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C30",
+      "kind": "pain",
+      "claim_text": "Lost trust of getting paid for completed work",
+      "quote": "In this whole process I lost trust that whatever features I am doing work for, I will not get paid for as well.",
+      "url": "https://freelancing.stackexchange.com/questions/2619/client-expanding-the-scope-now-demands-refund",
+      "source": "stackexchange",
+      "hit_id": "H34",
+      "hit_title": "Client expanding the scope - now demands refund",
+      "sentence_ids": [
+        9
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2014-11-12T19:14:32Z",
+      "engagement": 608,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C31",
+      "kind": "pain",
+      "claim_text": "Delivered code before 100% payment received",
+      "quote": "Before 100% payment goal, I have committed all code and shared with him a month before.",
+      "url": "https://freelancing.stackexchange.com/questions/2619/client-expanding-the-scope-now-demands-refund",
+      "source": "stackexchange",
+      "hit_id": "H34",
+      "hit_title": "Client expanding the scope - now demands refund",
+      "sentence_ids": [
         10
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
       "published_at": "2014-11-12T19:14:32Z",
       "engagement": 608,
       "status": "verified_live",
@@ -751,99 +816,44 @@
       "label": "SOURCED"
     },
     {
-      "id": "C29",
-      "kind": "pain",
-      "claim_text": "Seeks contract to prevent client exploitation",
-      "quote": "Freelance Contract to prevent exploitation? Any Freelance Contract do you use to prevent exploitation from your clients?",
-      "url": "https://freelancing.stackexchange.com/questions/10101/freelance-contract-to-prevent-exploitation",
-      "source": "stackexchange",
-      "hit_id": "H31",
-      "hit_title": "Freelance Contract to prevent exploitation?",
-      "sentence_ids": [
-        1,
-        2
-      ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
-      "published_at": "2021-05-02T22:57:42Z",
-      "engagement": 190,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [
-        "contract"
-      ],
-      "weight_note": "off topic for this variant (code keyword check)",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C30",
-      "kind": "competitor",
-      "claim_text": "Template has basic payment terms only",
-      "quote": "Description of the Services Freelancer will [insert services provided] Pricing/Rates [Insert prices discussed - include rates for changes and revision work] Payment Terms/Schedule 30% up front, the rest upon completion of the project.",
-      "url": "https://freelancing.stackexchange.com/questions/10101/freelance-contract-to-prevent-exploitation",
-      "source": "stackexchange",
-      "hit_id": "H31",
-      "hit_title": "Freelance Contract to prevent exploitation?",
-      "sentence_ids": [
-        5
-      ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
-      "published_at": "2021-05-02T22:57:42Z",
-      "engagement": 190,
-      "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": null,
-      "on_topic": true,
-      "keyword_overlap": [
-        "contract",
-        "payment",
-        "term"
-      ],
-      "weight_note": "",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C31",
-      "kind": "pain",
-      "claim_text": "Unpaid requirement gathering sessions",
-      "quote": "i had the 10 years working on a full time job, since 1 year i started working as a freelancer, all the projects i worked on during my freelancing, i set the following process:- I apply to the project inside Up-work or Freelancer the customer contact me for hourly rated and fixed price, i am always been asked about an estimation for the cost. so i set up a session with the client for 1-1.5 hours (before gaining the contract) to understand the requirements then i give them an estimation with +/- 15%-20% variation i completed around 10 projects in this way.",
-      "url": "https://freelancing.stackexchange.com/questions/10523/is-it-normal-to-charge-the-customer-on-the-requirement-gathering-sessions-for-a",
-      "source": "stackexchange",
-      "hit_id": "H30",
-      "hit_title": "Is it normal to charge the customer on the requirement gathering sessions for a large project, which i need time to understand its scope",
-      "sentence_ids": [
-        4,
-        5
-      ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
-      "published_at": "2022-10-20T13:28:18Z",
-      "engagement": 199,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [
-        "contract"
-      ],
-      "weight_note": "off topic for this variant (code keyword check)",
-      "label": "SOURCED"
-    },
-    {
       "id": "C32",
       "kind": "pain",
-      "claim_text": "Client adds scope then threatens over payment",
-      "quote": "Suppose my client says to complete a set of features, like A, B, C, D and then later once all this has done, the client says to complete some other sub tasks of A, B etc, but for the same price. Do I eat the cost for this? Suppose the client at that time also tries to threaten the developer for a project dispute.",
+      "claim_text": "No signed contract, only NDA and feature list",
+      "quote": "We neither had any signed contract except for NDA and itemized list of features to deliver (not descriptive list).",
+      "url": "https://freelancing.stackexchange.com/questions/2619/client-expanding-the-scope-now-demands-refund",
+      "source": "stackexchange",
+      "hit_id": "H34",
+      "hit_title": "Client expanding the scope - now demands refund",
+      "sentence_ids": [
+        26
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2014-11-12T19:14:32Z",
+      "engagement": 608,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "contract"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C33",
+      "kind": "pain",
+      "claim_text": "Client adds scope without extra pay",
+      "quote": "Suppose my client says to complete a set of features, like A, B, C, D and then later once all this has done, the client says to complete some other sub tasks of A, B etc, but for the same price. Do I eat the cost for this?",
       "url": "https://freelancing.stackexchange.com/questions/2324/how-to-handle-a-situation-when-client-tries-to-threaten-a-developer-for-a-projec",
       "source": "stackexchange",
-      "hit_id": "H37",
+      "hit_id": "H35",
       "hit_title": "How to handle a situation when client tries to threaten a developer for a project dispute?",
       "sentence_ids": [
         3,
-        4,
-        5
+        4
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
       "published_at": "2014-08-30T10:24:30Z",
       "engagement": 292,
       "status": "verified_live",
@@ -857,46 +867,70 @@
       "label": "SOURCED"
     },
     {
-      "id": "C33",
+      "id": "C34",
       "kind": "pain",
-      "claim_text": "Unsure whether to demand full payment or settle",
+      "claim_text": "Client threatens developer in dispute",
+      "quote": "Suppose the client at that time also tries to threaten the developer for a project dispute.",
+      "url": "https://freelancing.stackexchange.com/questions/2324/how-to-handle-a-situation-when-client-tries-to-threaten-a-developer-for-a-projec",
+      "source": "stackexchange",
+      "hit_id": "H35",
+      "hit_title": "How to handle a situation when client tries to threaten a developer for a project dispute?",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2014-08-30T10:24:30Z",
+      "engagement": 292,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "develop"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C35",
+      "kind": "pain",
+      "claim_text": "Unsure whether to demand full payment",
       "quote": "Should I only accept complete payment, or just settle for whatever I can get?",
       "url": "https://freelancing.stackexchange.com/questions/2324/how-to-handle-a-situation-when-client-tries-to-threaten-a-developer-for-a-projec",
       "source": "stackexchange",
-      "hit_id": "H37",
+      "hit_id": "H35",
       "hit_title": "How to handle a situation when client tries to threaten a developer for a project dispute?",
       "sentence_ids": [
         7
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
       "published_at": "2014-08-30T10:24:30Z",
       "engagement": 292,
       "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": "hate",
+      "weight": 0.0,
+      "cue_matched": null,
       "on_topic": true,
       "keyword_overlap": [
         "develop",
         "payment"
       ],
-      "weight_note": "",
+      "weight_note": "a question, not someone's own experience",
       "label": "SOURCED"
     },
     {
-      "id": "C34",
+      "id": "C36",
       "kind": "pain",
-      "claim_text": "Non-commission platforms offer no payment protection",
-      "quote": "What are some practices to follow, to get not cheated when freelancing on non-commission based platforms. There are some non-commission based freelancer sites and usually, in case of disputes they don't interfere. They don't hold money from employer like odesk or similar sites.",
+      "claim_text": "Platforms don't hold money or mediate",
+      "quote": "There are some non-commission based freelancer sites and usually, in case of disputes they don't interfere. They don't hold money from employer like odesk or similar sites.",
       "url": "https://freelancing.stackexchange.com/questions/2352/what-are-some-practices-to-follow-to-get-not-cheated-when-freelancing-on-non-co",
       "source": "stackexchange",
-      "hit_id": "H38",
+      "hit_id": "H36",
       "hit_title": "What are some practices to follow, to get not cheated when freelancing on non-commission based platforms",
       "sentence_ids": [
-        1,
         2,
         3
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
       "published_at": "2014-09-07T16:50:03Z",
       "engagement": 259,
       "status": "verified_live",
@@ -908,18 +942,18 @@
       "label": "SOURCED"
     },
     {
-      "id": "C35",
+      "id": "C37",
       "kind": "pain",
-      "claim_text": "Freelancer struggles to ensure client keeps paying",
+      "claim_text": "Upfront payment risky; milestones needed",
       "quote": "Obviously, making an upfront payment is never a good idea, so paying in small chunk or milestone based would help I guess.",
       "url": "https://freelancing.stackexchange.com/questions/2352/what-are-some-practices-to-follow-to-get-not-cheated-when-freelancing-on-non-co",
       "source": "stackexchange",
-      "hit_id": "H38",
+      "hit_id": "H36",
       "hit_title": "What are some practices to follow, to get not cheated when freelancing on non-commission based platforms",
       "sentence_ids": [
         5
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
       "published_at": "2014-09-07T16:50:03Z",
       "engagement": 259,
       "status": "verified_live",
@@ -933,9 +967,82 @@
       "label": "SOURCED"
     },
     {
-      "id": "C36",
+      "id": "C38",
       "kind": "pain",
-      "claim_text": "Clients who least need loose terms get them anyway",
+      "claim_text": "Contracts weak internationally",
+      "quote": "Contract may work in US, but internationally chances are thin As a freelancer: How do I ensure client keeps paying me?",
+      "url": "https://freelancing.stackexchange.com/questions/2352/what-are-some-practices-to-follow-to-get-not-cheated-when-freelancing-on-non-co",
+      "source": "stackexchange",
+      "hit_id": "H36",
+      "hit_title": "What are some practices to follow, to get not cheated when freelancing on non-commission based platforms",
+      "sentence_ids": [
+        7
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2014-09-07T16:50:03Z",
+      "engagement": 259,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "contract"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C39",
+      "kind": "wtp",
+      "claim_text": "Paid lawyer for contract template",
+      "quote": "I've set up a company and I'm paying an accountant monthly to help me with taxes, then I have to also pay taxes, recently I had to pay a lawyer to help me with drafting a contract template for future clients.",
+      "url": "https://freelancing.stackexchange.com/questions/10088/how-can-i-find-clients-and-communicate-with-them-directly",
+      "source": "stackexchange",
+      "hit_id": "H37",
+      "hit_title": "How can I find clients and communicate with them directly",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2021-04-28T19:12:52Z",
+      "engagement": 220,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "contract"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C40",
+      "kind": "pain",
+      "claim_text": "Risk dealing with unvetted clients",
+      "quote": "From previous experience I have to place around 15-20 bids to win 1 or 2 projects, this is a very time-consuming process that I would rather have spent in actual client work The project budgets are really low value, much below market value There's a lot of risk involved in dealing with unvetted clients (with no previous projects or reviews).",
+      "url": "https://freelancing.stackexchange.com/questions/10088/how-can-i-find-clients-and-communicate-with-them-directly",
+      "source": "stackexchange",
+      "hit_id": "H37",
+      "hit_title": "How can I find clients and communicate with them directly",
+      "sentence_ids": [
+        6
+      ],
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
+      "published_at": "2021-04-28T19:12:52Z",
+      "engagement": 220,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C41",
+      "kind": "pain",
+      "claim_text": "Loose payment terms go to risky clients",
       "quote": "The ironic part is that the clients that don't need the looser payment terms (more time to pay the invoice) are the ones that get them Kind of mirrors \"it's expensive to be poor\"",
       "url": "https://news.ycombinator.com/item?id=47662697",
       "source": "hn",
@@ -944,308 +1051,190 @@
       "sentence_ids": [
         1
       ],
-      "fetched_at": "2026-11-17T10:59:05.949059Z",
+      "fetched_at": "2026-11-17T13:32:18.296492Z",
       "published_at": "2026-04-06T16:02:54Z",
       "engagement": null,
       "status": "verified_live",
-      "weight": 1.0,
+      "weight": 0.0,
       "cue_matched": "expensive",
       "on_topic": true,
       "keyword_overlap": [
         "payment",
         "term"
       ],
-      "weight_note": "",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C37",
-      "kind": "pain",
-      "claim_text": "Freelancers lose time to admin just to get paid",
-      "quote": "The idea came from repeatedly watching freelancers (and honestly, myself) lose time to admin just to get paid. Most tools I tried felt like full accounting suites when all I really wanted was: • create an invoice quickly • send it • see what's paid / overdue • and automatically chase unpaid ones So I built Experi to focus only on that.",
-      "url": "https://news.ycombinator.com/item?id=46771990",
-      "source": "hn",
-      "hit_id": "H47",
-      "hit_title": "[dead]",
-      "sentence_ids": [
-        2,
-        3
-      ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-01-26T21:45:00Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [
-        "invoic"
-      ],
-      "weight_note": "off topic for this variant (code keyword check)",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C38",
-      "kind": "pain",
-      "claim_text": "Most tools feel like full accounting suites",
-      "quote": "Most tools I tried felt like full accounting suites when all I really wanted was: • create an invoice quickly • send it • see what's paid / overdue • and automatically chase unpaid ones So I built Experi to focus only on that.",
-      "url": "https://news.ycombinator.com/item?id=46771990",
-      "source": "hn",
-      "hit_id": "H47",
-      "hit_title": "[dead]",
-      "sentence_ids": [
-        3
-      ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-01-26T21:45:00Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [
-        "invoic"
-      ],
-      "weight_note": "off topic for this variant (code keyword check)",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C39",
-      "kind": "competitor",
-      "claim_text": "Experi: lightweight invoicing platform for freelancers",
-      "quote": "It currently supports: • fast invoice creation • client and project management • scheduled and recurring invoices • automatic chasing of overdue invoices • clear tracking of paid vs outstanding The goal is not to replace accounting software, but to be the \"background invoicing engine\" for people running small operations.",
-      "url": "https://news.ycombinator.com/item?id=46771990",
-      "source": "hn",
-      "hit_id": "H47",
-      "hit_title": "[dead]",
-      "sentence_ids": [
-        4
-      ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-01-26T21:45:00Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 1.0,
-      "cue_matched": null,
-      "on_topic": true,
-      "keyword_overlap": [
-        "invoic",
-        "project"
-      ],
-      "weight_note": "",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C40",
-      "kind": "pain",
-      "claim_text": "Freelancers not used to sending invoices and tracking payments",
-      "quote": "They were on salary their whole career and are not used to sending invoices and tracking down payments. One of their clients was late paying and my friend wasn't concerned, but I encouraged them to be diligent about insisting on being paid on time.",
-      "url": "https://news.ycombinator.com/item?id=47661338",
-      "source": "hn",
-      "hit_id": "H45",
-      "hit_title": "What being ripped off taught me",
-      "sentence_ids": [
-        2,
-        3
-      ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-04-06T14:24:59Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [
-        "invoic"
-      ],
-      "weight_note": "off topic for this variant (code keyword check)",
-      "label": "SOURCED"
-    },
-    {
-      "id": "C41",
-      "kind": "pain",
-      "claim_text": "Further from bill, less real it becomes to client",
-      "quote": "I have been a freelancer for over a decade and in my experience, the further away you get from a bill, the less real it becomes to the person who owes it. They start forgetting what the project was, or worse, start questioning why they even have to pay for it.",
-      "url": "https://news.ycombinator.com/item?id=47661338",
-      "source": "hn",
-      "hit_id": "H45",
-      "hit_title": "What being ripped off taught me",
-      "sentence_ids": [
-        4,
-        5
-      ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-04-06T14:24:59Z",
-      "engagement": null,
-      "status": "verified_live",
-      "weight": 0.0,
-      "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [
-        "project"
-      ],
-      "weight_note": "off topic for this variant (code keyword check)",
+      "weight_note": "general wording, not someone's own complaint",
       "label": "SOURCED"
     },
     {
       "id": "C42",
       "kind": "pain",
-      "claim_text": "Must stay on top of invoices or they spiral",
-      "quote": "You have to stay on top of these things or they can spiral out of control.",
-      "url": "https://news.ycombinator.com/item?id=47661338",
-      "source": "hn",
-      "hit_id": "H45",
-      "hit_title": "What being ripped off taught me",
+      "claim_text": "Invoicing and payment reminders are non-billable overhead",
+      "quote": "I don't see the point of billing for half an hour ($10) a month, especially considering I may spend much more time on non-billable tasks such as replying to their emails, providing support that doesn't involve changing the website, sending them an invoice each month, and reminding them to pay me.",
+      "url": "https://freelancing.stackexchange.com/questions/2774/retainer-for-development-tasks",
+      "source": "stackexchange",
+      "hit_id": "H41",
+      "hit_title": "Retainer for Development Tasks",
       "sentence_ids": [
-        6
+        4
       ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-04-06T14:24:59Z",
-      "engagement": null,
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2015-01-11T06:27:03Z",
+      "engagement": 225,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [],
-      "weight_note": "off topic for this variant (code keyword check)",
+      "on_topic": true,
+      "keyword_overlap": [
+        "develop",
+        "invoic",
+        "retain"
+      ],
+      "weight_note": "label not confirmed by code",
       "label": "SOURCED"
     },
     {
       "id": "C43",
-      "kind": "competitor",
-      "claim_text": "Mercury bank handles invoicing with free manual invoices and Stripe payments",
-      "quote": "Mercury bank handles invoicing quite well. If you're manually preparing invoices (as I assume OP is given the need to include hours), invoicing is free. Obviously payments are included (cards via Stripe).",
-      "url": "https://news.ycombinator.com/item?id=50420896",
-      "source": "hn",
-      "hit_id": "H55",
-      "hit_title": "RIP, Harvest",
+      "kind": "pain",
+      "claim_text": "Small sporadic tasks make hourly billing impractical",
+      "quote": "I recently finished a Wordpress project for a client, and the client wants me to continue providing support, update, and develop the site for $20 per hour. The client says the tasks will be small, and I should probably only bill them 10-20 minutes each time they contact me, which will not be frequent either (possibly a few times a month, if that).",
+      "url": "https://freelancing.stackexchange.com/questions/2774/retainer-for-development-tasks",
+      "source": "stackexchange",
+      "hit_id": "H41",
+      "hit_title": "Retainer for Development Tasks",
       "sentence_ids": [
-        1,
         2,
         3
       ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-11-09T03:56:44Z",
-      "engagement": null,
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2015-01-11T06:27:03Z",
+      "engagement": 225,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
-      "on_topic": false,
+      "on_topic": true,
       "keyword_overlap": [
-        "invoic"
+        "develop",
+        "retain"
       ],
-      "weight_note": "off topic for this variant (code keyword check)",
+      "weight_note": "label not confirmed by code",
       "label": "SOURCED"
     },
     {
       "id": "C44",
-      "kind": "competitor",
-      "claim_text": "Used Bonsai happily for years for invoicing",
-      "quote": "Used Bonsai happily for years before that.",
-      "url": "https://news.ycombinator.com/item?id=50420896",
-      "source": "hn",
-      "hit_id": "H55",
-      "hit_title": "RIP, Harvest",
+      "kind": "pain",
+      "claim_text": "No retainer templates cover development work",
+      "quote": "So I am considering proposing a retainer agreement. But I noticed all of the retainer agreements I found online were only for maintenance tasks, not for development.",
+      "url": "https://freelancing.stackexchange.com/questions/2774/retainer-for-development-tasks",
+      "source": "stackexchange",
+      "hit_id": "H41",
+      "hit_title": "Retainer for Development Tasks",
       "sentence_ids": [
+        5,
         6
       ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-11-09T03:56:44Z",
-      "engagement": null,
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2015-01-11T06:27:03Z",
+      "engagement": 225,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [],
-      "weight_note": "off topic for this variant (code keyword check)",
+      "on_topic": true,
+      "keyword_overlap": [
+        "develop",
+        "retain"
+      ],
+      "weight_note": "label not confirmed by code",
       "label": "SOURCED"
     },
     {
       "id": "C45",
       "kind": "pain",
-      "claim_text": "Tired of copy-pasting tables from PDF invoices into spreadsheets",
-      "quote": "I got tired of copy-pasting tables from PDF invoices into spreadsheets. The columns always break, numbers merge with text, and you end up spending more time fixing the formatting than the actual work.",
-      "url": "https://news.ycombinator.com/item?id=47359337",
-      "source": "hn",
-      "hit_id": "H57",
-      "hit_title": "How HN: PDF Table Extractor - AI-powered tool to extract tables from PDFs to CSV",
+      "claim_text": "Variable monthly units complicate recurring billing",
+      "quote": "I'll be selling them services, packaged into a unit, and they may need none, or several of these units in any given month. The question is: how should I charge for these units, given that the amount I'll sell to the client each month is variable?",
+      "url": "https://freelancing.stackexchange.com/questions/7263/how-to-charge-for-variable-recurring-services",
+      "source": "stackexchange",
+      "hit_id": "H44",
+      "hit_title": "How to charge for variable recurring services?",
       "sentence_ids": [
-        1,
-        2
+        3,
+        4
       ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-03-13T00:44:08Z",
-      "engagement": null,
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2017-09-26T07:40:56Z",
+      "engagement": 154,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
       "on_topic": false,
-      "keyword_overlap": [
-        "invoic"
-      ],
+      "keyword_overlap": [],
       "weight_note": "off topic for this variant (code keyword check)",
       "label": "SOURCED"
     },
     {
       "id": "C46",
       "kind": "pain",
-      "claim_text": "Columns break and numbers merge with text when extracting invoice data",
-      "quote": "The columns always break, numbers merge with text, and you end up spending more time fixing the formatting than the actual work.",
-      "url": "https://news.ycombinator.com/item?id=47359337",
-      "source": "hn",
-      "hit_id": "H57",
-      "hit_title": "How HN: PDF Table Extractor - AI-powered tool to extract tables from PDFs to CSV",
+      "claim_text": "Multiple invoices create paperwork burden",
+      "quote": "Ideas I can think of (some better than others): simply bill up-front at order time for each unit (or 50%, or etc.), which could result in an invoice per week if things heat up - lots of paperwork charge a fixed retainer, then charge the balance at the end of the month (or refund the retainer), which balances risk somewhat and ensures I get at least a little bit of pay no matter what bill at the end of the month, assuming all risk myself What's a common way to handle this pattern?",
+      "url": "https://freelancing.stackexchange.com/questions/7263/how-to-charge-for-variable-recurring-services",
+      "source": "stackexchange",
+      "hit_id": "H44",
+      "hit_title": "How to charge for variable recurring services?",
       "sentence_ids": [
-        2
+        5
       ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-03-13T00:44:08Z",
-      "engagement": null,
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2017-09-26T07:40:56Z",
+      "engagement": 154,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
-      "on_topic": false,
-      "keyword_overlap": [],
-      "weight_note": "off topic for this variant (code keyword check)",
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "retain"
+      ],
+      "weight_note": "a question, not someone's own experience",
       "label": "SOURCED"
     },
     {
       "id": "C47",
       "kind": "competitor",
-      "claim_text": "Built AI tool to extract structured data from PDF invoices to CSV",
-      "quote": "So I built a tool that uses AI to extract every structured data block from a PDF - line items, totals, headers, metadata - and lets you download them as clean CSV.",
-      "url": "https://news.ycombinator.com/item?id=47359337",
+      "claim_text": "Portal app supports retainer billing for freelancers",
+      "quote": "You could use it for retainers, as you mentioned, or run productized services, which are pretty popular these days.",
+      "url": "https://news.ycombinator.com/item?id=42853373",
       "source": "hn",
-      "hit_id": "H57",
-      "hit_title": "How HN: PDF Table Extractor - AI-powered tool to extract tables from PDFs to CSV",
+      "hit_id": "H45",
+      "hit_title": "Portal - sell your freelance services with style",
       "sentence_ids": [
-        3
+        13
       ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-03-13T00:44:08Z",
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2025-01-28T15:24:24Z",
       "engagement": null,
       "status": "verified_live",
       "weight": 0.0,
       "cue_matched": null,
       "on_topic": false,
-      "keyword_overlap": [],
+      "keyword_overlap": [
+        "retain"
+      ],
       "weight_note": "off topic for this variant (code keyword check)",
       "label": "SOURCED"
     },
     {
       "id": "C48",
       "kind": "competitor",
-      "claim_text": "Integrated QuickBooks for financial reporting and invoice tracking",
-      "quote": "But I've integrated with our various systems (quickbooks for financial reporting and invoice tracking, google drive for contracts, insurance compliance, etc), and built a time tracking tool.",
-      "url": "https://news.ycombinator.com/item?id=46825984",
+      "claim_text": "Freshbooks handles recurring invoices but UX declining",
+      "quote": "I'm not using any of the new features and I haven't increased my usage (e.g., no more recurring invoices during this time).",
+      "url": "https://news.ycombinator.com/item?id=50421868",
       "source": "hn",
-      "hit_id": "H59",
-      "hit_title": "OpenClaw - Moltbot Renamed Again",
+      "hit_id": "H46",
+      "hit_title": "RIP, Harvest",
       "sentence_ids": [
-        3
+        7
       ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-01-30T16:00:26Z",
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2026-11-09T06:34:48Z",
       "engagement": null,
       "status": "verified_live",
       "weight": 0.0,
@@ -1260,17 +1249,93 @@
     {
       "id": "C49",
       "kind": "competitor",
-      "claim_text": "Can ask which invoices are overdue via Slack integration",
-      "quote": "I can ask stuff in slack like \"which invoices are overdue\" etc and get an answer.",
-      "url": "https://news.ycombinator.com/item?id=46825984",
+      "claim_text": "Invoicesio.app handles recurring billing and payment tracking",
+      "quote": "It handles creating/sending invoices, recurring billing, Stripe Connect for payments and payouts, and payment tracking in one dashboard.",
+      "url": "https://news.ycombinator.com/item?id=47251804",
       "source": "hn",
-      "hit_id": "H59",
-      "hit_title": "OpenClaw - Moltbot Renamed Again",
+      "hit_id": "H56",
+      "hit_title": "Invoicesio.app - Invoice and billing for freelancers and small businesses",
       "sentence_ids": [
-        7
+        2
       ],
-      "fetched_at": "2026-11-17T11:00:16.064307Z",
-      "published_at": "2026-01-30T16:00:26Z",
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2026-03-04T18:34:43Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C50",
+      "kind": "pain",
+      "claim_text": "Recurring billing turns into monthly copy/paste in spreadsheets",
+      "quote": "I published a short post today on a problem I kept seeing with freelancers and small service businesses: Recurring billing often turns into monthly copy/paste in spreadsheets - and it breaks the moment you get busy.",
+      "url": "https://news.ycombinator.com/item?id=47424068",
+      "source": "hn",
+      "hit_id": "H60",
+      "hit_title": "Recurring invoices: stop rebuilding the same invoice every month",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2026-03-18T11:00:50Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C51",
+      "kind": "competitor",
+      "claim_text": "Article describes automating schedule, amounts, due dates",
+      "quote": "The post is about a simple approach: - what to automate (schedule, amounts, due dates, consistency) - what to keep manual (notes when something changes, pausing/adjusting scope) - why a \"billing rhythm\" beats perfect templates Article: https://invoicesio.app/blog/recurring-billing-without-spread...",
+      "url": "https://news.ycombinator.com/item?id=47424068",
+      "source": "hn",
+      "hit_id": "H60",
+      "hit_title": "Recurring invoices: stop rebuilding the same invoice every month",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2026-03-18T11:00:50Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C52",
+      "kind": "pain",
+      "claim_text": "Must ensure client paid before providing service",
+      "quote": "The thing I would personally do is make sure the client has paid their invoice before providing the service. Essentially, this means paying for all previous missed invoices along with the next one.",
+      "url": "https://news.ycombinator.com/item?id=47639282",
+      "source": "hn",
+      "hit_id": "H55",
+      "hit_title": "Ask HN: How do you handle clients who don't pay on time?",
+      "sentence_ids": [
+        2,
+        3
+      ],
+      "fetched_at": "2026-11-17T13:32:43.943306Z",
+      "published_at": "2026-04-04T14:16:41Z",
       "engagement": null,
       "status": "verified_live",
       "weight": 0.0,
@@ -1289,7 +1354,7 @@
         "source": "hn",
         "query": "clients pay invoices late",
         "ok": true,
-        "hits": 20,
+        "hits": 19,
         "on_topic": 8,
         "covered": true,
         "error": null
@@ -1298,18 +1363,18 @@
         "source": "hn",
         "query": "chasing overdue payments",
         "ok": true,
-        "hits": 20,
-        "on_topic": 16,
+        "hits": 17,
+        "on_topic": 13,
         "covered": true,
         "error": null
       },
       {
         "source": "hn",
-        "query": "forgot to send reminder",
+        "query": "forgot to follow up invoices",
         "ok": true,
         "hits": 20,
-        "on_topic": 13,
-        "covered": true,
+        "on_topic": 1,
+        "covered": false,
         "error": null
       },
       {
@@ -1343,7 +1408,7 @@
       },
       {
         "source": "hn",
-        "query": "scope creep no extra pay",
+        "query": "scope creep no payment",
         "ok": true,
         "hits": 20,
         "on_topic": 3,
@@ -1352,10 +1417,10 @@
       },
       {
         "source": "hn",
-        "query": "proposal payment schedule unclear",
+        "query": "proposal payment terms missing",
         "ok": true,
-        "hits": 20,
-        "on_topic": 5,
+        "hits": 19,
+        "on_topic": 13,
         "covered": true,
         "error": null
       },
@@ -1364,7 +1429,7 @@
         "query": "freelance contract templates @ freelancing",
         "ok": true,
         "hits": 10,
-        "on_topic": 7,
+        "on_topic": 8,
         "covered": true,
         "error": null
       },
@@ -1381,34 +1446,34 @@
     "variant_3": [
       {
         "source": "hn",
-        "query": "lost track of unpaid invoices",
+        "query": "retainer clients pay late",
         "ok": true,
         "hits": 20,
-        "on_topic": 0,
+        "on_topic": 1,
         "covered": false,
         "error": null
       },
       {
         "source": "hn",
-        "query": "multiple clients payment status",
+        "query": "missed recurring invoices",
         "ok": true,
-        "hits": 20,
-        "on_topic": 6,
-        "covered": true,
+        "hits": 17,
+        "on_topic": 2,
+        "covered": false,
         "error": null
       },
       {
         "source": "hn",
-        "query": "manual invoice tracking spreadsheet",
+        "query": "forgot retainer renewal dates",
         "ok": true,
-        "hits": 20,
-        "on_topic": 8,
+        "hits": 19,
+        "on_topic": 5,
         "covered": true,
         "error": null
       },
       {
         "source": "stackexchange",
-        "query": "invoice tracking spreadsheet @ freelancing",
+        "query": "retainer invoice tracker @ freelancing",
         "ok": true,
         "hits": 0,
         "on_topic": 0,
@@ -1417,11 +1482,11 @@
       },
       {
         "source": "stackexchange",
-        "query": "lost track unpaid @ freelancing",
+        "query": "retainer clients pay @ freelancing",
         "ok": true,
-        "hits": 0,
-        "on_topic": 0,
-        "covered": false,
+        "hits": 9,
+        "on_topic": 4,
+        "covered": true,
         "error": null
       }
     ]

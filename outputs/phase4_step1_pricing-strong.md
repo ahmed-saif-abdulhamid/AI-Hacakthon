@@ -11,15 +11,14 @@
 
 Verified price points used: none.
 
-Only 0 verified price point(s); tiers are an illustrative ASSUMPTION.
+No verified price point was found; the tiers are an illustrative ASSUMPTION.
 
 No revenue projections or scenarios are produced.
 
 ## Rationale
 
-- ASSUMPTION: Pricing tiers are set as assumptions (good=$19, better=$39, best=$79) because no verified price points were provided for this product.
-- ASSUMPTION: Competitor C3 highlights integrated invoicing and payments, suggesting a value anchor for the better tier that includes payment collection features.
-- ASSUMPTION: Competitor C5 emphasizes automated bill tracking and multi-channel payment requests, supporting the best tier's premium for advanced automation.
+- ASSUMPTION: Pricing tiers are set as assumptions (good=$19, better=$39, best=$79) because the available verified price point (C28) contains only a placeholder [$X,XXX] and no concrete amount to anchor the model.
+- ASSUMPTION: Competitor claims (C3, C6, C8) describe invoicing automation, integrated payments, and smart invoice insights but do not disclose any pricing, so they provide feature context without a price benchmark.
 
 ### Sources
 

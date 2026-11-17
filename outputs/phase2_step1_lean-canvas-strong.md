@@ -6,63 +6,59 @@ Each statement cites verified claim IDs or is labelled ASSUMPTION by code.
 
 ## Problem
 
-- Freelance developers and designers lose time to manual invoice follow-ups and existing tools feel like bloated accounting suites.[C7][C10][C11]
-- Current invoicing platforms are expensive or overly complex for the simple need of creating invoices, seeing what's overdue, and automating reminders.[C7][C11]
+- Freelance developers and designers struggle to send polite, timely invoice reminders and track overdue payments without manual effort.[C1]
+- Existing invoicing tools focus on automation and integrated payments rather than a lightweight, template-based follow-up system.[C3][C6][C8]
 
 ## Customer Segments
 
-- Freelance web developers and designers who manage their own invoicing and payment tracking.[C6][C7][C9]
-- Independent workers who want lightweight invoice creation and automated chasing without full accounting features.[C7][C10][C11]
+- Freelance web developers and designers who manage their own invoicing and client communication.[C3]
 
 ## Unique Value Proposition
 
-- A lightweight, downloadable toolkit of templates, checklists, and guides for fast invoice creation and non-intrusive automated reminders — without the bloat or cost of full accounting suites.[C7][C10][C11]
+- A downloadable toolkit of templates, checklists, and guides for polite invoice reminders and overdue-payment tracking, designed by a freelancer for freelancers.[C3]
 
 ## Solution
 
-- Downloadable set of files including invoice templates, reminder scheduling checklists, and step-by-step guides to set up automated follow-ups using tools freelancers already use.[C8]
-- Focuses on the core workflow: create invoice quickly, send it, track paid/overdue status, and automate chasing — no accounting suite required.[C11]
+- Provide a set of ready-to-use reminder templates, escalation checklists, and tracking guides that freelancers can copy into their existing workflow (email, Notion, Google Sheets).[C3]
 
 ## Channels
 
-- ASSUMPTION: Founder's existing freelance network and developer/designer communities (newsletters, Slack groups, forums).
-- ASSUMPTION: Content marketing via writing on freelance admin pain points (blog posts, LinkedIn, Twitter threads).
+- ASSUMPTION: Launch a waitlist landing page promoted through freelance communities, newsletters, and social media where developers and designers discuss invoicing pain points.
+- ASSUMPTION: Leverage founder's network and content writing to publish articles on late-payment strategies that link to the waitlist.
 
 ## Revenue Streams
 
-- ASSUMPTION: One-time purchase of the downloadable toolkit (templates, checklists, guides).
-- ASSUMPTION: Optional paid add-on: personalized setup consultation or advanced template pack.
+- ASSUMPTION: One-time purchase of the digital toolkit (templates, checklists, guides).
+- ASSUMPTION: Optional upsell: a Notion workspace template pre-loaded with the toolkit for faster setup.
 
 ## Cost Structure
 
-- ASSUMPTION: Time to create templates, checklists, and guides (founder labor).
-- ASSUMPTION: Hosting for landing page and file delivery (Gumroad, Lemon Squeezy, or similar ~$0-30/mo).
+- ASSUMPTION: Domain, hosting, and landing-page builder (~$100/year).
+- ASSUMPTION: Design and copywriting time (founder labor) plus any freelance editing (~$200).
 
 ## Key Metrics
 
-- ASSUMPTION: Waitlist sign-ups from landing page (target: 100 in 4 weeks).
-- ASSUMPTION: Conversion rate from waitlist to paid purchase (target: >10%).
+- ASSUMPTION: Waitlist sign-ups and conversion rate to paid purchases.
+- ASSUMPTION: Customer satisfaction (NPS) and repeat purchase or referral rate.
 
 ## Unfair Advantage
 
-- ASSUMPTION: 7 years freelance web development experience gives deep insight into the exact admin workflow and tool gaps.
-- ASSUMPTION: Founder's writing skill and existing audience in freelance developer/designer communities.
+- ASSUMPTION: Founder's 7 years of freelance web development experience and direct knowledge of late-payment workflows.
+- ASSUMPTION: Existing writing skill and Notion/Google Sheets proficiency to create high-quality, immediately usable files.
 
 ## Riskiest assumption
 
-- ASSUMPTION: Freelancers will pay for a downloadable file-based toolkit instead of using free templates or built-in features of tools they already own (e.g., Notion, Google Sheets, invoicing software).
+- ASSUMPTION: Freelancers will pay for a downloadable template toolkit instead of using free templates or built-in features of their current invoicing software.
 
 ## Experiment
 
-- ASSUMPTION: Launch a waitlist landing page describing the toolkit (invoice templates, reminder checklists, setup guides) and measure sign-ups over 4 weeks; validate willingness to pay by including a price anchor and optional pre-order button.
+- ASSUMPTION: Run a waitlist landing page describing the toolkit and its problem focus; measure sign-ups and willingness to pay via a price-field question before building any files.
 
 Pre-registered demand target: 100 waitlist sign-ups in 14 days (team default, ASSUMPTION).
 
 ### Sources
 
-- [C7] https://news.ycombinator.com/item?id=43381182 (verified_live, weight 1.0)
-- [C10] https://news.ycombinator.com/item?id=46771990 (verified_live, weight 1.0)
-- [C11] https://news.ycombinator.com/item?id=46771990 (verified_live, weight 1.0)
-- [C6] https://news.ycombinator.com/item?id=43381182 (verified_live, weight 1.0)
-- [C9] https://news.ycombinator.com/item?id=43381182 (verified_live, weight 1.0)
-- [C8] https://news.ycombinator.com/item?id=43381182 (verified_live, weight 1.0)
+- [C1] https://freelancing.stackexchange.com/questions/9768/client-feels-he-is-doing-a-favor-on-me-by-paying-invoice-because-his-requirement (verified_live, weight 1.0)
+- [C3] https://news.ycombinator.com/item?id=43381182 (verified_live, weight 1.0)
+- [C6] https://news.ycombinator.com/item?id=42914012 (verified_live, weight 1.0)
+- [C8] https://news.ycombinator.com/item?id=47427522 (verified_live, weight 1.0)

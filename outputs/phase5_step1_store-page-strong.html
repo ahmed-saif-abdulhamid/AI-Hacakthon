@@ -3,39 +3,56 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Late-Payment Follow-Up Toolkit</title>
+<meta name="description" content="Polite invoice reminders and payment tracking for freelancers">
+<meta property="og:title" content="Late-Payment Follow-Up Toolkit">
+<meta property="og:description" content="Polite invoice reminders and payment tracking for freelancers">
+<meta property="og:type" content="product">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
 <style>
-  :root { --bg:#06090F; --fg:#E6F7FF; --muted:#8AA4B8; --cyan:#00F0FF; --line:#00F0FF33; --amber:#FFB800; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width:760px; margin:0 auto; padding:32px 20px 64px; }
-  .banner { border:1px solid var(--amber); color:var(--amber); padding:8px 12px; font:12px/1.4 ui-monospace, monospace; margin-bottom:24px; }
-  h1 { margin:0 0 6px; } .tag { color:var(--muted); margin:0 0 20px; }
-  .tiers { display:flex; flex-wrap:wrap; gap:12px; margin:20px 0; }
-  .tier { flex:1 1 180px; border:1px solid var(--line); padding:14px; }
-  .price { font-size:1.6rem; color:var(--cyan); }
+  :root { --bg:#FBFBFA; --surface:#FFFFFF; --fg:#16181D; --muted:#5A616E; --line:#E3E5E9; --accent:#2F4BD8; --note-bg:#FFF6E0; --note:#7A5200; color-scheme:light; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111317; --surface:#181B21; --fg:#ECEEF2; --muted:#A3AAB8; --line:#2A2F39; --accent:#8EA2FF; --note-bg:#2C2416; --note:#E8B95A; color-scheme:dark; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:28px 22px 72px; }
+  .banner { background:var(--note-bg); color:var(--note); border-radius:8px; padding:10px 14px; font-size:.85rem; margin-bottom:40px; }
+  h1 { font-size:clamp(2rem, 5vw, 2.6rem); line-height:1.1; letter-spacing:-.02em; margin:0 0 10px; }
+  .tag { color:var(--muted); font-size:1.2rem; margin:0 0 20px; }
+  h2 { font-size:1.3rem; margin:36px 0 10px; }
+  ul.inc { padding-left:20px; } ul.inc li { margin:4px 0; }
+  .fit { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px; }
+  .fit div { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px; font-size:.95rem; }
+  .fit b { display:block; margin-bottom:4px; }
+  .tiers { display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:12px; margin:16px 0 8px; }
+  .tier { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px; }
+  .tier .name { font-weight:600; } .price { font-size:2rem; font-weight:700; letter-spacing:-.02em; margin:4px 0; }
   .note { color:var(--muted); font-size:.85rem; }
-  .reviews { border:1px dashed var(--line); padding:12px; color:var(--muted); margin:24px 0; }
-  form { display:inline; } button { padding:10px 16px; background:var(--cyan); color:#001018; border:0; font-weight:600; cursor:pointer; }
-  footer { color:var(--muted); font-size:.8rem; margin-top:40px; }
+  .reviews { border:1px dashed var(--line); border-radius:10px; padding:14px; color:var(--muted); margin:28px 0; text-align:center; }
+  form { display:inline; }
+  button { padding:12px 20px; font:inherit; font-weight:600; background:var(--accent); color:#fff; border:0; border-radius:8px; cursor:pointer; min-height:46px; }
+  @media (prefers-color-scheme: dark) { button { color:#111317; } }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  footer { color:var(--muted); font-size:.8rem; margin-top:48px; }
+  @media (max-width:560px) { .fit { grid-template-columns:1fr; } }
 </style>
 </head>
 <body><main>
-  <div class="banner">PREVIEW on localhost. Payments are MOCKED (in-process test provider; no real or sandbox payments; no card details are ever collected).</div>
+  <div class="banner" role="note">PREVIEW on localhost. Payments are MOCKED (in-process test provider; no real or sandbox payments; no card details are ever collected).</div>
   <h1>Late-Payment Follow-Up Toolkit</h1>
-  <p class="tag">A repeatable system for chasing invoices without awkward conversations</p>
-  <p>This toolkit gives freelance developers and designers a structured way to send invoice reminders and monitor overdue payments. It includes a planner for timing each follow-up, a dashboard to track payment status, and a guide for escalating and resolving late payments.</p>
+  <p class="tag">Polite invoice reminders and payment tracking for freelancers</p>
+  <p>A downloadable set of files that helps freelance developers and designers send courteous invoice reminders and monitor overdue payments. The toolkit includes ready-to-use email templates, a spreadsheet for tracking payment status, and a guide for deciding when to escalate.</p>
   <h2>What is included</h2>
-  <ul><li>Reminder Sequence Planner (checklist and CSV template)</li><li>Payment Tracker Dashboard (checklist and CSV template)</li><li>Escalation &amp; Resolution Guide (checklist and CSV template)</li></ul>
-  <p><strong>Who it is for:</strong> Freelance developers and designers who want a clear, repeatable process for following up on unpaid invoices.</p>
-  <p><strong>Who it is not for:</strong> Agencies with dedicated accounts-receivable teams or anyone looking for automated payment collection software.</p>
+  <ul class="inc"><li>Reminder Email Templates (checklist and CSV template)</li><li>Payment Tracking Spreadsheet (checklist and CSV template)</li><li>Escalation Decision Guide (checklist and CSV template)</li></ul>
+  <div class="fit"><div><b>Who it is for</b>Freelance developers and designers who want a simple, organized way to follow up on unpaid invoices.</div><div><b>Who it is not for</b>Agencies or teams that already use automated invoicing platforms with built-in reminder workflows.</div></div>
   <h2>Pricing</h2>
   <div class="tiers">
-    <div class="tier"><div>Good</div><div class="price">$19</div><div class="note">Module 1 checklist and template</div></div><div class="tier"><div>Better</div><div class="price">$39</div><div class="note">All modules and templates</div></div><div class="tier"><div>Best</div><div class="price">$79</div><div class="note">All modules, templates and an email Q&amp;A</div></div>
+    <div class="tier"><div class="name">Good</div><div class="price">$19</div><div class="note">Module 1 checklist and template</div></div><div class="tier"><div class="name">Better</div><div class="price">$39</div><div class="note">All modules and templates</div></div><div class="tier"><div class="name">Best</div><div class="price">$79</div><div class="note">All modules and templates, plus the buyer guide</div></div>
   </div>
-  <p class="note">ASSUMPTION: Only 0 verified price point(s); tiers are an illustrative ASSUMPTION.</p>
+  <p class="note">ASSUMPTION: No verified price point was found; the tiers are an illustrative ASSUMPTION.</p>
   <div class="reviews">No reviews yet</div>
-  <form method="post" action="/store/r20261117-105650-2561/buy"><button type="submit">Simulate test purchase (MOCKED)</button></form>
+  <form method="post" action="/store/r20261117-132954-34f7/buy"><button type="submit">Simulate test purchase (MOCKED)</button></form>
   <h2>Policies</h2>
-  <p class="note">DRAFT - not legal advice; review with a qualified professional. Terms, privacy and refund drafts are in phase4_step2_policies. Refunds are reviewed and approved by the founder.</p>
+  <p class="note">DRAFT - not legal advice; review with a qualified professional. The terms, privacy and refund drafts come with the files. Refunds are reviewed and approved by the founder.</p>
   <footer>Drafted with ProveIt and approved by the founder before serving.</footer>
 </main></body>
 </html>

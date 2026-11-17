@@ -4,16 +4,16 @@
 
 **Title:** Late-Payment Follow-Up Toolkit
 
-**Audience:** Freelance developers and designers who need a repeatable system to send invoice reminders and track overdue payments without awkward conversations.
+**Audience:** Freelance developers and designers who need a simple system to send polite invoice reminders and keep track of overdue payments.
 
 ## Modules
 
-1. **Reminder Sequence Planner**: Define when and how to send polite, escalating reminders so nothing slips through the cracks.
-2. **Payment Tracker Dashboard**: Log every invoice, due date, reminder sent, and payment received in one place for quick status checks.
-3. **Escalation & Resolution Guide**: Know exactly what to do when reminders fail, including formal demand letters, late-fee enforcement, and when to walk away.
+1. **Reminder Email Templates**: Provide ready-to-use, courteous email scripts for first, second, and final payment reminders.
+2. **Payment Tracking Spreadsheet**: Enable quick logging of invoices sent, due dates, follow-up actions, and payment status in one place.
+3. **Escalation Decision Guide**: Help freelancers decide when to escalate from friendly nudge to formal demand or third-party collection.
 
 ## What the product is not
 
-- Automated email sending or integration with accounting software
-- Legal advice or custom contract clauses
-- Client acquisition or pricing strategy content
+- Automated email sending or CRM integration
+- Legal advice or contract enforcement services
+- Client credit-check or risk-scoring features

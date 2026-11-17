@@ -8,7 +8,7 @@
 | Free: open-weight NVIDIA Nemotron on NVIDIA's free hosted tier (a free key, no card) | A paid API wrapper |
 | Honest about what is MOCKED or STUBBED, in this README and on screen | A demo that hides its mocks |
 
-**Two committed runs show it working** ([outputs/](outputs/), [decision_log.json](decision_log.json)): a weak idea (an ebook of inspirational quotes) gets **STOP** in about a minute; a stronger idea (a late-payment toolkit for freelancers) also gets **STOP**, and the founder then carries on against the evidence with a logged reason, so phases 2-6 run as a clearly labelled preview through to a MOCKED sale, delivery and refund.
+**Two committed runs show it working** ([outputs/](outputs/), [decision_log.json](decision_log.json)): a weak idea (an ebook of inspirational quotes) gets **STOP** in about a minute; a stronger idea (a late-payment toolkit for freelancers) also gets **STOP**: one verified complaint (a freelancer owed two $2,000 payments), while the vendor pitches it found count only as existing tools. The founder then carries on against the evidence with a logged reason, so phases 2-6 run as a clearly labelled preview through to a MOCKED sale, delivery and refund.
 
 ## Quickstart
 
@@ -49,16 +49,16 @@ Without Docker: `pip install -r requirements.txt`, put `NVIDIA_API_KEY` in `.env
 
 - **Who acted as founder:** for the committed runs, the operator of the build machine pressed every approval and gave both override reasons through the command line; the log records `approved_by: "founder"` for those actions.
 - **Later phases after an override are a preview:** Gate 2 cannot pass without real traffic, so a run reaches phases 3-5 only through a logged `founder_override_against_evidence`. Every later file says "PREVIEW after a founder override", and so does the console.
-- **Run-to-run variation, measured:** the weak brief gave STOP in 2 of 4 runs and "look again" (sources can't see the market) in the other 2; never GO. Every attempt and calibration change is in [docs/calibration.md](docs/calibration.md); the 10-idea calibration set is in [evals/gate_backtest.md](evals/gate_backtest.md).
+- **Run-to-run variation, measured:** across six runs of the weak brief the gate said STOP twice and "look again" (the sources can't see the market) four times; never GO. The Scout's search phrasing varies between calls even at temperature 0. Every attempt and calibration change is in [docs/calibration.md](docs/calibration.md); the 10-idea calibration set is in [evals/gate_backtest.md](evals/gate_backtest.md).
 
 ## Architecture
 
-Eleven agents work through six phases, but only plain Python code calls tools, cuts quotes, decides checkpoints and executes approved actions; the model points at sentence IDs, summarises and argues. The bar each checkpoint uses is hashed with the brief before any source is called, so a moved goalpost is detected and shown. Quotes are cut by code from the source record and re-checked against the public page (through the official API for Stack Exchange); a quote counts only if code confirms it is on topic and contains a complaint or payment cue, and one comment counts once. Every publish, store opening and refund is wrapped in `@gated(action)` and bound to the SHA-256 of the exact bytes the founder saw. Details, diagrams and the gate rules are in [ARCHITECTURE.md](ARCHITECTURE.md).
+Eleven agents work through six phases, but only plain Python code calls tools, cuts quotes, decides checkpoints and executes approved actions; the model points at sentence IDs, summarises and argues. The bar each checkpoint uses is hashed with the brief before any source is called, so a moved goalpost is detected and shown. Quotes are cut by code from the source record and re-checked against the public page (through the official API for Stack Exchange); a quote counts only if code confirms it is on topic and is a person's own complaint or payment (not a question, a vendor pitch or a feature list), and one comment counts once. Every publish, store opening and refund is wrapped in `@gated(action)` and bound to the SHA-256 of the exact bytes the founder saw. Details, diagrams and the gate rules are in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## Models and free resources
 
 - **Model:** `nvidia/nemotron-3-ultra-550b-a55b` (NVIDIA Nemotron 3 Ultra, open weights on Hugging Face under the OpenMDW-1.1 licence), with thinking switched off for speed, called through NVIDIA's OpenAI-compatible API at `https://integrate.api.nvidia.com/v1`. Change it with `NVIDIA_MODEL`; `NVIDIA_BASE_URL` points the same client at any OpenAI-compatible server, including a self-hosted one.
-- **How to run without paying:** a free developer key from build.nvidia.com (no card) in `.env`. The free tier is rate-limited (about 40 requests a minute per account); ProveIt paces itself to 30 a minute (`LLM_RPM`) and backs off on HTTP 429, so a run waits instead of failing.
+- **How to run without paying:** a free developer key from build.nvidia.com (no card) in `.env`. The free tier is rate-limited (about 40 requests a minute per account); ProveIt paces itself to 30 a minute (`LLM_RPM`), backs off on HTTP 429, and when the service is still busy it pauses the run visibly and retries the same step up to three times before showing a **Try again** button. A retry reuses the search already made, so nothing is counted twice.
 - **Structured output:** every agent call sends its JSON schema as `response_format`, at temperature 0; invalid JSON is retried once and then turned into a REPEAT ("the research didn't come back clean"), never into a weak-idea verdict.
 - **Privacy:** ideas, quotes and questions are sent to NVIDIA's API; searches go to Hacker News, Stack Exchange, GitHub, Wikipedia and (in Docker) a self-hosted SearXNG. Runs and decisions stay on your computer. Details are in the console under **Privacy**.
 - **Optional free keys** (`SE_KEY`, `GITHUB_TOKEN`) only raise public search rate limits.
@@ -71,7 +71,7 @@ Eleven agents work through six phases, but only plain Python code calls tools, c
 | Run | Model | Model calls | Tokens (in + out) | Model time | Cost |
 |---|---|---|---|---|---|
 | Weak brief, Phase 1 to STOP | Nemotron 3 Ultra | 7 | 7,465 + 495 = ~8k | ~71 s | $0.00 |
-| Strong brief, all six phases (preview after override) | Nemotron 3 Ultra | 29 | 29,594 + 6,112 = ~36k | ~7 min | $0.00 |
+| Strong brief, all six phases (preview after override) | Nemotron 3 Ultra | 34 | 30,985 + 6,316 = ~37k | ~6 min | $0.00 |
 
 Model time includes ProveIt's own pacing for the free tier's rate limit. A Phase 1 verdict typically arrives in 30-90 seconds of wall-clock time.
 

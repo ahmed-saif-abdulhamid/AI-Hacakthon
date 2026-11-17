@@ -58,5 +58,21 @@ The model moved from a local 4B model to NVIDIA Nemotron 3 Ultra on NVIDIA's fre
 | `r20261117-105214-47a5` | REPEAT (rule 2: coverage below 0.5) |
 | `r20261117-105451-d4b0` | REPEAT (rule 2) |
 | `r20261117-105529-93d0` | STOP (rule 3), committed |
+| `r20261117-132732-0a2d` | REPEAT (rule 2), after the round-2 review fixes |
+| `r20261117-132756-fbca` | REPEAT (rule 2), after the round-2 review fixes |
 
-The variation comes from the Scout's search phrasing, which differs between calls even at temperature 0 on the hosted model. Neither outcome recommends building. The committed strong run is `r20261117-105650-2561` (STOP at Gate 1 with 2 complaints against 6; founder override; preview through all six phases).
+The variation comes from the Scout's search phrasing, which differs between calls even at temperature 0 on the hosted model. Neither outcome recommends building. The committed weak run stays `r20261117-105529-93d0`: every rule added after it only lowers complaint counts, so its STOP holds under the final code.
+
+## Round 3: second independent review (2026-11-17)
+
+| Date | Change | Why (evidence) |
+|---|---|---|
+| 2026-11-17 | Vendor pitches ("I'm building", "we built", "the idea came from", "I hear from", "Show HN") and feature bullets never count as complaints; they can still count as existing tools | The committed strong run counted PayPrompt's and Experi's launch posts as two of its "real complaints". |
+| 2026-11-17 | A question never counts as a complaint; general words (manual, problem, overdue, wish, pain, expensive) count only in a first-person sentence | A survey question ("Do you track invoices manually?") was labelled a complaint. |
+| 2026-11-17 | Payment-delay complaints are recognised ("not paid", "payment pending", "still waiting", "owes me", "ghosted") | A freelancer owed two $2,000 payments on Stack Exchange was given weight 0. |
+| 2026-11-17 | Hacker News posts marked `[dead]` or `[flagged]` are dropped | Moderated-away posts were counted. |
+| 2026-11-17 | The verdict is computed before the for-and-against debate, which is skipped when there is nothing to argue (rule 2 or rule 0) and can never fail a run; a retry reuses the search already made | A rate limit at the debate step stopped runs, and "Try again" re-ran the search and counted quotes twice. |
+| 2026-11-17 | When the model is busy, the run waits 20, 40 and 60 seconds and retries the same step before asking the founder | Runs needed manual retries when other work shared the free tier. |
+| 2026-11-17 | The launch-post copy rule also blocks invented history ("I got tired of", "I kept chasing", "after 7 years as") | The re-recorded strong run's first post draft invented the founder's frustration; the founder rejected it and it was redrafted. |
+
+The committed strong run is now `r20261117-132954-34f7`: STOP at Gate 1 with one verified complaint against six; the founder's logged override; a preview through all six phases; the first store-and-post draft rejected for invented experience and redrafted.

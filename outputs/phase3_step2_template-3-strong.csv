@@ -1,4 +1,4 @@
-Client Name,Invoice Number,Demand Letter Date,Late Fee Applied,Action Taken,Outcome
-Acme Corp,INV-2024-001,2024-03-15,$150,Sent certified demand letter,Payment received 2024-03-28
-Bright Designs,INV-2024-007,2024-04-02,$75,Filed small‑claims case,Judgment awarded 2024-05-10
-CodeWorks LLC,INV-2024-012,2024-05-20,$200,Engaged collections agency,Partial recovery 2024-06-15
+Invoice ID,Client Name,Days Overdue,Last Contact Date,Escalation Level,Next Action
+INV-001,Acme Corp,45,2024-01-10,Firm Reminder,Send formal demand 2024-02-01
+INV-002,Beta LLC,78,2024-01-05,Formal Demand,Engage collection agency 2024-02-15
+INV-003,Gamma Inc,15,2024-01-20,Friendly Nudge,Follow up 2024-02-05

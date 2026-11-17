@@ -1,19 +1,20 @@
-# Escalation & Resolution Guide
+# Escalation Decision Guide
 
 > PREVIEW after a founder override against the evidence at Gate 1 and Gate 2: demand not yet proven.
 
-This module gives you a clear, step‑by‑step path to follow when polite reminders no longer work. It covers formal demand letters, late‑fee enforcement, and the decision points for walking away from a non‑paying client.
+This module helps you choose the right escalation step based on how overdue an invoice is and how the client has responded so far. Follow the checklist to move from a friendly nudge to a formal demand or third‑party collection with confidence.
 
 ## Checklist
 
-- [ ] Review the original contract for payment terms, late‑fee clauses, and dispute resolution procedures.
-- [ ] Send a formal demand letter referencing the overdue invoice, contract terms, and a specific payment deadline.
-- [ ] Attach a copy of the original invoice and any previous reminder correspondence to the demand letter.
-- [ ] Apply the agreed late‑fee percentage or flat amount to the outstanding balance and update the invoice.
-- [ ] Log the demand letter send date, method (email, certified mail), and any client response in your tracking sheet.
-- [ ] If payment is not received by the deadline, evaluate the cost‑benefit of pursuing a small‑claims action versus writing off the debt.
-- [ ] Prepare a concise summary of all communications, invoices, and contract excerpts for potential legal filing.
-- [ ] Decide whether to engage a collections agency, weighing their fees against the likelihood of recovery.
-- [ ] Notify the client in writing that the account will be closed and future work is suspended until the balance is settled.
-- [ ] Archive all records for the statutory retention period in case of future disputes or tax audits.
-- [ ] Update your client onboarding checklist to include stricter payment terms or upfront deposits for similar future engagements.
+- [ ] Review the invoice aging report to identify invoices past 30 days overdue
+- [ ] Check the communication log for any client replies or promises to pay
+- [ ] Send a friendly reminder if the invoice is 1–30 days overdue and no response has been received
+- [ ] Send a firm reminder with a clear due date if the invoice is 31–60 days overdue
+- [ ] Issue a formal demand letter referencing contract terms if the invoice is 61–90 days overdue
+- [ ] Evaluate the cost‑benefit of engaging a collection agency for invoices over 90 days overdue
+- [ ] Document every contact attempt and client response in your tracking sheet
+- [ ] Set a calendar reminder to reassess the account after each escalation step
+- [ ] Consult your contract or engagement letter for any required notice periods before escalation
+- [ ] Prepare a summary of all communications for potential legal or collection use
+- [ ] Decide whether to pause future work for the client until the overdue balance is cleared
+- [ ] Record the final escalation decision and next action date in your tracker
