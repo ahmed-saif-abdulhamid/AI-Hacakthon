@@ -26,7 +26,7 @@ def test_mode_parameter_cannot_inject_script():
     assert client.get('/hud?mode=";alert(1)//').status_code == 422
     assert client.get("/hud?mode=</script><script>alert(1)</script>").status_code == 422
     html = client.get("/hud?mode=dual").text
-    assert 'mode:"dual"' in html
+    assert 'mode: "dual"' in html
 
 
 def test_api_base_parameter_is_escaped():

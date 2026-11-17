@@ -1,842 +1,226 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ProveIt · J.A.R.V.I.S.</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Instrument+Sans:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@1,8..60,400&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
-<style>
-:root{
-  --ground:#EDF0F3; --surface:#FFFFFF; --sunk:#F5F7F9; --ink:#141B2D; --ink-2:#4A5468; --ink-3:#7A8496; --rule:#D8DDE4;
-  --accent:#3A35C9; --accent-ink:#FFFFFF; --accent-soft:#E8E7FB;
-  --go:#17784A; --go-soft:#E1F1E8; --hold:#946000; --hold-soft:#F6ECD6; --stop:#B3261E; --stop-soft:#F8E2E0;
-  --night:#0E1322; --night-2:#161D30; --night-rule:#26304A; --night-ink:#E6EBF5; --night-ink-2:#93A0BC;
-  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
-  --ui:"Instrument Sans","Segoe UI",system-ui,-apple-system,sans-serif;
-  --quote:"Source Serif 4",Georgia,"Times New Roman",serif;
-  --hash:"JetBrains Mono",ui-monospace,Consolas,monospace;
-  --r-s:6px; --r-m:10px; --r-l:16px;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --ground:#0F1420; --surface:#161C2B; --sunk:#121827; --ink:#E6EAF2; --ink-2:#A9B2C5; --ink-3:#77829A; --rule:#283149;
-    --accent:#8F8BFF; --accent-ink:#0F1420; --accent-soft:#25264A;
-    --go:#5BC48C; --go-soft:#16302A; --hold:#E0A93B; --hold-soft:#33291A; --stop:#F07167; --stop-soft:#3A1F22;
-    color-scheme: dark;
-  }
-}
-*{box-sizing:border-box}
-html,body{height:100%}
-body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.5 var(--ui);-webkit-font-smoothing:antialiased}
-a{color:var(--accent)}
-button,input,textarea,select{font:inherit;color:inherit}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-[hidden]{display:none!important}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-
-/* ---------- shell ---------- */
-.shell{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}
-aside{background:var(--surface);border-right:1px solid var(--rule);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
-.brand{padding:22px 20px 18px;display:flex;align-items:baseline;gap:8px}
-.brand b{font:700 22px/1 var(--display);letter-spacing:-.02em}
-.brand span{color:var(--ink-3);font-size:13px}
-.newbtn{margin:0 16px 14px}
-.runs{flex:1;overflow:auto;padding:0 8px 12px}
-.runs h3{font:600 12px/1 var(--ui);color:var(--ink-3);margin:8px 12px 8px}
-.runitem{display:block;width:100%;text-align:left;background:none;border:0;border-radius:var(--r-s);padding:9px 12px;cursor:pointer;color:var(--ink)}
-.runitem:hover{background:var(--sunk)}
-.runitem.on{background:var(--accent-soft)}
-.runitem .t{display:block;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.runitem .m{display:flex;gap:6px;align-items:center;color:var(--ink-3);font-size:12.5px;margin-top:2px}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3);flex:none}
-.dot.go{background:var(--go)}.dot.stop{background:var(--stop)}.dot.repeat,.dot.pivot{background:var(--hold)}.dot.work{background:var(--accent);animation:blink 1.2s infinite}
-@keyframes blink{50%{opacity:.25}}
-.sysfoot{border-top:1px solid var(--rule);padding:12px 20px;font-size:12.5px;color:var(--ink-2);display:grid;gap:4px}
-.sysfoot .ok{color:var(--go)}.sysfoot .bad{color:var(--stop)}
-
-.main{min-width:0;display:flex;flex-direction:column}
-.topbar{display:flex;align-items:center;gap:12px;padding:14px 32px;border-bottom:1px solid var(--rule);background:var(--ground);position:sticky;top:0;z-index:5;flex-wrap:wrap}
-.topbar .crumb{color:var(--ink-3);font-size:13px;margin-right:auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.seg{display:inline-flex;background:var(--sunk);border:1px solid var(--rule);border-radius:999px;padding:3px}
-.seg button{border:0;background:none;padding:6px 14px;border-radius:999px;cursor:pointer;color:var(--ink-2);font-size:13.5px;white-space:nowrap}
-.seg button.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(20,27,45,.12)}
-.iconbtn{border:1px solid var(--rule);background:var(--surface);border-radius:999px;padding:6px 12px;cursor:pointer;font-size:13.5px;color:var(--ink-2)}
-.iconbtn[aria-pressed="true"]{color:var(--accent);border-color:var(--accent)}
-
-.stage{display:grid;grid-template-columns:minmax(0,1fr);flex:1;min-height:0}
-.stage.dual{grid-template-columns:minmax(0,1fr) minmax(340px,420px)}
-.work{padding:28px 32px 120px;max-width:1080px;width:100%}
-
-/* ---------- buttons ---------- */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--rule);background:var(--surface);color:var(--ink);border-radius:var(--r-s);padding:8px 14px;cursor:pointer;font-weight:500;font-size:14px}
-.btn:hover{border-color:var(--ink-3)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.btn.primary:hover{filter:brightness(1.08)}
-.btn.go{color:var(--go)}.btn.hold{color:var(--hold)}.btn.stop{color:var(--stop)}
-.btn.solid-stop{background:var(--stop);border-color:var(--stop);color:#fff}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-
-/* ---------- empty / intro ---------- */
-.intro{max-width:640px;padding:40px 0}
-.intro h1{font:700 44px/1.05 var(--display);letter-spacing:-.025em;margin:0 0 14px}
-.intro p{color:var(--ink-2);font-size:17px;margin:0 0 22px;max-width:56ch}
-.intro .row{display:flex;gap:10px;flex-wrap:wrap}
-
-/* ---------- run header ---------- */
-.idea h1{font:700 34px/1.1 var(--display);letter-spacing:-.02em;margin:0 0 6px;max-width:30ch}
-.idea p{margin:0;color:var(--ink-2);max-width:70ch}
-.steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin:22px 0 26px;padding:0;list-style:none}
-.steps li{border-top:3px solid var(--rule);padding-top:8px;font-size:13px;color:var(--ink-3)}
-.steps li b{display:block;font-weight:600;color:var(--ink-2)}
-.steps li.done{border-color:var(--ink-2)}
-.steps li.now{border-color:var(--accent)} .steps li.now b{color:var(--accent)}
-.steps li.halt{border-color:var(--stop)} .steps li.halt b{color:var(--stop)}
-
-/* ---------- verdict ---------- */
-.verdict{background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-l);padding:28px 30px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:32px}
-.verdict .word{font:700 clamp(64px,9vw,112px)/.9 var(--display);letter-spacing:-.045em;margin:0}
-.verdict.go .word{color:var(--go)}.verdict.stop .word{color:var(--stop)}.verdict.repeat .word,.verdict.pivot .word{color:var(--hold)}
-.verdict .which{color:var(--ink-3);font-size:13.5px;margin-bottom:10px}
-.verdict .why{margin:16px 0 0;color:var(--ink);font-size:16px;max-width:46ch}
-.verdict .founder{margin-top:10px;font-size:13.5px;color:var(--ink-2)}
-.bars{display:grid;gap:16px;align-content:start}
-.bar .lbl{display:flex;justify-content:space-between;gap:12px;font-size:14px}
-.bar .lbl span:last-child{font-variant-numeric:tabular-nums;color:var(--ink-2);white-space:nowrap}
-.bar .lbl strong{font-weight:600}
-.track{position:relative;height:10px;background:var(--sunk);border:1px solid var(--rule);border-radius:999px;margin-top:6px;overflow:visible}
-.track i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--ink-2)}
-.track.pass i{background:var(--go)}.track.fail i{background:var(--stop)}
-.track u{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--ink);text-decoration:none}
-.bar small{color:var(--ink-3);font-size:12.5px}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:20px}
-.override{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.override input{flex:1 1 240px;border:1px solid var(--rule);border-radius:var(--r-s);padding:8px 10px;background:var(--surface)}
-.banner{border-radius:var(--r-m);padding:12px 16px;margin:0 0 16px;font-size:14.5px}
-.banner.hold{background:var(--hold-soft);color:var(--ink)} .banner.hold b{color:var(--hold)}
-.banner.stop{background:var(--stop-soft);color:var(--ink)} .banner.stop b{color:var(--stop)}
-.later{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:14px}
-.later > div{border:1px solid var(--rule);border-radius:var(--r-m);padding:12px 14px;background:var(--surface)}
-.later .k{font-size:12.5px;color:var(--ink-3)} .later .v{font:600 18px/1.2 var(--display)}
-.later .v.go{color:var(--go)}.later .v.stop{color:var(--stop)}.later .v.repeat,.later .v.pivot{color:var(--hold)}
-.hashline{margin-top:14px;font-size:12.5px;color:var(--ink-3)} .hashline code{font-family:var(--hash);font-size:12px;color:var(--ink-2)}
-.hashline .moved{color:var(--stop);font-weight:600}
-
-/* ---------- tabs ---------- */
-.tabs{display:flex;gap:4px;margin:34px 0 0;border-bottom:1px solid var(--rule);overflow-x:auto}
-.tabs button{background:none;border:0;border-bottom:2px solid transparent;padding:10px 14px;cursor:pointer;color:var(--ink-2);font-weight:500;white-space:nowrap}
-.tabs button.on{color:var(--ink);border-color:var(--accent)}
-.tabs .count{display:inline-block;min-width:20px;padding:0 6px;margin-left:6px;border-radius:999px;background:var(--hold);color:#fff;font-size:12px;line-height:18px;text-align:center}
-.pane{padding:22px 0}
-
-/* evidence */
-.claim{display:grid;grid-template-columns:110px minmax(0,1fr);gap:18px;padding:18px 0;border-bottom:1px solid var(--rule)}
-.claim:last-child{border-bottom:0}
-.claim .meta{font-size:12.5px;color:var(--ink-3);display:grid;gap:4px;align-content:start}
-.claim .meta b{font:600 14px var(--ui);color:var(--ink)}
-.tag{display:inline-block;border-radius:4px;padding:1px 7px;font-size:12px;font-weight:500;width:max-content}
-.tag.live{background:var(--go-soft);color:var(--go)}.tag.arch{background:var(--hold-soft);color:var(--hold)}.tag.none{background:var(--sunk);color:var(--ink-3)}
-.claim blockquote{margin:0;font:italic 17px/1.55 var(--quote);color:var(--ink);max-width:68ch}
-.claim .src{margin-top:6px;font-size:13px;color:var(--ink-3)}
-.claim.zero blockquote{color:var(--ink-3)}
-.filterrow{display:flex;gap:8px;align-items:center;margin-bottom:6px;color:var(--ink-2);font-size:13.5px;flex-wrap:wrap}
-.filterrow label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
-
-/* debate */
-.debate{display:grid;grid-template-columns:1fr 1fr;gap:28px}
-.debate h4{font:600 18px var(--display);margin:0 0 4px}
-.debate .sub{color:var(--ink-3);font-size:13px;margin:0 0 10px}
-.debate p{margin:0 0 12px;max-width:60ch}
-.cite{font-size:12px;color:var(--accent);margin-left:4px;font-weight:600}
-.assume{font-size:12px;color:var(--ink-3);font-weight:600;margin-right:4px}
-
-/* approvals */
-.ap{border:1px solid var(--rule);border-radius:var(--r-m);background:var(--surface);padding:18px;margin-bottom:14px}
-.ap.flash{animation:flash 1s 3}
-@keyframes flash{50%{box-shadow:0 0 0 4px var(--accent-soft)}}
-.ap h4{margin:0;font:600 18px var(--display)}
-.ap .note{color:var(--ink-2);margin:4px 0 10px}
-.ap .sha{font-size:12.5px;color:var(--ink-3)} .ap .sha code{font-family:var(--hash);color:var(--ink-2);word-break:break-all}
-.ap iframe{width:100%;height:340px;border:1px solid var(--rule);border-radius:var(--r-s);background:#fff;margin-top:12px}
-.ap pre,.viewer pre{white-space:pre-wrap;word-break:break-word;background:var(--sunk);border:1px solid var(--rule);border-radius:var(--r-s);padding:14px;max-height:420px;overflow:auto;font:13px/1.55 var(--ui)}
-.empty{color:var(--ink-3);padding:16px 0}
-
-/* files */
-.filelist{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
-.filelist button{text-align:left;border:1px solid var(--rule);background:var(--surface);border-radius:var(--r-s);padding:10px 12px;cursor:pointer}
-.filelist button:hover,.filelist button.on{border-color:var(--accent)}
-.filelist .p{display:block;font-size:12px;color:var(--ink-3)}
-.filelist .n{font-weight:500}
-.viewer{margin-top:16px}
-.viewer iframe{width:100%;height:480px;border:1px solid var(--rule);border-radius:var(--r-s);background:#fff}
-
-/* status */
-.status{width:100%;border-collapse:collapse;font-size:14px}
-.status td{padding:9px 4px;border-bottom:1px solid var(--rule)}
-.status td:last-child{text-align:right}
-.st{font-weight:600;font-size:12.5px;padding:2px 8px;border-radius:4px}
-.st.Working{background:var(--go-soft);color:var(--go)}.st.MOCKED{background:var(--hold-soft);color:var(--hold)}.st.STUBBED{background:var(--sunk);color:var(--ink-2);border:1px solid var(--rule)}
-.costline{margin-top:14px;color:var(--ink-2);font-size:13.5px}
-
-/* ---------- voice panel ---------- */
-.voice{background:var(--night);color:var(--night-ink);display:flex;flex-direction:column;min-height:0;position:sticky;top:57px;height:calc(100vh - 57px)}
-.stage.hudonly .voice{position:relative;top:0;height:auto;min-height:calc(100vh - 57px)}
-.orbwrap{position:relative;display:flex;justify-content:center;padding:28px 20px 8px}
-.stage.hudonly .orbwrap{padding-top:5vh}
-#hud{width:min(100%,300px);aspect-ratio:1/1}
-.stage.hudonly #hud{width:min(80vw,440px)}
-.vstate{text-align:center;font:500 15px var(--ui);color:var(--night-ink-2);min-height:22px}
-.vstate b{color:var(--night-ink);font-weight:600}
-.caption{text-align:center;color:var(--night-ink);font:italic 16px/1.4 var(--quote);min-height:24px;padding:0 24px;margin-top:4px}
-.vctl{display:flex;justify-content:center;gap:10px;padding:16px;flex-wrap:wrap}
-.talk{border:0;border-radius:999px;padding:14px 26px;background:#F4F5FB;color:#0E1322;font-weight:600;cursor:pointer;touch-action:none;user-select:none}
-.talk.live{background:#3CC6B4;color:#06231F}
-.ghost{border:1px solid var(--night-rule);background:none;color:var(--night-ink-2);border-radius:999px;padding:10px 16px;cursor:pointer;font-size:13.5px}
-.ghost[aria-pressed="true"]{color:#3CC6B4;border-color:#3CC6B4}
-.convo{flex:1;overflow:auto;padding:8px 20px 20px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--night-rule)}
-.stage.hudonly .convo{max-width:720px;width:100%;margin:0 auto;border-top:0}
-.msg{max-width:88%;padding:9px 13px;border-radius:14px;font-size:14.5px;line-height:1.45}
-.msg.you{align-self:flex-end;background:#2A3352;color:var(--night-ink);border-bottom-right-radius:4px}
-.msg.him{align-self:flex-start;background:var(--night-2);border:1px solid var(--night-rule);border-bottom-left-radius:4px}
-.msg.sys{align-self:center;background:none;color:var(--night-ink-2);font-size:13px;text-align:center;padding:2px 8px}
-.msg.p0{border-color:#F07167;color:#FFD9D5}
-.msg .detail,.askout .detail{margin-top:8px;font-size:12.5px;color:var(--night-ink-2);white-space:pre-wrap}
-.detail summary{cursor:pointer;color:inherit;opacity:.85}.askout .detail{color:var(--ink-3)}
-.voiceinfo{font-size:12px;color:var(--night-ink-2);text-align:center;padding:0 16px 10px}
-
-/* ---------- ask bar ---------- */
-.ask{position:fixed;left:260px;right:0;bottom:0;padding:12px 32px calc(14px + env(safe-area-inset-bottom,0px));background:linear-gradient(to top,var(--ground) 70%,transparent);z-index:6;pointer-events:none}
-.stage.dual ~ .ask{right:420px}
-.stage.hudonly ~ .ask{background:linear-gradient(to top,var(--night) 70%,transparent)}
-.askin{pointer-events:auto;max-width:1016px;display:flex;gap:6px;align-items:center;background:var(--surface);border:1px solid var(--rule);border-radius:999px;padding:5px 5px 5px 18px;box-shadow:0 6px 24px rgba(20,27,45,.10)}
-.askin input{flex:1;border:0;background:none;outline:0;padding:8px 0;min-width:0}
-.askin .mic{border:0;background:var(--sunk);border-radius:999px;width:40px;height:40px;cursor:pointer;display:grid;place-items:center;color:var(--ink-2)}
-.askin .mic.live{background:#3CC6B4;color:#06231F}
-.askout{pointer-events:auto;max-width:1016px;margin:0 0 8px;background:var(--surface);border:1px solid var(--rule);border-radius:var(--r-m);padding:14px 16px;white-space:pre-wrap;font-size:14.5px;box-shadow:0 6px 24px rgba(20,27,45,.10);max-height:38vh;overflow:auto;position:relative}
-.askout.p0{border-color:var(--stop)}
-.askout .x{position:absolute;right:8px;top:6px;border:0;background:none;cursor:pointer;color:var(--ink-3);font-size:18px}
-
-/* ---------- new idea drawer ---------- */
-dialog{border:0;border-radius:var(--r-l);padding:0;width:min(680px,calc(100% - 32px));background:var(--surface);color:var(--ink);box-shadow:0 24px 60px rgba(10,14,25,.35)}
-dialog::backdrop{background:rgba(14,19,34,.45)}
-.dlg{padding:26px 28px}
-.dlg h2{font:700 26px/1.1 var(--display);margin:0 0 4px;letter-spacing:-.015em}
-.dlg .lead{color:var(--ink-2);margin:0 0 18px}
-.field{display:grid;gap:5px;margin-bottom:12px}
-.field span{font-size:13.5px;font-weight:500;color:var(--ink-2)}
-.field input,.field textarea,.field select{border:1px solid var(--rule);border-radius:var(--r-s);padding:9px 11px;background:var(--surface);width:100%}
-.field textarea{min-height:84px;resize:vertical}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.presets{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
-.presets button{border:1px dashed var(--rule);background:none;border-radius:var(--r-s);padding:8px 12px;cursor:pointer;text-align:left;color:var(--ink-2);font-size:13.5px}
-.presets button b{display:block;color:var(--ink);font-weight:600}
-.dlgfoot{display:flex;justify-content:space-between;align-items:center;gap:10px;padding-top:8px;flex-wrap:wrap}
-.dlgfoot small{color:var(--ink-3)}
-details.paste summary{cursor:pointer;color:var(--ink-2);font-size:13.5px;margin-bottom:8px}
-
-/* ---------- responsive ---------- */
-@media (max-width:1100px){.stage.dual{grid-template-columns:1fr}.stage.dual .voice{position:relative;top:0;height:auto;min-height:560px}.stage.dual ~ .ask{right:0}}
-@media (max-width:860px){
-  .shell{grid-template-columns:1fr} aside{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--rule)}
-  .runs{max-height:150px}.seg .long{display:none}.topbar .crumb{flex-basis:100%}.ask{left:0;padding-left:16px;padding-right:16px}
-  .work{padding:22px 16px 130px}.topbar{padding:12px 16px}
-  .verdict{grid-template-columns:1fr;padding:22px}.debate{grid-template-columns:1fr}.two{grid-template-columns:1fr}
-  .steps{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:12px}.claim{grid-template-columns:1fr;gap:8px}
-  .voice{position:relative;top:0;height:auto}
-}
-@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
-</style>
+<title>ProveIt</title>
+<meta name="description" content="Test a digital product idea against real public complaints before you build it. Every quote is checked on its source page, and nothing is published without your approval.">
+<meta name="theme-color" content="#EDF0F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1420" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/favicon.svg">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" href="/static/fonts/instrument-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/static/fonts/bricolage-grotesque-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/fonts/fonts.css">
+<link rel="stylesheet" href="/static/console.css?v={{ version }}">
+<script>
+  // Theme before first paint, so there is no flash of the wrong colours.
+  try { const t = localStorage.getItem("proveit_theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
 </head>
 <body>
+<a class="skip" href="#workspace">Skip to the current idea</a>
+<div id="sr-live" class="sr" aria-live="polite" aria-atomic="true"></div>
+<div id="sr-alert" class="sr" role="alert" aria-atomic="true"></div>
+
 <div class="shell">
-<aside>
-  <div class="brand"><b>ProveIt</b><span>with J.A.R.V.I.S.</span></div>
-  <button class="btn primary newbtn" onclick="openNew()">Test a new idea</button>
-  <nav class="runs" aria-label="Runs"><h3>Runs</h3><div id="runlist"><div class="empty" style="padding:8px 12px">No runs yet.</div></div></nav>
+<aside class="sidebar" id="sidebar" aria-label="Your ideas">
+  <a class="brand" href="/hud" aria-label="ProveIt home">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="14" fill="#3A35C9"/><path d="M18 33.5l9 9L46 22" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <b>ProveIt</b>
+  </a>
+  <button class="btn primary newbtn" data-act="new" type="button">Test a new idea <kbd aria-hidden="true">N</kbd></button>
+  <nav class="runs" aria-labelledby="runs-h">
+    <div class="runs-head"><h2 id="runs-h">Your ideas</h2><button class="linkbtn" id="showall" type="button" hidden>Show all</button></div>
+    <div id="runlist"><div class="empty" style="padding:8px 12px">No ideas tested yet.</div></div>
+  </nav>
   <div class="sysfoot">
-    <div id="modelState">Model: checking…</div>
-    <div id="voiceState">Voice: checking…</div>
-    <div>Cost per run: $0.00 (NVIDIA free tier)</div>
+    <div class="sysline"><span class="status-dot" id="modelDot"></span><span id="modelState">AI model: checking…</span></div>
+    <div class="sysline"><span class="status-dot ok"></span><span id="voiceState">Voice: checking…</span></div>
+    <div class="sysline"><span class="status-dot ok"></span><span>Cost per run: $0.00</span></div>
+    <div class="footlinks">
+      <button type="button" data-act="privacy">Privacy</button>
+      <button type="button" data-act="keys">Shortcuts</button>
+      <button type="button" data-act="theme" id="themebtn">Theme: system</button>
+    </div>
+    <div class="version">ProveIt v{{ version }}{% if commit %} · {{ commit }}{% endif %} · Apache-2.0</div>
   </div>
 </aside>
 
 <div class="main">
-  <div class="topbar">
-    <div class="crumb" id="crumb">No run selected</div>
-    <div class="seg" role="tablist" aria-label="Interface mode">
-      <button id="m-tactical" onclick="setMode('tactical')" title="Tactical writing mode">Tactical<span class="long"> writing mode</span></button>
-      <button id="m-hud" onclick="setMode('hud')" title="Holographic voice HUD"><span class="long">Holographic </span>voice HUD</button>
-      <button id="m-dual" onclick="setMode('dual')" title="Dual-sync: workspace and voice side by side">Dual-sync</button>
+  <header class="topbar">
+    <button class="pill menubtn" type="button" data-act="menu" aria-controls="sidebar" aria-expanded="false">Ideas</button>
+    <div class="crumb" id="crumb">Welcome</div>
+    <div class="seg" role="group" aria-label="Layout">
+      <button type="button" id="m-tactical" data-mode="tactical" aria-pressed="true" title="Tactical writing mode: read and decide">Work<span class="long">space</span></button>
+      <button type="button" id="m-hud" data-mode="hud" aria-pressed="false" title="Holographic voice HUD: talk to {{ assistant }}">Voice</button>
+      <button type="button" id="m-dual" data-mode="dual" aria-pressed="false" title="Dual-sync: workspace and voice side by side">Both</button>
     </div>
-    <button class="iconbtn" id="voiceToggle" aria-pressed="true" onclick="toggleVoice()">Voice replies on</button>
-  </div>
+    <button class="pill" id="voiceToggle" type="button" aria-pressed="true" data-act="voice"><span aria-hidden="true">🔊</span><span class="long">Spoken replies</span></button>
+  </header>
+  <div class="conn" id="conn" role="alert" hidden><b>Lost connection to ProveIt.</b> Your run keeps going on the server; this page reconnects by itself.</div>
 
   <div class="stage" id="stage">
-    <section class="work" id="tactical" aria-label="Workspace">
-      <div id="intro" class="intro">
-        <h1>Find out if anyone wants it before you build it.</h1>
-        <p>Describe a digital product idea. ProveIt searches public forums for people describing the problem, checks every quote on the live page, and stops you when the evidence is thin. Nothing is published until you approve it.</p>
-        <div class="row"><button class="btn primary" onclick="openNew()">Test a new idea</button><button class="btn" onclick="openFirstRun()">Open the latest run</button></div>
-      </div>
-      <div id="runview" hidden>
-        <div id="banners"></div>
-        <div class="idea"><h1 id="ideaTitle"></h1><p id="ideaSub"></p></div>
-        <ol class="steps" id="steps"></ol>
-        <div id="verdict"></div>
-        <div class="later" id="later"></div>
-        <div class="tabs" role="tablist">
-          <button data-tab="evidence" class="on" onclick="tab('evidence')">Evidence</button>
-          <button data-tab="debate" onclick="tab('debate')">Advocate and skeptic</button>
-          <button data-tab="approvals" onclick="tab('approvals')">Approvals<span class="count" id="apCount" hidden></span></button>
-          <button data-tab="files" onclick="tab('files')">Files</button>
-          <button data-tab="status" onclick="tab('status')">What's real vs. practice</button>
+    <main id="workspace" tabindex="-1">
+      <section id="intro" class="intro" aria-labelledby="intro-h" hidden>
+        <h1 id="intro-h">Find out if anyone wants it before you build it.</h1>
+        <p class="lede">Describe a digital product idea. ProveIt looks for real people describing the problem on public forums, checks every quote on its source page, and tells you plainly when the evidence is too thin to build on.</p>
+        <ol class="how">
+          <li><b>Describe your idea</b><span>One sentence is enough. Add who it's for if you know.</span></li>
+          <li><b>See the evidence</b><span>Real quotes, each linked to where it was said. About a minute.</span></li>
+          <li><b>Decide</b><span>Go ahead, look again, try another angle or stop. You stay in charge.</span></li>
+        </ol>
+        <div class="row">
+          <button class="btn primary" type="button" data-act="new">Test a new idea</button>
+          <button class="btn quiet" type="button" data-act="latest" id="latestbtn" hidden>Open my latest idea</button>
         </div>
-        <div class="pane" id="pane-evidence"></div>
-        <div class="pane" id="pane-debate" hidden></div>
-        <div class="pane" id="pane-approvals" hidden><div id="approvals"><div class="empty">Nothing is waiting for your approval.</div></div></div>
-        <div class="pane" id="pane-files" hidden><div class="filelist" id="files"></div><div class="viewer" id="viewer"></div></div>
-        <div class="pane" id="pane-status" hidden>
-          <table class="status"><tbody>{% for name, st in status_table %}<tr><td>{{ name }}</td><td><span class="st {{ st }}">{{ st }}</span></td></tr>{% endfor %}</tbody></table>
-          <div class="costline" id="costline"></div>
-        </div>
-      </div>
-    </section>
+        <div class="promise"><span>No made-up reviews or sign-ups</span><span>Nothing published without your approval</span><span>No income promises</span><span>Free and open source</span></div>
+      </section>
 
-    <section class="voice" id="hudpanel" aria-label="Voice assistant">
-      <div class="orbwrap"><canvas id="hud" width="600" height="600" aria-hidden="true"></canvas></div>
-      <div class="vstate" id="vstate"><b>J.A.R.V.I.S.</b> is ready</div>
-      <div class="caption" id="caption"></div>
+      <section id="runview" aria-labelledby="ideaTitle" hidden>
+        <div id="banners"></div>
+        <div class="idea"><h1 id="ideaTitle" dir="auto"></h1><p id="ideaSub" dir="auto"></p></div>
+        <ol class="steps" id="steps" aria-label="Progress through six steps"></ol>
+        <p class="steps-compact" id="stepsCompact"></p>
+        <div id="verdict"></div>
+        <div id="decide"></div>
+        <div id="next"></div>
+        <div class="later" id="later"></div>
+        <div class="tabs" role="tablist" aria-label="Details" id="tabs">
+          <button role="tab" id="tab-evidence" aria-controls="pane-evidence" aria-selected="true" tabindex="0">Evidence</button>
+          <button role="tab" id="tab-debate" aria-controls="pane-debate" aria-selected="false" tabindex="-1">For and against</button>
+          <button role="tab" id="tab-approvals" aria-controls="pane-approvals" aria-selected="false" tabindex="-1">Approvals<span class="count" id="apCount" hidden></span></button>
+          <button role="tab" id="tab-files" aria-controls="pane-files" aria-selected="false" tabindex="-1">Files</button>
+          <button role="tab" id="tab-status" aria-controls="pane-status" aria-selected="false" tabindex="-1">What's real</button>
+        </div>
+        <div role="tabpanel" id="pane-evidence" aria-labelledby="tab-evidence" tabindex="0"></div>
+        <div role="tabpanel" id="pane-debate" aria-labelledby="tab-debate" tabindex="0" hidden></div>
+        <div role="tabpanel" id="pane-approvals" aria-labelledby="tab-approvals" tabindex="0" hidden><div id="approvals"><p class="empty">Nothing is waiting for your approval.</p></div></div>
+        <div role="tabpanel" id="pane-files" aria-labelledby="tab-files" tabindex="0" hidden><div class="filelist" id="files"></div><div class="viewer" id="viewer"></div></div>
+        <div role="tabpanel" id="pane-status" aria-labelledby="tab-status" tabindex="0" hidden>
+          <table class="status">
+            <caption>Which steps really run, which are practice (MOCKED) and which are not switched on yet (STUBBED).</caption>
+            <thead><tr><th scope="col">Step</th><th scope="col">Status</th></tr></thead>
+            <tbody>{% for name, st in status_table %}<tr><td>{{ name }}</td><td><span class="st {{ st }}">{{ st }}</span></td></tr>{% endfor %}</tbody>
+          </table>
+          <p class="costline" id="costline"></p>
+          <button class="btn" type="button" data-act="print">Print the evidence report</button>
+        </div>
+      </section>
+    </main>
+
+    <section class="voice" id="voicepanel" aria-label="Talk to {{ assistant }}" hidden>
+      <h2 class="sr">Talk to {{ assistant }}</h2>
+      <div class="orbwrap"><canvas id="orb" width="600" height="600" aria-hidden="true"></canvas></div>
+      <div class="vstate" id="vstate"><b>{{ assistant }}</b> is ready</div>
+      <div class="caption" id="caption" aria-live="polite"></div>
       <div class="vctl">
-        <button class="talk" id="ptt" title="Hold to talk, release to send" aria-label="Push to talk: hold, speak, release">Hold to talk</button>
-        <button class="ghost" id="wake" aria-pressed="false" onclick="toggleWake()">Wake word “Jarvis” off</button>
+        <button class="talk" id="ptt" type="button" aria-label="Push to talk: hold, speak, then release">Hold to talk</button>
+        <button class="ghost" id="wake" type="button" aria-pressed="false">Say “{{ assistant }}” to start: off</button>
       </div>
-      <div class="voiceinfo" id="voiceInfo"></div>
-      <div class="convo" id="convo" aria-live="polite"></div>
+      <p class="voicewhy" id="voiceInfo"></p>
+      <div class="voice-verdict" id="voiceVerdict" hidden></div>
+      <div class="convo" id="convo"></div>
     </section>
   </div>
 
   <div class="ask">
-    <div class="askout" id="askout" hidden><button class="x" onclick="hideAsk()" aria-label="Close">×</button><div id="askbody"></div></div>
-    <div class="askin">
-      <label class="sr" for="askq">Ask J.A.R.V.I.S.</label>
-      <input id="askq" placeholder="Ask J.A.R.V.I.S. anything: why did this stop? what should I do next?" onkeydown="if(event.key==='Enter')sendAsk()">
-      <button class="mic" id="askmic" onclick="pttOnce()" title="Speak once" aria-label="Speak">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
-      </button>
-      <button class="btn primary" style="border-radius:999px" onclick="sendAsk()">Ask</button>
+    <div class="askout" id="askout" role="status" hidden>
+      <button class="x" type="button" data-act="closeask" aria-label="Close answer">×</button>
+      <div class="who">{{ assistant }}</div>
+      <div class="body" id="askbody"></div>
+      <div id="askextra"></div>
     </div>
+    <form class="askin" role="search" aria-label="Ask {{ assistant }}" id="askform">
+      <label class="sr" for="askq">Ask {{ assistant }} about your idea</label>
+      <input id="askq" autocomplete="off" maxlength="2000" placeholder="Ask {{ assistant }}: is my idea any good? what should I do next?">
+      <kbd aria-hidden="true">Ctrl K</kbd>
+      <button class="mic" id="askmic" type="button" aria-pressed="false" aria-label="Speak your question" title="Speak your question">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
+      <button class="btn primary" type="submit" style="border-radius:999px">Ask</button>
+    </form>
   </div>
 </div>
 </div>
 
-<dialog id="newdlg">
-  <form class="dlg" method="dialog" onsubmit="event.preventDefault();startRun()">
-    <h2>Test a new idea</h2>
-    <p class="lead">Only the idea is required. Thresholds are locked before any search starts.</p>
-    <div class="presets">
-      <button type="button" onclick="loadPreset('weak')"><b>Load weak brief</b>Motivational quote wallpapers</button>
-      <button type="button" onclick="loadPreset('strong')"><b>Load strong brief</b>Late-payment toolkit for freelancers</button>
+<dialog id="newdlg" aria-labelledby="new-h">
+  <form class="dlg" id="newform" novalidate>
+    <button class="x" type="button" data-close aria-label="Close">×</button>
+    <h2 id="new-h">Test a new idea</h2>
+    <p class="lead">Only the idea is required. ProveIt sets the bar for the evidence before it starts searching, so the result can't be bent to fit.</p>
+    <div class="examples" aria-label="Examples">
+      <button type="button" data-preset="weak"><b>Try an example: weak demand</b>Motivational quote wallpapers</button>
+      <button type="button" data-preset="strong"><b>Try an example: real problem</b>Late-payment toolkit for freelancers</button>
     </div>
-    <label class="field"><span>Idea</span><textarea id="f-idea" required placeholder="A pack of contract templates for freelance photographers"></textarea></label>
-    <div class="two">
-      <label class="field"><span>Your skills</span><input id="f-skills"></label>
-      <label class="field"><span>Target market or region</span><input id="f-target_market"></label>
-      <label class="field"><span>Budget</span><input id="f-budget"></label>
-      <label class="field"><span>Hours per week</span><input id="f-hours_per_week"></label>
-    </div>
-    <label class="field"><span>Values</span><input id="f-values"></label>
-    <details class="paste"><summary>Paste a full brief instead</summary>
-      <label class="field"><span>Lines like “Idea: …” are read into the fields</span><textarea id="paste"></textarea></label>
-      <button type="button" class="btn" onclick="parsePaste()">Read brief into fields</button>
+    <label class="field"><span>Your idea</span>
+      <textarea id="f-idea" maxlength="2000" required dir="auto" aria-describedby="idea-hint idea-err" placeholder="A pack of contract templates for freelance wedding photographers"></textarea>
+      <small id="idea-hint">A digital product: templates, guides, checklists or a small tool.</small>
+      <small id="idea-err" class="formerr" hidden>Describe your idea in a sentence first.</small>
+    </label>
+    <details class="more"><summary>Add more about you (optional)</summary>
+      <div class="two">
+        <label class="field"><span>Who it's for, or where</span><input id="f-target_market" maxlength="300" dir="auto"></label>
+        <label class="field"><span>Your skills</span><input id="f-skills" maxlength="300" dir="auto"></label>
+        <label class="field"><span>Budget</span><input id="f-budget" maxlength="100"></label>
+        <label class="field"><span>Hours per week</span><input id="f-hours_per_week" maxlength="50" inputmode="numeric"></label>
+      </div>
+      <label class="field"><span>What matters to you</span><input id="f-values" maxlength="300" dir="auto"></label>
+      <label class="field"><span>Paste a whole brief</span><textarea id="paste" dir="auto"></textarea><small>Lines like “Idea: …” or “Budget: …” are read into the fields.</small></label>
+      <button type="button" class="btn" data-act="parse">Read it into the fields</button>
+      <label class="field" style="margin-top:12px"><span>How deep to look</span>
+        <select id="runmode"><option value="live">One angle (about a minute)</option><option value="full">Three angles (a few minutes)</option></select></label>
     </details>
-    <label class="field" style="margin-top:12px"><span>Research depth</span>
-      <select id="runmode"><option value="live">One variant (about 3 to 20 minutes)</option><option value="full">Three variants (slower)</option></select></label>
-    <div class="dlgfoot"><small>Runs on NVIDIA Nemotron (free tier). Cost: $0.00.</small>
-      <div style="display:flex;gap:8px"><button type="button" class="btn" onclick="newdlg.close()">Cancel</button><button type="submit" class="btn primary">Start the run</button></div></div>
+    <div class="dlgfoot">
+      <small>Your idea is sent to NVIDIA's hosted AI model, and searches go to public forums. Free.</small>
+      <div style="display:flex;gap:8px"><button type="button" class="btn" data-close>Cancel</button><button type="submit" class="btn primary" id="startbtn">Start</button></div>
+    </div>
   </form>
 </dialog>
 
+<dialog id="privacydlg" aria-labelledby="priv-h">
+  <div class="dlg prose">
+    <button class="x" type="button" data-close aria-label="Close">×</button>
+    <h2 id="priv-h">Where your information goes</h2>
+    <ul>
+      <li><b>Your idea and your questions</b> are sent to NVIDIA's hosted AI model (build.nvidia.com) to write search queries and answers.</li>
+      <li><b>Searches</b> derived from your idea go to Hacker News, Stack Exchange, GitHub and Wikipedia. Don't put confidential details in an idea.</li>
+      <li><b>Runs, quotes and decisions</b> are stored on this computer (the <code>runs/</code> and <code>data/</code> folders), not in any cloud.</li>
+      <li><b>Spoken replies</b> use Piper, which runs on this computer. If it isn't installed, your browser's own voice is used.</li>
+      <li><b>Speaking to {{ assistant }}</b> uses your browser's speech recognition; in Chrome and Edge that sends the audio to Google or Microsoft. Typing never leaves this computer except as a question to the AI model.</li>
+      <li>No analytics, no tracking, no cookies. Fonts are served from this computer.</li>
+    </ul>
+    <div class="dlgfoot"><span></span><button class="btn primary" type="button" data-close>Done</button></div>
+  </div>
+</dialog>
+
+<dialog id="keysdlg" aria-labelledby="keys-h">
+  <div class="dlg">
+    <button class="x" type="button" data-close aria-label="Close">×</button>
+    <h2 id="keys-h">Keyboard shortcuts</h2>
+    <div class="keys">
+      <span><kbd>Ctrl</kbd> <kbd>K</kbd> or <kbd>/</kbd></span><span>Ask {{ assistant }}</span>
+      <span><kbd>N</kbd></span><span>Test a new idea</span>
+      <span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></span><span>Workspace, voice, or both</span>
+      <span><kbd>←</kbd> <kbd>→</kbd></span><span>Move between tabs (when a tab is focused)</span>
+      <span><kbd>Esc</kbd></span><span>Close a dialog or the answer card</span>
+      <span><kbd>?</kbd></span><span>Show this list</span>
+    </div>
+    <div class="dlgfoot"><span></span><button class="btn primary" type="button" data-close>Done</button></div>
+  </div>
+</dialog>
+
 <script>
-const API = {{ api_base|tojson }} || "";
-const EMBED = {{ 'true' if embed else 'false' }};
-const DEMO = {{ 'true' if demo else 'false' }};
-const PHASES = ["Discover","Validate","Build","Commercial setup","Sell and deliver","Operate and learn"];
-const OUT = {go:"Go.", stop:"Stop.", repeat:"Repeat.", pivot:"Pivot."};
-let S = {mode:{{ initial_mode|tojson }}, run:null, seq:0, view:null, voice:true, state:"idle", stateText:"", wake:false,
-         filesSeen:"", history:[], tab:"evidence", showZero:false, runs:[]};
-
-async function api(path, opts={}) {
-  const r = await fetch(API + path, Object.assign({headers:{"Content-Type":"application/json"}}, opts));
-  const ct = r.headers.get("content-type") || "";
-  const body = ct.includes("json") ? await r.json() : await r.text();
-  if (!r.ok) throw Object.assign(new Error(typeof body === "string" ? body : (body.detail || body.error || r.status)), {status:r.status, body});
-  return body;
-}
-function esc(s){return String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
-function human(s){return String(s||"").replace(/_/g," ");}
-const $ = id => document.getElementById(id);
-
-// ---------- modes ----------
-function setMode(m){
-  S.mode = m;
-  const st = $("stage");
-  $("tactical").hidden = m === "hud";
-  $("hudpanel").hidden = m === "tactical";
-  st.classList.toggle("dual", m === "dual");
-  st.classList.toggle("hudonly", m === "hud");
-  for (const k of ["tactical","hud","dual"]) $("m-"+k).classList.toggle("on", k === m);
-  try { localStorage.setItem("jarvis_mode", m); } catch(e) {}
-  requestAnimationFrame(resizeHud);
-}
-function toggleVoice(){ S.voice = !S.voice; const b=$("voiceToggle"); b.setAttribute("aria-pressed", S.voice); b.textContent = S.voice ? "Voice replies on" : "Voice replies off"; if(!S.voice){ try{speechSynthesis.cancel();}catch(e){} stopAudio(); } }
-
-// ---------- new idea ----------
-const newdlg = $("newdlg");
-function openNew(){ if (DEMO) { showAsk("This public demo is read-only. Live runs need your own free NVIDIA key: clone the repository, add the key to .env and run docker compose up.", false); return; } newdlg.showModal(); setTimeout(()=>$("f-idea").focus(), 50); }
-const FIELDS = ["idea","skills","budget","hours_per_week","target_market","values"];
-const LABELS = {idea:/^(starting )?idea$/, skills:/^(founder'?s? )?skills?$/, budget:/^budget$/, hours_per_week:/^(available )?(time|hours?)( ?(\/|per) ?week)?$/, target_market:/^(target( market)?|market|region)$/, values:/^(core )?values$/};
-function parseBrief(text){
-  const out = {};
-  for (let line of text.split(/\r?\n/)) {
-    line = line.replace(/^[\s>*\-#]+/, "").replace(/\*\*/g, "").trim();
-    const m = line.match(/^([A-Za-z' \/]+?)\s*[:\-–]\s+(.+)$/); if (!m) continue;
-    const label = m[1].trim().toLowerCase();
-    for (const f of FIELDS) if (!out[f] && LABELS[f].test(label)) { out[f] = m[2].trim(); break; }
-  }
-  return out;
-}
-function parsePaste(){ const t=$("paste").value; const p = parseBrief(t); for (const f of FIELDS) if (p[f]) $("f-"+f).value = p[f]; if(!p.idea && t.trim()) $("f-idea").value = t.trim(); }
-async function loadPreset(name){ const r = await api("/api/presets/"+name); $("paste").value = r.text; parsePaste(); }
-async function startRun(){
-  const fields = {}; for (const f of FIELDS) fields[f] = $("f-"+f).value.trim();
-  if (!fields.idea) { $("f-idea").focus(); return; }
-  try {
-    const r = await api("/api/runs", {method:"POST", body:JSON.stringify({brief_text:"", fields, mode:$("runmode").value})});
-    newdlg.close(); await refreshRuns(); followRun(r.run_id);
-  } catch(e) { showAsk("The run could not start: " + e.message, true); }
-}
-
-// ---------- runs ----------
-async function refreshRuns(){
-  const runs = await api("/api/runs"); S.runs = runs;
-  const box = $("runlist");
-  if (!runs.length) { box.innerHTML = `<div class="empty" style="padding:8px 12px">No runs yet.</div>`; return; }
-  box.innerHTML = runs.map(r=>{
-    const working = !r.outcome && !/^(stopped|done|complete|finished)/.test(r.stage||"");
-    const dot = r.outcome ? r.outcome : (working ? "work" : "");
-    const title = r.title || r.label || r.id;
-    return `<button class="runitem ${r.id===S.run?"on":""}" onclick="followRun('${esc(r.id)}')"><span class="t">${esc(title)}</span>
-      <span class="m"><i class="dot ${dot}"></i>${r.outcome ? esc(OUT[r.outcome]||r.outcome) : esc(human(r.stage))} · ${ago(r.created_at)}</span></button>`;
-  }).join("");
-}
-function ago(ts){ const t = Date.parse(ts); if (!t) return ""; const m = Math.round((Date.now()-t)/60000);
-  if (m < 1) return "just now"; if (m < 60) return m + " min ago"; const h = Math.round(m/60); if (h < 24) return h + " h ago";
-  return new Date(t).toLocaleDateString(undefined, {month:"short", day:"numeric"}); }
-function openFirstRun(){ if (S.runs.length) followRun(S.runs[0].id); }
-function followRun(id){
-  if(!id) return; S.run = id; S.seq = 0; S.filesSeen = ""; shownApprovals = "";
-  $("viewer").innerHTML = ""; setState("idle"); poll(); refreshRuns().catch(()=>{});
-  if (!DEMO) fetch(API + "/api/ask/warm", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({text:"", run_id:id})}).catch(()=>{});
-}
-
-// ---------- polling ----------
-async function poll(){
-  if (!S.run) return;
-  try {
-    const [v, tel] = await Promise.all([api("/api/runs/"+S.run), api(`/api/runs/${S.run}/telemetry?since=${S.seq}`)]);
-    S.view = v;
-    for (const t of tel) { S.seq = Math.max(S.seq, t.seq); onTelemetry(t); }
-    render(v);
-  } catch(e) { console.warn(e); }
-}
-setInterval(poll, 1500);
-async function sysStatus(){
-  try { const m = await api("/api/model"); const ok = m.state==="ready";
-    $("modelState").innerHTML = `Model: <span class="${ok?"ok":"bad"}">${esc(m.model)}${ok?"":" ("+esc(m.state)+")"}</span>`; } catch(e) {}
-  try { const v = await api("/api/voice/status"); const t = v.tts||{};
-    $("voiceState").innerHTML = t.engine === "piper" ? `Voice: local Piper (${esc(t.voice||"en-GB")})` : `Voice: browser speech (en-GB)`; } catch(e) {}
-}
-setInterval(()=>{ refreshRuns().catch(()=>{}); sysStatus(); }, 6000);
-
-function onTelemetry(t){
-  const fresh = Date.parse(t.ts) > Date.now() - 20000;  // never re-speak an old run's narration
-  if (t.kind === "narration" && fresh) { addMsg("sys", t.text); say(t.text); }
-  if (t.kind === "protocol0") setState("alert", "Protocol 0: request refused");
-  if (t.kind === "gate" && fresh) setState(t.text === "go" ? "go" : (t.text === "stop" ? "alert" : "hold"), "Gate decision: " + (OUT[t.text]||t.text));
-  if (t.kind === "approval" && fresh) setState("hold", "Waiting for your approval");
-  if (t.kind === "error" && fresh) { addMsg("sys", "Error: " + t.text); setState("alert", "Error"); }
-}
-
-// ---------- rendering ----------
-function render(v){
-  $("intro").hidden = true; $("runview").hidden = false;
-  const b = v.brief || {};
-  const variant = (v.variants||[])[(v.variant_n||1)-1];
-  $("ideaTitle").textContent = variant ? variant.title : (b.idea || v.label || v.run_id);
-  $("ideaSub").textContent = variant ? `For ${variant.segment}. ${b.idea ? "Original idea: " + b.idea : ""}` : (b.idea && variant ? b.idea : "");
-  $("crumb").textContent = `Run ${v.run_id} · ${v.working ? "working: " : ""}${human(v.stage)}`;
-  const stopped = v.gate1 && v.gate1.outcome === "stop" && !v.override;
-  $("steps").innerHTML = PHASES.map((n,i)=>{ const p=i+1; const cls = p<v.phase ? "done" : (p===v.phase ? (stopped||v.stage==="stopped" ? "halt" : "now") : "");
-    return `<li class="${cls}"><b>${p}. ${n}</b>${p<v.phase?"Done":(p===v.phase?(cls==="halt"?"Stopped here":"Current"):"Not started")}</li>`; }).join("");
-  let ban = "";
-  if (v.override) ban += `<div class="banner hold"><b>Preview only.</b> You chose to carry on even though the evidence was thin, so treat the later steps as a preview. Your note: ${esc(v.override.reason)}</div>`;
-  if (v.goalpost_moved) ban += `<div class="banner stop"><b>Thresholds changed after they were locked.</b> This run is marked goalpost moved.</div>`;
-  if (v.error) ban += `<div class="banner stop"><b>Something failed.</b> ${esc(v.error).slice(0,300)}</div>`;
-  if (v.clarify && v.stage === "await_clarify") ban += `<div class="banner hold"><b>Please confirm.</b> ${esc(v.clarify)} <button class="btn" onclick="decide('clarify_ok')">It is a digital product with no advice</button></div>`;
-  if (DEMO) ban += `<div class="banner hold"><b>Read-only demo.</b> This is a recorded run. Buttons that change a run are switched off here.</div>`;
-  $("banners").innerHTML = ban;
-  renderVerdict(v); renderLater(v); renderEvidence(v); renderDebate(v); renderFiles(v); renderApprovals(v); renderCost(v);
-}
-
-function bar(label, val, thr, max, unit, note){
-  const pass = val >= thr; const pct = Math.min(100, 100*val/max), tp = Math.min(100, 100*thr/max);
-  return `<div class="bar"><div class="lbl"><strong>${label}</strong><span>${val}${unit||""} of ${thr}${unit||""} needed</span></div>
-    <div class="track ${pass?"pass":"fail"}" role="meter" aria-valuenow="${val}" aria-valuemin="0" aria-valuemax="${max}" aria-label="${label}"><i style="width:${pct}%"></i><u style="left:calc(${tp}% - 1px)"></u></div>
-    ${note?`<small>${note}</small>`:""}</div>`;
-}
-function renderVerdict(v){
-  const g = v.gate1, el = $("verdict");
-  if (!g) { el.innerHTML = `<div class="verdict"><div><div class="which">First checkpoint: do people have this problem?</div><p class="word" style="color:var(--ink-3)">${v.working?"Searching…":"Waiting"}</p><p class="why">The decision appears here once the sources are searched and every quote is checked.</p></div><div class="bars"></div></div>`; return; }
-  const m = v.metrics || g.metrics || {}, th = v.thresholds || g.thresholds || {};
-  const cov = (v.coverage_rows||[]).map(r=>`${r.source} ${r.on_topic}/${r.hits}${r.ok?"":" (unavailable)"}`).join(", ");
-  const bars = [
-    m.sourced_pain!=null ? bar("Real complaints found", m.sourced_pain, th.min_sourced_pain, Math.max(th.min_sourced_pain*1.6, m.sourced_pain), "", `Every quote was checked on the page it came from`) : "",
-    m.coverage!=null ? bar("Searches that found the problem", Math.round(m.coverage*100), Math.round(th.min_coverage*100), 100, "%", "") : "",
-    m.distinct_sources!=null && th.min_distinct_sources!=null ? bar("Different places online", m.distinct_sources, th.min_distinct_sources, Math.max(th.min_distinct_sources*2, m.distinct_sources), "") : "",
-  ].join("");
-  const st = v.stage; let act = "";
-  if (!DEMO && (st === "await_founder" || st === "stopped") && !v.gate2) {
-    act = `<div class="actions"><button class="btn" onclick="decide('accept')">Accept the recommendation</button><button class="btn hold" onclick="decide('repeat')">Search again</button><button class="btn hold" onclick="decide('pivot')">Try variant ${(v.variant_n||1)+1}</button><button class="btn stop" onclick="decide('stop')">Stop this idea</button></div>`;
-    if (st === "await_founder" && g.outcome !== "go") act += overrideBox();
-  }
-  el.innerHTML = `<div class="verdict ${g.outcome}"><div><div class="which">First checkpoint: do people have this problem?</div>
-    <p class="word">${OUT[g.outcome]||esc(g.outcome)}</p><p class="why">${esc(whyLine(g, m, th))}</p>
-    <div class="founder">${esc(decisionText(g.founder_decision))}</div></div>
-    <div class="bars">${bars}<div class="hashline" title="SHA-256 ${esc(v.thresholds_sha256||"")}">${v.goalpost_moved?'<span class="moved">The bar was changed after the search started.</span>':"The bar was set before searching, so it can't be moved to fit the result."}</div></div></div>${act}`;
-}
-const DECISIONS = {accept:"You accepted this advice.", accepted:"You accepted this advice.", overridden:"You chose to carry on anyway.",
-  override:"You chose to carry on anyway.", stop:"You stopped here.", repeat:"You asked me to search again.", pivot:"You asked me to try another angle.",
-  pending:"Your call: accept the advice, search again, try another angle, or stop."};
-function decisionText(d){ return DECISIONS[d] || DECISIONS.pending; }
-const REASONS = {insufficient_evidence:"Not enough to go on yet", all_required_pass:"All checks passed", checks_failed:"Too little evidence",
-  weak_pain_evidence:"Too little evidence", no_real_signups:"No real sign-ups yet", founder_approved:"You approved it",
-  model_failure:"The research didn't come back clean", excluded_category:"Not a product we can build"};
-function reasonText(r){ const k = String(r||""); if (REASONS[k]) return REASONS[k]; if (/approved/.test(k)) return "You approved it"; return human(k).replace(/^./, c=>c.toUpperCase()); }
-function whyLine(g, m, th){
-  const short = [];
-  if (m.sourced_pain!=null && th.min_sourced_pain!=null && m.sourced_pain < th.min_sourced_pain) short.push(`I found only ${Math.round(m.sourced_pain)} real complaints about this problem, and I wanted at least ${th.min_sourced_pain}`);
-  if (m.coverage!=null && th.min_coverage!=null && m.coverage < th.min_coverage) short.push(`too few of my searches found people talking about it`);
-  if (m.distinct_sources!=null && th.min_distinct_sources!=null && m.distinct_sources < th.min_distinct_sources) short.push(`it all came from just ${m.distinct_sources} place online`);
-  if (g.outcome === "go") return "Enough people describe this problem. It is worth taking to the next step.";
-  const lead = {stop:"My advice is to stop here. ", repeat:"Worth another look. ", pivot:"Worth trying a different angle. "}[g.outcome] || "";
-  if (short.length) { const b = short.join("; "); return lead + b.charAt(0).toUpperCase() + b.slice(1) + "."; }
-  return human(g.recommendation || g.reason);
-}
-function overrideBox(){ return `<div class="override"><input id="ovr" placeholder="Why continue against the evidence? (required, logged)"><button class="btn hold" onclick="decide('override', $('ovr').value)">Override and continue</button></div>`; }
-function renderLater(v){
-  const items = [["Did people sign up?", v.gate2], ["Is the product ready?", v.gate3], ["Price and policies", v.gate4]].filter(x=>x[1]);
-  let html = items.map(([k,g])=>`<div><div class="k">${k}</div><div class="v ${g.outcome}">${OUT[g.outcome]||esc(g.outcome)}</div><div class="k">${esc(reasonText(g.reason))}</div></div>`).join("");
-  if (!DEMO && v.stage === "await_override") html += `<div><div class="k">Gate 2 needs you</div><div class="actions" style="margin-top:8px"><button class="btn" onclick="decide('accept')">Accept repeat</button><button class="btn stop" onclick="decide('stop')">Stop</button></div>${overrideBox()}</div>`;
-  if (!DEMO && v.stage === "await_gate4") html += `<div><div class="k">Gate 4: approve price and policies</div><div class="actions" style="margin-top:8px"><button class="btn primary" onclick="decide('gate4_approve')">Approve</button><button class="btn stop" onclick="decide('gate4_reject')">Reject</button></div></div>`;
-  $("later").innerHTML = html;
-}
-async function decide(d, reason=""){
-  try { const r = await api(`/api/runs/${S.run}/decide`, {method:"POST", body:JSON.stringify({decision:d, reason})}); if (!r.ok) showAsk(r.error, true); }
-  catch(e) { showAsk(e.message, true); }
-  poll();
-}
-
-function tab(name){
-  S.tab = name;
-  document.querySelectorAll(".tabs button").forEach(b=>b.classList.toggle("on", b.dataset.tab===name));
-  for (const p of ["evidence","debate","approvals","files","status"]) $("pane-"+p).hidden = p !== name;
-}
-function tagFor(c){
-  if (c.weight > 0 && c.status === "verified_live") return `<span class="tag live" title="Checked on the live page">Counted</span>`;
-  if (c.weight > 0 && c.status === "archived_match") return `<span class="tag arch" title="Page offline; matched an archived copy, counts half">Counted (half)</span>`;
-  return `<span class="tag none">Not counted</span>`;
-}
-function renderEvidence(v){
-  const all = (v.claims||[]).slice().sort((a,b)=>b.weight-a.weight);
-  const counted = all.filter(c=>c.weight>0);
-  const list = S.showZero ? all : counted;
-  const head = `<div class="filterrow"><span>${counted.length} of ${all.length} comments are clearly about this problem.</span>
-    <label><input type="checkbox" ${S.showZero?"checked":""} onchange="S.showZero=this.checked;renderEvidence(S.view)"> Show the rest</label></div>`;
-  const rows = list.map(c=>`<div class="claim ${c.weight>0?"":"zero"}"><div class="meta"><b>${esc(c.id)}</b>${tagFor(c)}<span>${esc(human(c.kind))}</span></div>
-    <div><blockquote>“${esc(c.quote||c.claim_text||"")}”</blockquote>
-    <div class="src">${c.url?`<a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.source)}${c.hit_title?": "+esc(c.hit_title).slice(0,90):""}</a>`:"ASSUMPTION"}${c.weight_note?" · "+esc(c.weight_note):""}</div></div></div>`).join("");
-  $("pane-evidence").innerHTML = head + (rows || `<div class="empty">${all.length ? "No quote passed the relevance and wording checks. Tick the box to see what was found." : "Quotes appear here as sources are searched."}</div>`);
-}
-function renderDebate(v){
-  if (!v.debate) { $("pane-debate").innerHTML = `<div class="empty">The advocate and the skeptic argue after the evidence is in.</div>`; return; }
-  const ids = new Set((v.claims||[]).filter(c=>c.weight>0).map(c=>c.id));
-  const st = s => { const ok = (s.claim_ids||[]).filter(i=>ids.has(i)); return `<p>${ok.length?"":`<span class="assume">ASSUMPTION</span>`}${esc(s.text)}${ok.map(i=>`<span class="cite">${i}</span>`).join("")}</p>`; };
-  $("pane-debate").innerHTML = `<div class="debate"><div><h4>The case for going ahead</h4><p class="sub">The optimist, using only the counted comments.</p>${v.debate.advocate.map(st).join("")}</div>
-    <div><h4>The case for stopping</h4><p class="sub">The sceptic, using the same comments.</p>${v.debate.skeptic.map(st).join("")}</div></div>`;
-}
-const PHASE_OF = f => { const m = f.match(/^phase(\d)/); return m ? "Phase " + m[1] + ", " + PHASES[+m[1]-1] : "Sale to cash"; };
-function prettyName(f){ return f.replace(/^phase\d_(step\d_|gate_)?/,"").replace(/\.(md|json|html|csv|txt)$/,"").replace(/_/g," ").replace(/^./,c=>c.toUpperCase()) + (f.includes("_gate_") ? " (gate)" : ""); }
-function renderFiles(v){
-  const key = (v.files||[]).join(",");
-  if (key === S.filesSeen) return; S.filesSeen = key;
-  const files = (v.files||[]).filter(f=>/^(phase|payment)/.test(f));
-  $("files").innerHTML = files.length ? files.map(f=>`<button onclick="viewFile('${f}', this)" title="${f}"><span class="p">${PHASE_OF(f)}</span><span class="n">${esc(prettyName(f))}</span></button>`).join("") : `<div class="empty">Files appear as each step finishes.</div>`;
-}
-async function viewFile(name, btn){
-  document.querySelectorAll(".filelist button").forEach(b=>b.classList.toggle("on", b===btn));
-  const t = await api(`/api/runs/${S.run}/files/${name}`);
-  const el = $("viewer");
-  if (name.endsWith(".html")) { el.innerHTML = `<iframe sandbox="" title="${esc(name)}"></iframe>`; el.querySelector("iframe").srcdoc = t; }
-  else el.innerHTML = `<pre>${esc(typeof t === "string" ? t : JSON.stringify(t, null, 2))}</pre>`;
-  el.scrollIntoView({behavior:"smooth", block:"nearest"});
-}
-function renderCost(v){ const u = v.usage || {}; $("costline").textContent = `This run: ${u.calls||0} model calls, ${((u.tokens_in||0)+(u.tokens_out||0)).toLocaleString()} tokens, ${Math.round(u.seconds||0)} seconds of model time, $0.00.`; }
-
-// ---------- approvals ----------
-let shownApprovals = "";
-async function renderApprovals(v){
-  let list = [];
-  try { list = await api("/api/approvals?status=pending" + (S.run ? "&run="+S.run : "")); } catch(e) { return; }
-  const c = $("apCount"); c.hidden = !list.length; c.textContent = list.length;
-  const key = list.map(a=>a.id).join(",");
-  if (key === shownApprovals) return; shownApprovals = key;
-  const box = $("approvals");
-  if (!list.length) { box.innerHTML = `<div class="empty">Nothing is waiting for your approval.</div>`; return; }
-  box.innerHTML = "";
-  for (const a of list) {
-    const payload = await api(`/api/approvals/${a.id}/payload`);
-    const div = document.createElement("div"); div.className = "ap"; div.id = "ap-"+a.id;
-    div.innerHTML = `<h4>${esc(human(a.action).replace(/^./,c=>c.toUpperCase()))}</h4><div class="note">${esc(a.note||"")}</div>
-      <div class="sha">You approve exactly these bytes. SHA-256 <code>${esc(a.payload_sha256)}</code></div><div class="slot"></div>
-      <div class="actions"><button class="btn primary">Approve (hash-locked)</button><button class="btn stop">Reject and redraft</button></div>`;
-    const slot = div.querySelector(".slot");
-    if (/^\s*<!doctype html/i.test(payload)) { const f=document.createElement("iframe"); f.sandbox=""; f.srcdoc=payload; f.title="Preview"; slot.appendChild(f); }
-    else { slot.innerHTML = `<pre>${esc(payload)}</pre>`; }
-    const [ok, no] = div.querySelectorAll(".actions button");
-    if (DEMO) { ok.disabled = no.disabled = true; }
-    ok.onclick = () => approve(a.id, true, a.payload_sha256); no.onclick = () => approve(a.id, false, a.payload_sha256);
-    box.appendChild(div);
-  }
-}
-async function approve(id, yes, sha){ try { await api(`/api/approvals/${id}`, {method:"POST", body:JSON.stringify({approve:yes, payload_sha256:sha})}); } catch(e) { showAsk(e.message, true); } shownApprovals = ""; poll(); }
-function highlightApproval(id){
-  if (S.mode === "hud") setMode("dual");
-  tab("approvals");
-  setTimeout(()=>{ const el = $("ap-"+id); if (el) { el.scrollIntoView({behavior:"smooth", block:"center"}); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); } }, 300);
-}
-
-// ---------- Ask J.A.R.V.I.S. (streams sentences and speaks each as it arrives) ----------
-function showAsk(html, alert){ $("askbody").innerHTML = typeof html === "string" ? esc(html) : ""; $("askout").classList.toggle("p0", !!alert); $("askout").hidden = false; }
-function hideAsk(){ $("askout").hidden = true; }
-function addMsg(kind, text, extra){
-  const c = $("convo"); const d = document.createElement("div"); d.className = "msg " + kind; d.textContent = text;
-  if (extra) { const x = document.createElement("div"); x.className = "detail"; x.textContent = extra; d.appendChild(x); }
-  c.appendChild(d); c.scrollTop = c.scrollHeight; return d;
-}
-let asking = false;
-async function sendAsk(text){
-  const inp = $("askq"); text = (text ?? inp.value).trim(); if (!text || asking) return; inp.value = "";
-  asking = true; addMsg("you", text); setState("think", "Thinking");
-  const bubble = addMsg("him", "…"); let full = "", meta = null;
-  const showInBar = S.mode === "tactical";
-  if (showInBar) showAsk("…");
-  try {
-    const r = await fetch(API + "/api/ask/stream", {method:"POST", headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({text, run_id:S.run, history:S.history.slice(-6)})});
-    const reader = r.body.getReader(); const dec = new TextDecoder(); let buf = "";
-    while (true) {
-      const {value, done} = await reader.read(); if (done) break;
-      buf += dec.decode(value, {stream:true});
-      let i; while ((i = buf.indexOf("\n")) >= 0) {
-        const line = buf.slice(0, i).trim(); buf = buf.slice(i+1); if (!line) continue;
-        const ev = JSON.parse(line);
-        if (ev.type === "meta") { meta = ev; if (ev.alert === "crimson") { bubble.classList.add("p0"); setState("alert", "Protocol 0: request refused"); } }
-        if (ev.type === "sentence" && ev.text) { full = full ? full + " " + ev.text : ev.text; bubble.textContent = full; say(ev.text); if (showInBar) showAsk(full, meta && meta.alert === "crimson"); $("convo").scrollTop = 1e9; }
-      }
-    }
-  } catch(e) { full = "I could not reach the console server. Is it running?"; bubble.textContent = full; say(full); }
-  const detail = meta && (meta.detail || (meta.text && meta.text !== full ? meta.text : ""));
-  if (detail && meta.detail) {   // the exact figures stay one click away, not in the spoken answer
-    const d = document.createElement("details"); d.className = "detail"; const sm = document.createElement("summary"); sm.textContent = "Show the numbers";
-    const pre = document.createElement("div"); pre.textContent = detail; d.append(sm, pre); bubble.appendChild(d);
-    if (showInBar) { showAsk(full, meta.alert === "crimson"); $("askbody").appendChild(d.cloneNode(true)); }
-  } else if (detail && showInBar) showAsk(detail, meta.alert === "crimson");
-  S.history.push({role:"user", text}, {role:"assistant", text:full}); S.history = S.history.slice(-12);
-  asking = false;
-  if (!(meta && meta.alert === "crimson")) setState("idle");
-  if (meta && meta.highlight_approval) highlightApproval(meta.highlight_approval);
-  if (meta && meta.start_run) { await refreshRuns(); followRun(meta.start_run); }
-  if (meta && meta.listen) { queue.then(()=>startPTT(true)); }
-}
-
-// ---------- voice out: local Piper first, browser en-GB voice as fallback ----------
-let AC = null, analyser = null, freq = new Uint8Array(128), synthLevel = 0, queue = Promise.resolve(), currentSrc = null, piperOK = null, speaking = 0;
-function audioCtx(){ if (!AC) { AC = new (window.AudioContext||window.webkitAudioContext)(); analyser = AC.createAnalyser(); analyser.fftSize = 256; analyser.smoothingTimeConstant = .8; analyser.connect(AC.destination); } return AC; }
-function pickVoice(){
-  const vs = speechSynthesis.getVoices(); const pref = ["Microsoft Ryan Online (Natural) - English (United Kingdom)","Google UK English Male","Daniel","Microsoft George - English (United Kingdom)","Arthur"];
-  for (const n of pref) { const v = vs.find(x=>x.name===n); if (v) return v; }
-  return vs.find(v=>v.lang==="en-GB" && /male|george|ryan|daniel|arthur|oliver/i.test(v.name)) || vs.find(v=>v.lang==="en-GB") || null;
-}
-function fetchSpeech(text){
-  // The first request must answer within 500 ms or the browser voice takes over. Once local Piper has
-  // answered, later sentences are fetched while the previous one plays, so they get more time.
-  const ctrl = new AbortController(); const t = setTimeout(()=>ctrl.abort(), piperOK ? 6000 : 500);
-  if (piperOK === false) return Promise.resolve(null);
-  return fetch(API + "/api/voice/speak", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({text}), signal:ctrl.signal})
-    .then(r => { clearTimeout(t); if (!r.ok) { piperOK = false; return null; } piperOK = true; return r.arrayBuffer(); })
-    .catch(() => { clearTimeout(t); return null; });
-}
-function say(text){
-  if (!S.voice || !text) return;
-  const pending = fetchSpeech(text);
-  queue = queue.then(()=>speakOne(text, pending)).catch(()=>{});
-}
-function stopAudio(){ try { if (currentSrc) currentSrc.stop(); } catch(e) {} }
-async function speakOne(text, pending){
-  if (!S.voice) return;
-  speaking++;
-  const prev = S.state; if (prev !== "alert") setState("speak");
-  const buf = await pending;
-  try {
-    if (!buf) throw new Error("browser");
-    const ctx = audioCtx(); if (ctx.state === "suspended") await ctx.resume();
-    const audio = await ctx.decodeAudioData(buf);
-    await new Promise(res => { const src = ctx.createBufferSource(); currentSrc = src; src.buffer = audio; src.connect(analyser); src.onended = res; src.start(); });
-    $("voiceInfo").textContent = "Speaking with local Piper (British English), offline.";
-  } catch (e) {
-    await new Promise(res => {
-      const u = new SpeechSynthesisUtterance(text); const v = pickVoice(); if (v) u.voice = v; u.lang = "en-GB"; u.pitch = 0.95; u.rate = 1.02;
-      u.onstart = () => synthLevel = 1; u.onend = u.onerror = () => { synthLevel = 0; res(); };
-      u.onboundary = () => synthLevel = 1.5;
-      speechSynthesis.speak(u);
-      $("voiceInfo").textContent = "Speaking with the browser voice" + (v ? " (" + v.name + ")" : "") + "; the waveform is simulated.";
-    });
-  }
-  speaking--;
-  if (!speaking && S.state === "speak") setState("idle");
-}
-
-// ---------- voice in: push-to-talk and wake word (browser speechSynthesis/SpeechRecognition), local whisper fallback ----------
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let rec = null, wakeRec = null, micSrc = null, micAn = null, micFreq = new Uint8Array(128), mediaRec = null;
-async function micToAnalyser(on){
-  try {
-    if (on && !micSrc) { const ctx = audioCtx(); if (ctx.state === "suspended") await ctx.resume(); const stream = await navigator.mediaDevices.getUserMedia({audio:true}); micSrc = ctx.createMediaStreamSource(stream); micSrc._stream = stream; micAn = ctx.createAnalyser(); micAn.fftSize = 256; micSrc.connect(micAn); }
-    if (!on && micSrc) { micSrc.disconnect(); micSrc._stream.getTracks().forEach(t=>t.stop()); micSrc = null; micAn = null; micFreq.fill(0); }
-  } catch(e) {}
-}
-function pauseWake(){ if (wakeRec) { wakeRec._paused = true; try { wakeRec.stop(); } catch(e) {} } }
-function resumeWake(){ if (S.wake && wakeRec) { wakeRec._paused = false; try { wakeRec.start(); } catch(e) {} } }
-function startPTT(auto){
-  if (rec || mediaRec) return;
-  stopAudio(); try { speechSynthesis.cancel(); } catch(e) {}
-  pauseWake();
-  setState("listen", "Listening"); micToAnalyser(true); $("ptt").classList.add("live"); $("askmic").classList.add("live");
-  if (!SR) { recordFallback(); return; }
-  rec = new SR(); rec.lang = "en-GB"; rec.interimResults = true; rec.continuous = false; let finalText = "";
-  rec.onresult = e => { let t = ""; for (const r of e.results) { t += r[0].transcript; if (r.isFinal) finalText = t; } $("caption").textContent = t; };
-  rec.onerror = e => { if (e.error === "not-allowed") showAsk("The microphone is blocked. Allow it in the browser's address bar, then try again.", true); };
-  rec.onend = () => { rec = null; micToAnalyser(false); $("ptt").classList.remove("live"); $("askmic").classList.remove("live");
-    const t = (finalText || $("caption").textContent).trim(); $("caption").textContent = "";
-    if (t) sendAsk(t); else setState("idle");
-    setTimeout(resumeWake, 400); };
-  try { rec.start(); } catch(e) { rec = null; }
-  if (auto) setTimeout(()=>{ if (rec) rec.stop(); }, 8000);
-}
-function stopPTT(){ if (rec) { try { rec.stop(); } catch(e) {} } else if (mediaRec) mediaRec.stop(); }
-async function recordFallback(){
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({audio:true}); const chunks = [];
-    mediaRec = new MediaRecorder(stream); mediaRec.ondataavailable = e => chunks.push(e.data);
-    mediaRec.onstop = async () => { stream.getTracks().forEach(t=>t.stop()); mediaRec = null; micToAnalyser(false); $("ptt").classList.remove("live"); $("askmic").classList.remove("live");
-      const fd = new FormData(); fd.append("audio", new Blob(chunks, {type:"audio/webm"}), "speech.webm");
-      const r = await fetch(API + "/api/voice/transcribe", {method:"POST", body:fd}); const j = await r.json();
-      if (j.text) sendAsk(j.text); else { setState("idle"); showAsk("This browser has no speech recognition and the local fallback is not installed. Use Chrome or Edge, or type your question.", false); } };
-    mediaRec.start();
-  } catch(e) { setState("idle"); showAsk("The microphone is not available.", true); }
-}
-function pttOnce(){ if (rec || mediaRec) { stopPTT(); return; } startPTT(true); }
-const pttBtn = $("ptt");
-pttBtn.addEventListener("pointerdown", e => { e.preventDefault(); startPTT(); });
-pttBtn.addEventListener("pointerup", stopPTT); pttBtn.addEventListener("pointerleave", ()=>{ if (rec || mediaRec) stopPTT(); });
-pttBtn.addEventListener("keydown", e => { if ((e.key === " " || e.key === "Enter") && !e.repeat) { e.preventDefault(); startPTT(); } });
-pttBtn.addEventListener("keyup", e => { if (e.key === " " || e.key === "Enter") stopPTT(); });
-function toggleWake(){
-  if (!SR) { showAsk("The wake word needs the browser's SpeechRecognition (Chrome or Edge).", false); return; }
-  S.wake = !S.wake; const b = $("wake"); b.setAttribute("aria-pressed", S.wake); b.textContent = `Wake word “Jarvis” ${S.wake ? "on" : "off"}`;
-  if (S.wake) {
-    wakeRec = new SR(); wakeRec.lang = "en-GB"; wakeRec.continuous = true; wakeRec.interimResults = false;
-    wakeRec.onresult = e => {
-      if (speaking || asking || rec) return;                     // ignore our own voice
-      const t = e.results[e.results.length-1][0].transcript.trim();
-      const m = t.match(/\b(?:hey\s+|ok\s+|okay\s+)?jarvis\b[\s,.:!?-]*(.*)$/i);
-      if (!m) return;
-      if (m[1].trim().length > 2) sendAsk(m[1].trim());
-      else { pauseWake(); say("Yes, sir?"); queue.then(()=>startPTT(true)); }
-    };
-    wakeRec.onend = () => { if (S.wake && !wakeRec._paused) { try { wakeRec.start(); } catch(e) {} } };
-    try { wakeRec.start(); } catch(e) {}
-    addMsg("sys", "Listening for “Jarvis”. Say it, then your question.");
-  } else if (wakeRec) { wakeRec.onend = null; try { wakeRec.stop(); } catch(e) {} wakeRec = null; }
-}
-
-// ---------- the voice visual ----------
-const STATE_TEXT = {idle:"is ready", listen:"is listening", think:"is thinking", speak:"is speaking", alert:"", go:"", hold:""};
-const STATE_COL = {idle:[143,139,255], listen:[60,198,180], think:[143,139,255], speak:[230,235,245], alert:[240,113,103], go:[91,196,140], hold:[224,169,59]};
-function setState(s, text){ S.state = s; S.stateText = text || ""; $("vstate").innerHTML = text ? esc(text) : `<b>J.A.R.V.I.S.</b> ${STATE_TEXT[s]||""}`; }
-const cv = $("hud"), g2 = cv.getContext("2d");
-function resizeHud(){ const r = cv.getBoundingClientRect(); const d = window.devicePixelRatio || 1; if (r.width) { cv.width = r.width * d; cv.height = r.width * d; } }
-window.addEventListener("resize", resizeHud);
-let tick = 0, col = [143,139,255], level = 0;
-const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-function draw(){
-  requestAnimationFrame(draw);
-  const W = cv.width, H = cv.height; if (!W || $("hudpanel").hidden) return;
-  tick++;
-  const cx = W/2, cy = H/2, R = Math.min(W,H)/2;
-  const tgt = STATE_COL[S.state] || STATE_COL.idle; col = col.map((c,i)=>c + (tgt[i]-c)*0.08);
-  const rgb = a => `rgba(${col[0]|0},${col[1]|0},${col[2]|0},${a})`;
-  if (analyser) analyser.getByteFrequencyData(freq);
-  if (micAn) micAn.getByteFrequencyData(micFreq);
-  let e = 0; for (let i = 2; i < 48; i++) e = Math.max(e, freq[i]/255, micAn ? micFreq[i]/255 : 0);
-  if (synthLevel) { e = Math.max(e, .35 + .3*Math.abs(Math.sin(tick/4.5)) * (synthLevel > 1 ? 1.2 : 1)); if (synthLevel > 1) synthLevel = 1; }
-  if (S.state === "think") e = Math.max(e, .12 + .08*Math.sin(tick/9));
-  level += (e - level) * 0.25;
-  g2.clearRect(0,0,W,H);
-  // phase arc: six segments, the run's progress
-  const phase = (S.view && S.view.phase) || 0;
-  for (let i = 0; i < 6; i++) {
-    const a0 = -Math.PI/2 + i*Math.PI/3 + 0.05, a1 = a0 + Math.PI/3 - 0.1;
-    g2.beginPath(); g2.arc(cx,cy,R*.95,a0,a1); g2.lineWidth = R*.012; g2.lineCap = "round";
-    g2.strokeStyle = i+1 < phase ? "rgba(230,235,245,.55)" : (i+1 === phase ? rgb(.95) : "rgba(147,160,188,.18)"); g2.stroke();
-  }
-  // radial lines driven by the audio spectrum
-  const N = 96, base = R*.46;
-  for (let i = 0; i < N; i++) {
-    const bin = 2 + Math.floor((i < N/2 ? i : N-1-i) * 0.9);
-    let v = Math.max(freq[bin]/255, micAn ? micFreq[bin]/255 : 0);
-    if (synthLevel) v = Math.max(v, level * (0.45 + 0.55*Math.abs(Math.sin(i*0.55 + tick/5))));
-    if (!reduce) v = Math.max(v, 0.04 + 0.03*Math.sin(i*0.35 + tick/28));
-    const a = i/N * Math.PI*2 - Math.PI/2, len = R*(.03 + v*.32);
-    g2.beginPath(); g2.moveTo(cx + Math.cos(a)*base, cy + Math.sin(a)*base); g2.lineTo(cx + Math.cos(a)*(base+len), cy + Math.sin(a)*(base+len));
-    g2.strokeStyle = rgb(.25 + v*.75); g2.lineWidth = Math.max(1.5, R*.012); g2.lineCap = "round"; g2.stroke();
-  }
-  // core
-  const pr = R*(.36 + level*.05 + (reduce ? 0 : .008*Math.sin(tick/30)));
-  const grad = g2.createRadialGradient(cx - pr*.25, cy - pr*.3, pr*.05, cx, cy, pr);
-  grad.addColorStop(0, rgb(.95)); grad.addColorStop(.55, rgb(.35)); grad.addColorStop(1, rgb(.06));
-  g2.fillStyle = grad; g2.beginPath(); g2.arc(cx,cy,pr,0,Math.PI*2); g2.fill();
-  if (S.state === "think" && !reduce) { g2.beginPath(); g2.arc(cx,cy,pr*1.08, tick/12, tick/12 + 1.2); g2.strokeStyle = rgb(.9); g2.lineWidth = R*.012; g2.stroke(); }
-}
-
-// ---------- start ----------
-try { const m = localStorage.getItem("jarvis_mode"); if (m && !EMBED && ["tactical","hud","dual"].includes(m)) S.mode = m; } catch(e) {}
-setMode(S.mode); setState("idle"); sysStatus();
-refreshRuns().then(()=>{ if (S.runs.length && !S.run) followRun(S.runs[0].id); }).catch(()=>{});
-requestAnimationFrame(draw);
-if ("speechSynthesis" in window) { speechSynthesis.getVoices(); speechSynthesis.onvoiceschanged = () => {}; }
-document.addEventListener("click", () => { if (AC && AC.state === "suspended") AC.resume(); });
-if (!SR) $("voiceInfo").textContent = "Speech recognition needs Chrome or Edge; typing always works.";
+  window.PROVEIT = {
+    api: {{ api_base|tojson }} || "",
+    embed: {{ 'true' if embed else 'false' }},
+    demo: {{ 'true' if demo else 'false' }},
+    mode: {{ initial_mode|tojson }},
+    assistant: {{ assistant|tojson }},
+    version: {{ version|tojson }},
+    model: {{ model|tojson }}
+  };
 </script>
+<script src="/static/console.js?v={{ version }}" defer></script>
 </body>
 </html>
