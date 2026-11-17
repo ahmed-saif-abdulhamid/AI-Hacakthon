@@ -13,23 +13,18 @@ import functools
 import hashlib
 import os
 import uuid
+from collections.abc import Callable
+from typing import TypeVar, get_args
 
 from . import db
 from .log import log_action, utcnow
-from .models import Approval
+from .models import Approval, GatedAction
 
-GATED_ACTIONS = (
-    "publish_landing_page",
-    "open_store",
-    "publish_post",
-    "send_email",
-    "refund",
-    "spend",
-    "sign",
-    "create_account",
-)
+GATED_ACTIONS: tuple[str, ...] = get_args(GatedAction)
 NEVER_ENABLED = ("spend", "sign", "create_account")
-STUBBED_ADAPTERS = ("publish_post", "send_email")
+APPROVAL_ID_HEX_CHARS = 10
+
+R = TypeVar("R")
 
 
 class ApprovalRequired(Exception):
@@ -49,6 +44,7 @@ def _row(r: dict | None) -> Approval | None:
 
 
 def request(run_id: str, action: str, payload: bytes, note: str = "", content_type: str = "text/plain") -> Approval:
+    """Store ``payload`` and open a pending approval bound to its SHA-256."""
     if action not in GATED_ACTIONS:
         raise ValueError(f"unknown gated action {action}")
     digest = sha256(payload)
@@ -56,7 +52,7 @@ def request(run_id: str, action: str, payload: bytes, note: str = "", content_ty
         "INSERT OR IGNORE INTO blobs (sha256, payload, content_type) VALUES (?,?,?)", (digest, payload, content_type)
     )
     ap = Approval(
-        id="AP-" + uuid.uuid4().hex[:10],
+        id="AP-" + uuid.uuid4().hex[:APPROVAL_ID_HEX_CHARS],
         run_id=run_id,
         action=action,
         payload_sha256=digest,
@@ -125,16 +121,23 @@ def blob(digest: str) -> tuple[bytes, str] | None:
     return (bytes(r["payload"]), r["content_type"]) if r else None
 
 
-def gated(action: str):
+def _matches(ap: Approval | None, action: str, payload: bytes) -> bool:
+    """True only for an approved row for this action whose hash matches these exact bytes."""
+    return bool(ap and ap.status == "approved" and ap.action == action and ap.payload_sha256 == sha256(payload))
+
+
+def gated(action: str) -> Callable[[Callable[..., R]], Callable[..., R]]:
+    """Decorate an executor ``fn(payload, *args)``; the wrapper takes ``(payload, approval_id, *args)``
+    and runs ``fn`` only with a matching founder approval (see the module docstring)."""
     if action not in GATED_ACTIONS:
         raise ValueError(action)
 
-    def deco(fn):
+    def deco(fn: Callable[..., R]) -> Callable[..., R]:
         @functools.wraps(fn)
-        def inner(payload: bytes, approval_id: str | None, *a, **k):
+        def inner(payload: bytes, approval_id: str | None, *a: object, **k: object) -> R:
             ap = load(approval_id) if approval_id else None
             run_id = ap.run_id if ap else k.get("run_id")
-            if not (ap and ap.status == "approved" and ap.action == action and ap.payload_sha256 == sha256(payload)):
+            if not _matches(ap, action, payload):
                 log_action(
                     run_id,
                     "executor",
@@ -157,7 +160,6 @@ def gated(action: str):
             )
             return fn(payload, *a, **k)
 
-        inner.gated_action = action
         return inner
 
     return deco

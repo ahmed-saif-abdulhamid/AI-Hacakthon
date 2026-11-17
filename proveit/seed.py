@@ -46,6 +46,7 @@ def _trim_state(state_json: str) -> str:
 
 
 def export(run_ids: list[str]) -> dict:
+    """Write the runs' rows to seed.json and their folders to runs/promoted/. Returns rows per table."""
     q = ",".join("?" * len(run_ids))
     data: dict = {"runs_ids": run_ids, "tables": {}}
     for table, where in TABLES.items():
@@ -88,7 +89,7 @@ def load() -> list[str]:
     with db.connect() as c:
         for table, rows in data["tables"].items():
             for r in rows:
-                if "run_id" in r and r["run_id"] not in loaded or table == "runs" and r["id"] not in loaded:
+                if not _belongs_to(table, r, loaded):
                     continue
                 if table == "blobs" and isinstance(r.get("payload"), dict):
                     r = {**r, "payload": base64.b64decode(r["payload"]["b64"])}
@@ -97,3 +98,10 @@ def load() -> list[str]:
                     f"INSERT OR IGNORE INTO {table} ({cols}) VALUES ({','.join('?' * len(r))})", tuple(r.values())
                 )
     return loaded
+
+
+def _belongs_to(table: str, row: dict, run_ids: list[str]) -> bool:
+    """False for a row of a run that is not being loaded (rows keyed through orders always load)."""
+    if table == "runs":
+        return row["id"] in run_ids
+    return "run_id" not in row or row["run_id"] in run_ids

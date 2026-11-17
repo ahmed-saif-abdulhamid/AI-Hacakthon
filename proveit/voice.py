@@ -13,8 +13,11 @@ No paid API is ever called.
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
+import importlib.util
 import io
+import logging
 import os
 import re
 import tempfile
@@ -23,13 +26,18 @@ import wave
 from functools import lru_cache
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
+
 ROOT = Path(__file__).resolve().parent.parent
 CACHE = Path(tempfile.gettempdir()) / "jarvis_audio"
 DEFAULT_VOICE = "en_GB-alan-medium"
+DEFAULT_WHISPER_MODEL = "tiny.en"
+MAX_SPOKEN_CHARS = 800
+CACHE_KEY_CHARS = 24
 
 
 class VoiceUnavailable(Exception):
-    pass
+    """Local speech (Piper or faster-whisper) is not installed or not configured; the browser takes over."""
 
 
 # ---- persona lines --------------------------------------------------------------
@@ -203,10 +211,11 @@ def _n(x) -> str:
     return str(int(f)) if f == int(f) else f"about {round(f)}"
 
 
+OUTCOME_WORDS = {"go": "go ahead", "stop": "stop", "repeat": "look again", "pivot": "try a different angle"}
+
+
 def _word(outcome: str) -> str:
-    return {"go": "go ahead", "stop": "stop", "repeat": "look again", "pivot": "try a different angle"}.get(
-        outcome, outcome
-    )
+    return OUTCOME_WORDS.get(outcome, outcome)
 
 
 REFUSAL_LEADS = {
@@ -219,6 +228,13 @@ REFUSAL_LEADS = {
     "money_action": "I can't move or refund money on my own, {s}.",
     "account_creation": "I can't create accounts, {s}.",
     "bypass": "A chat message can't count as your approval, {s}; please use the Approve button.",
+}
+# Outward-copy rules (rule set C) that share a lead with an input rule.
+OUTPUT_RULE_LEADS = {
+    "output_ratings": "fake_social_proof",
+    "output_numeric_social_proof": "fake_social_proof",
+    "output_urgency": "urgency",
+    "output_income": "income_promise",
 }
 
 
@@ -236,12 +252,7 @@ def _refusal_line(rule: str, message: str, all_rules: list[str] | None = None) -
         )
     key = rule.replace("input_", "")
     if key.startswith("output_"):
-        key = {
-            "output_ratings": "fake_social_proof",
-            "output_numeric_social_proof": "fake_social_proof",
-            "output_urgency": "urgency",
-            "output_income": "income_promise",
-        }.get(key, "")
+        key = OUTPUT_RULE_LEADS.get(key, "")
     lead = REFUSAL_LEADS.get(key, "I can't help with that one, {s}.").format(s=s)
     if re.match(r"(?i)i (can't|cannot) ", message or ""):  # the rule's own refusal repeats the lead
         message = re.sub(r"^[^.]*\.\s*", "", message, count=1)
@@ -255,7 +266,7 @@ _tts_lock = threading.Lock()
 
 @lru_cache(maxsize=1)
 def _piper_voice():
-    try:
+    try:  # optional heavy dependency (requirements-voice.txt), loaded on first use
         from piper import PiperVoice  # type: ignore
     except ImportError as e:
         raise VoiceUnavailable("piper-tts not installed") from e
@@ -276,14 +287,13 @@ def tts_status() -> dict:
 
 def synthesize(text: str) -> Path:
     """Return a cached WAV for ``text`` (local Piper). Raises VoiceUnavailable."""
-    text = " ".join((text or "").split())[:800]
+    text = " ".join((text or "").split())[:MAX_SPOKEN_CHARS]
     if not text:
         raise VoiceUnavailable("empty text")
     voice = _piper_voice()
     CACHE.mkdir(parents=True, exist_ok=True)
-    out = CACHE / (
-        hashlib.sha256((os.environ.get("PIPER_VOICE", DEFAULT_VOICE) + text).encode()).hexdigest()[:24] + ".wav"
-    )
+    key = hashlib.sha256((os.environ.get("PIPER_VOICE", DEFAULT_VOICE) + text).encode()).hexdigest()
+    out = CACHE / (key[:CACHE_KEY_CHARS] + ".wav")
     if out.exists():
         return out
     with _tts_lock:
@@ -300,11 +310,12 @@ def synthesize(text: str) -> Path:
 def prerender(text: str) -> None:
     """Synthesize in the background so /api/voice/speak answers from the cache (no-op without Piper)."""
 
-    def work():
-        try:  # noqa: SIM105 - kept explicit: voice is optional and must never raise
-            synthesize(text)
-        except Exception:  # noqa: BLE001 - voice is optional
-            pass
+    def work() -> None:
+        try:
+            with contextlib.suppress(VoiceUnavailable):  # no local voice: the browser speaks instead
+                synthesize(text)
+        except Exception:  # a background thread has no caller to report to: log it and carry on
+            logger.exception("background speech synthesis failed")
 
     if os.environ.get("PROVEIT_ENV") != "test":
         threading.Thread(target=work, daemon=True).start()
@@ -319,11 +330,11 @@ def warm_up() -> None:
 
 @lru_cache(maxsize=1)
 def _whisper():
-    try:
+    try:  # optional heavy dependency (requirements-voice.txt), loaded on first use
         from faster_whisper import WhisperModel  # type: ignore
     except ImportError as e:
         raise VoiceUnavailable("faster-whisper not installed; the browser's speech recognition is used") from e
-    return WhisperModel(os.environ.get("WHISPER_MODEL", "tiny.en"), device="cpu", compute_type="int8")
+    return WhisperModel(os.environ.get("WHISPER_MODEL", DEFAULT_WHISPER_MODEL), device="cpu", compute_type="int8")
 
 
 def transcribe(audio: bytes, suffix: str = ".webm") -> str:
@@ -339,13 +350,10 @@ def transcribe(audio: bytes, suffix: str = ".webm") -> str:
 
 
 def stt_status() -> dict:
-    try:
-        import faster_whisper  # type: ignore  # noqa: F401
-
+    if importlib.util.find_spec("faster_whisper") is not None:
         return {"engine": "faster-whisper tiny.en (local)", "status": "Working"}
-    except ImportError:
-        return {
-            "engine": "browser SpeechRecognition",
-            "status": "Working",
-            "server_stt": "STUBBED (install faster-whisper to enable the local fallback)",
-        }
+    return {
+        "engine": "browser SpeechRecognition",
+        "status": "Working",
+        "server_stt": "STUBBED (install faster-whisper to enable the local fallback)",
+    }

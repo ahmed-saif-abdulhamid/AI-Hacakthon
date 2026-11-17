@@ -15,9 +15,15 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
-from . import approval, decisions, orchestrator, startup
+from . import approval, ask, decisions, orchestrator, startup
+from .promote import promote
+
+
+def _print_json(data: object, ensure_ascii: bool = True) -> None:
+    print(json.dumps(data, indent=2, ensure_ascii=ensure_ascii))
 
 
 def _status(run_id: str) -> dict:
@@ -36,19 +42,15 @@ def _status(run_id: str) -> dict:
     }
 
 
-def main(argv: list[str] | None = None) -> int:
-    for p in startup.check_writable():
-        print("[startup] " + p, file=sys.stderr)
+def _parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="python -m proveit")
     sub = ap.add_subparsers(dest="cmd", required=True)
     r = sub.add_parser("run")
     r.add_argument("brief")
     r.add_argument("--mode", default="live", choices=["live", "full"])
     r.add_argument("--label")
-    c = sub.add_parser("continue")
-    c.add_argument("run_id")
-    s = sub.add_parser("status")
-    s.add_argument("run_id")
+    sub.add_parser("continue").add_argument("run_id")
+    sub.add_parser("status").add_argument("run_id")
     sub.add_parser("runs")
     a = sub.add_parser("approvals")
     a.add_argument("action", choices=["list", "approve", "reject"])
@@ -65,43 +67,56 @@ def main(argv: list[str] | None = None) -> int:
     pr.add_argument("--weak", required=True)
     pr.add_argument("--strong", required=True)
     pr.add_argument("--root", action="store_true", help="also copy decision_log.json to the repo root")
-    args = ap.parse_args(argv)
+    return ap
 
-    if args.cmd == "run":
-        text = Path(args.brief).read_text(encoding="utf-8")
-        run_id = orchestrator.start(text, mode=args.mode, label=args.label)
-        print(f"run_id={run_id}")
-        orchestrator.advance(run_id)
-        print(json.dumps(_status(run_id), indent=2))
-    elif args.cmd == "continue":
-        orchestrator.advance(args.run_id)
-        print(json.dumps(_status(args.run_id), indent=2))
-    elif args.cmd == "status":
-        print(json.dumps(_status(args.run_id), indent=2))
-    elif args.cmd == "runs":
-        for row in orchestrator.list_runs():
-            print(row)
-    elif args.cmd == "approvals":
-        if args.action == "list":
-            for x in approval.list_approvals(args.run):
-                print(f"{x.id} {x.status:9} {x.action:22} sha256={x.payload_sha256} run={x.run_id} {x.note}")
-        else:
-            if not args.id:
-                ap.error("approval id required")
-            res = approval.decide(args.id, args.action == "approve", via="cli")
-            print(f"{res.id} -> {res.status} (decided_by={res.decided_by})")
-            stage = decisions.on_approval_decided(res.id)
-            print(f"run stage: {stage}")
-    elif args.cmd == "decide":
-        print(json.dumps(decisions.founder_decide(args.run_id, args.decision, args.reason), indent=2))
-    elif args.cmd == "ask":
-        from . import ask
 
-        print(json.dumps(ask.handle(args.text, args.run), indent=2, ensure_ascii=False))
-    elif args.cmd == "promote":
-        from .promote import promote
+def _cmd_run(args: argparse.Namespace) -> None:
+    run_id = orchestrator.start(Path(args.brief).read_text(encoding="utf-8"), mode=args.mode, label=args.label)
+    print(f"run_id={run_id}")
+    orchestrator.advance(run_id)
+    _print_json(_status(run_id))
 
-        print(json.dumps(promote(args.weak, args.strong, to_root=args.root), indent=2))
+
+def _cmd_continue(args: argparse.Namespace) -> None:
+    orchestrator.advance(args.run_id)
+    _print_json(_status(args.run_id))
+
+
+def _cmd_runs(args: argparse.Namespace) -> None:
+    for row in orchestrator.list_runs():
+        print(row)
+
+
+def _cmd_approvals(args: argparse.Namespace) -> None:
+    if args.action == "list":
+        for x in approval.list_approvals(args.run):
+            print(f"{x.id} {x.status:9} {x.action:22} sha256={x.payload_sha256} run={x.run_id} {x.note}")
+        return
+    res = approval.decide(args.id, args.action == "approve", via="cli")
+    print(f"{res.id} -> {res.status} (decided_by={res.decided_by})")
+    print(f"run stage: {decisions.on_approval_decided(res.id)}")
+
+
+COMMANDS: dict[str, Callable[[argparse.Namespace], None]] = {
+    "run": _cmd_run,
+    "continue": _cmd_continue,
+    "status": lambda args: _print_json(_status(args.run_id)),
+    "runs": _cmd_runs,
+    "approvals": _cmd_approvals,
+    "decide": lambda args: _print_json(decisions.founder_decide(args.run_id, args.decision, args.reason)),
+    "ask": lambda args: _print_json(ask.handle(args.text, args.run), ensure_ascii=False),
+    "promote": lambda args: _print_json(promote(args.weak, args.strong, to_root=args.root)),
+}
+
+
+def main(argv: list[str] | None = None) -> int:
+    for p in startup.check_writable():
+        print("[startup] " + p, file=sys.stderr)
+    parser = _parser()
+    args = parser.parse_args(argv)
+    if args.cmd == "approvals" and args.action != "list" and not args.id:
+        parser.error("approval id required")
+    COMMANDS[args.cmd](args)
     return 0
 
 

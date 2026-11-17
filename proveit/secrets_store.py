@@ -13,10 +13,12 @@ from functools import lru_cache
 from .startup import data_dir
 
 PLACEHOLDERS = {"", "dev-only-change-me", "change-me-to-a-random-string", "test-secret-placeholder"}
+SECRET_BYTES = 32
 
 
 @lru_cache(maxsize=1)
 def secret_key() -> str:
+    """SECRET_KEY when it is a real value, else the generated secret kept in the data folder."""
     env = os.environ.get("SECRET_KEY", "").strip()
     if env and env not in PLACEHOLDERS:
         return env
@@ -29,9 +31,9 @@ def secret_key() -> str:
             if value:
                 return value
         path.parent.mkdir(parents=True, exist_ok=True)
-        value = secrets.token_hex(32)
+        value = secrets.token_hex(SECRET_BYTES)
         path.write_text(value, encoding="utf-8")
         return value
     except OSError:
         # Read-only file system (the hosted demo): a per-process secret still beats a public one.
-        return secrets.token_hex(32)
+        return secrets.token_hex(SECRET_BYTES)
