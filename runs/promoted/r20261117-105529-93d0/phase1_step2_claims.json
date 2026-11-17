@@ -1,0 +1,55 @@
+{
+  "run_id": "r20261117-105529-93d0",
+  "thresholds_sha256": "cfec66d88e212551767db9cc2758d72dbea2b4fae637d95843fbeeecb3ab9e31",
+  "note": "quotes are extracted by code from the source record and re-checked against the public page where reachable; a claim counts only if code confirms it is on-topic and contains a pain or payment cue.",
+  "claims": [],
+  "source_calls": {
+    "variant_1": [
+      {
+        "source": "hn",
+        "query": "quotes for instagram posts",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 11,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "motivational content ideas",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 4,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "daily quote graphics",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 8,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "stackexchange",
+        "query": "quote graphics @ graphicdesign",
+        "ok": true,
+        "hits": 10,
+        "on_topic": 1,
+        "covered": false,
+        "error": null
+      },
+      {
+        "source": "stackexchange",
+        "query": "quotes instagram posts @ graphicdesign",
+        "ok": true,
+        "hits": 0,
+        "on_topic": 0,
+        "covered": false,
+        "error": null
+      }
+    ]
+  }
+}

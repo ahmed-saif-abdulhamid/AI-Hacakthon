@@ -7,7 +7,7 @@ import json
 import re
 import shutil
 
-from . import log
+from . import log, seed
 from .startup import ROOT, outputs_dir, runs_dir
 
 NAME_RE = re.compile(r"^(phase\d+_(step\d+|gate)_[a-z0-9-]+|payment_test_log)\.(md|json|csv|txt|html)$")
@@ -44,6 +44,10 @@ def promote(weak_id: str, strong_id: str, to_root: bool = False) -> dict:
             "entries_weak": sum(1 for e in entries if e["run_id"] == weak_id),
             "entries_strong": sum(1 for e in entries if e["run_id"] == strong_id), "outputs": copied}
     (promoted / "runs.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8", newline="\n")
+    meta["seed"] = seed.export([weak_id, strong_id])
+    (promoted / "runs.json").write_text(json.dumps(meta, indent=2) + "
+", encoding="utf-8", newline="
+")
     if to_root:
         shutil.copyfile(promoted / "decision_log.json", ROOT / "decision_log.json")
     return meta

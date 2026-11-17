@@ -22,7 +22,7 @@
 docker compose up
 ```
 
-Before the first start, copy `.env.example` to `.env` and set `NVIDIA_API_KEY` (a free key from [build.nvidia.com](https://build.nvidia.com): open any model page and choose **Get API Key**). Then open **http://localhost:8000**, press **Test a new idea** (or try one of the two examples in that dialog), and ask J.A.R.V.I.S. "why?" in the bar at the bottom. A developer view with raw details runs on http://localhost:8501.
+Then open **http://localhost:8000**. The two committed runs load on first start, so you can read every verdict, quote, gate file and approval **without any key**. To test your own idea, copy `.env.example` to `.env` and set `NVIDIA_API_KEY` (a free key from [build.nvidia.com](https://build.nvidia.com): open any model page and choose **Get API Key**; no card), restart, and press **Test a new idea**. A developer view with raw details runs on http://localhost:8501.
 
 Without Docker: `pip install -r requirements.txt`, put `NVIDIA_API_KEY` in `.env`, then `uvicorn app.api:app` (console) or `python -m proveit run briefs/weak.md` (command line). Tests: `python -m pytest`.
 

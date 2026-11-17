@@ -1,0 +1,35 @@
+{
+  "thresholds_sha256": "cfec66d88e212551767db9cc2758d72dbea2b4fae637d95843fbeeecb3ab9e31",
+  "gates": {
+    "gate1_evidence": {
+      "min_sourced_pain": 6,
+      "min_distinct_sources": 2,
+      "max_age_months": 24,
+      "min_recent_share": 0.5,
+      "min_wtp_signals": 1,
+      "competitor_band": [
+        1,
+        15
+      ],
+      "min_founder_fit": 3,
+      "min_coverage": 0.5,
+      "min_on_topic_hits": 3,
+      "model_suspect_missed": 3,
+      "near_miss_ratio": 0.6,
+      "max_repeats": 2
+    },
+    "gate2_demand": {
+      "waitlist_target": 100,
+      "window_days": 14,
+      "min_visits_for_rate": 200,
+      "min_conversion": 0.1
+    },
+    "gate3_tests": {
+      "all_required_pass": true
+    }
+  },
+  "brief": {
+    "text": "# Founder brief (weak)\n\n- Idea: An ebook of 500 inspirational quotes for entrepreneurs, sold as a digital download.\n- Skills: Basic graphic design in Canva; no coding\n- Budget: $50\n- Hours/week: 4\n- Target market: aspiring entrepreneurs\n- Values: Keep it simple and positive\n",
+    "fields": {}
+  }
+}

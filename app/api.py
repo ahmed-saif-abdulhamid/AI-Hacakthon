@@ -33,6 +33,7 @@ import refunds
 import webhooks
 from proveit import approval, ask, db, llm, orchestrator, voice
 from proveit.log import entries, telemetry, utcnow
+from proveit import seed
 from proveit.startup import check_writable, runs_dir
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -181,6 +182,13 @@ app.add_middleware(GZipMiddleware, minimum_size=1024)
 
 @app.on_event("startup")
 def _warm_voice() -> None:
+    if os.environ.get("PROVEIT_ENV") != "test":
+        try:
+            loaded = seed.load()          # the committed runs, so a fresh install is never empty
+            if loaded:
+                print(f"[startup] loaded the committed runs {', '.join(loaded)}")
+        except Exception as e:            # a broken seed must never stop the console
+            print(f"[startup] could not load the committed runs: {e}")
     if not DEMO:
         voice.warm_up()
 

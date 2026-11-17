@@ -25,7 +25,7 @@ jobs:
         run: |
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:8000/api/model && break; sleep 2; done
           curl -fsS http://127.0.0.1:8000/hud | grep -q "ProveIt"
-          curl -fsS http://127.0.0.1:8000/api/runs
+          curl -fsS http://127.0.0.1:8000/api/runs | grep -q "stop"   # committed runs loaded, no key needed
       - if: always()
         run: docker compose logs --no-color | tail -n 200
       - if: always()

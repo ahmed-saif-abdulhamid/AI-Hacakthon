@@ -1,6 +1,7 @@
 # One-command setup: docker compose up  ->  open http://localhost:8000 (the ProveIt console).
 # A developer view (Streamlit) is also served on http://localhost:8501.
-# Needs NVIDIA_API_KEY in .env (free key from build.nvidia.com; docker compose reads .env itself).
+# Works without any key: the committed runs load on first start. To test new ideas, set NVIDIA_API_KEY
+# in .env (free key from build.nvidia.com; docker compose reads .env itself).
 # Ports are bound to 127.0.0.1 only, so nobody on the local network can press Approve.
 services:
   searxng:

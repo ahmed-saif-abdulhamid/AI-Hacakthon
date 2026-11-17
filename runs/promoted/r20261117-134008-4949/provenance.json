@@ -1,0 +1,101 @@
+{
+  "phase2_step1_lean-canvas.md": [
+    "Freelancers waste time manually chasing late payments and lack a systematic follow-up process.",
+    "Existing invoicing tools focus on creation, not on structured reminder sequences for overdue invoices.",
+    "Freelance developers and designers who manage their own invoicing and collections.",
+    "A ready-to-use toolkit of templates and checklists that standardizes late-payment follow-up without new software.",
+    "Downloadable templates, checklists, and guides for escalating reminder sequences and payment tracking.",
+    "Founder's professional network, freelance communities, and SEO content on late-payment workflows.",
+    "One-time purchase of the digital toolkit with optional future updates.",
+    "Hosting, payment processing, and content creation within a $300 budget.",
+    "Waitlist sign-ups and conversion rate to paid toolkit purchases.",
+    "Founder's 7 years of freelance web development experience and documented follow-up workflows.",
+    "Freelancers will pay for a document-based toolkit instead of adopting automated invoicing software.",
+    "Launch a waitlist landing page describing the toolkit's templates and checklists; measure sign-ups and pre-sale commitments."
+  ],
+  "phase2_step2_landing-page.html": [
+    "Invoice reminder templates for freelancers",
+    "Ready-to-use messages and trackers to follow up on overdue payments",
+    "Pre-written reminder emails you can send manually",
+    "Simple spreadsheet to log invoice status and due dates",
+    "Checklist for consistent follow-up steps",
+    "A set of downloadable files with email templates, a tracking spreadsheet, and a follow-up checklist designed for freelance developers and designers.",
+    "The files work with common tools such as email clients and spreadsheet applications; no extra software is required.",
+    "Yes, the templates are plain text files you can edit to match your tone and each client's situation."
+  ],
+  "phase3_step1_product-spec.md": [
+    "Freelance developers and designers who need a simple system to send invoice reminders and track overdue payments."
+  ],
+  "phase3_step2_module-1.md": [
+    "This module helps you design a clear timeline for every invoice reminder so you never miss a follow‑up. It gives you a repeatable structure you can apply to each client and project.",
+    "List every invoice you have sent and note its due date",
+    "Define the first reminder to go out one day after the due date",
+    "Schedule a second reminder for seven days overdue",
+    "Plan a third reminder at fourteen days overdue with a firmer tone",
+    "Add a final notice at thirty days overdue that mentions next steps",
+    "Choose the communication channel for each reminder (email, message, call)",
+    "Write a short template for each reminder stage",
+    "Set calendar alerts or task reminders for each send date",
+    "Log the actual send date and any client response in your tracker",
+    "Review the sequence after each payment cycle and adjust timing if needed"
+  ],
+  "phase3_step2_module-2.md": [
+    "This module gives you ready-to-use copy for polite, firm, and final payment reminders across email and chat platforms. Each template is structured so you can drop in client details and send without rewriting from scratch.",
+    "Choose the reminder stage that matches the invoice age (polite, firm, final).",
+    "Open the corresponding template file for your preferred channel (email or chat).",
+    "Replace placeholder fields with the client name, invoice number, amount, and due date.",
+    "Add a clear call to action such as a payment link or reply instruction.",
+    "Proofread the message for tone and accuracy before sending.",
+    "Send the reminder from your business email or chat account.",
+    "Log the send date, channel, and template version in your tracking sheet.",
+    "Set a follow-up reminder for the next stage if payment is not received.",
+    "Archive sent messages in a dedicated folder for future reference.",
+    "Review response rates monthly and adjust wording if needed."
+  ],
+  "phase3_step2_module-3.md": [
+    "This module gives you a single spreadsheet to record every invoice, its due date, reminder actions, and payment confirmation. Use it each week to see what needs follow‑up and what has been settled.",
+    "Create a new sheet using the column headings provided",
+    "Enter each outstanding invoice with client name, invoice number, amount, and due date",
+    "Mark the reminder status as Not Sent, First Sent, Second Sent, or Final Sent",
+    "Set a calendar alert for the due date and each reminder milestone",
+    "Send the first reminder email on the due date using your standard template",
+    "Update the reminder status to First Sent after the email goes out",
+    "Send a second reminder three business days later if payment has not arrived",
+    "Update the reminder status to Second Sent after the second email",
+    "Send a final notice seven business days after the due date if still unpaid",
+    "Record the payment date and method once the money is received",
+    "Change the reminder status to Paid and archive the row",
+    "Review the dashboard every Monday to catch any overdue items"
+  ],
+  "phase4_step1_pricing.md": [
+    "Pricing tiers are set as assumptions (good=$19, better=$39, best=$79) because no verified price points were provided for this service.",
+    "Competitor C10 describes a freelancer services agreement template with pricing/rates sections but does not disclose specific price levels.",
+    "Competitor C21 highlights invoicing intelligence features (e.g., overdue payment alerts, anomaly detection) without revealing any pricing information."
+  ],
+  "phase4_step2_policies.md": [
+    "You receive a personal, non-exclusive licence to use the toolkit files for your own business.",
+    "You may not resell, redistribute, or bundle the files with other products for sale.",
+    "Support is provided by email only; response times are best-effort.",
+    "We may update these terms at any time; continued use means you accept the changes.",
+    "We store only your email address and a timestamp when you join the waitlist.",
+    "Order records from our test payment flow are kept for internal reference only.",
+    "No passwords or payment card numbers are ever stored on our systems.",
+    "You can request deletion of your waitlist entry at any time by emailing us.",
+    "Refund requests are accepted within 14 days of purchase.",
+    "Email the founder with your order number and reason to start a review.",
+    "Every request is personally reviewed and approved by the founder before any refund is issued.",
+    "Refunds are returned to the original payment method used in the test checkout."
+  ],
+  "phase5_step1_store-page.html": [
+    "Simple system to chase invoices and track overdue payments",
+    "A downloadable set of templates, checklists, and guides that help freelance developers and designers organize reminder schedules, write clear follow-up messages, and monitor outstanding invoices in one place.",
+    "Freelance developers and designers who want a straightforward way to manage invoice reminders and overdue payments.",
+    "Teams or agencies that need automated billing software or integrated accounting features.",
+    "Reminder Sequence Planner",
+    "Email & Message Templates",
+    "Payment Tracker Dashboard"
+  ],
+  "phase5_step1_launch-post-draft.md": [
+    "I built a set of email templates, a tracking spreadsheet, and a short guide to help freelance developers and designers follow up on overdue invoices without the awkwardness. [Add one sentence about why you made this.] The files are ready to download and adapt to your own workflow. Would love your feedback on what's missing or what could be clearer."
+  ]
+}
