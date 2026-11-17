@@ -3,39 +3,56 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{ product_name }}</title>
+<meta name="description" content="{{ tagline }}">
+<meta property="og:title" content="{{ product_name }}">
+<meta property="og:description" content="{{ tagline }}">
+<meta property="og:type" content="product">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
 <style>
-  :root { --bg:#06090F; --fg:#E6F7FF; --muted:#8AA4B8; --cyan:#00F0FF; --line:#00F0FF33; --amber:#FFB800; }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width:760px; margin:0 auto; padding:32px 20px 64px; }
-  .banner { border:1px solid var(--amber); color:var(--amber); padding:8px 12px; font:12px/1.4 ui-monospace, monospace; margin-bottom:24px; }
-  h1 { margin:0 0 6px; } .tag { color:var(--muted); margin:0 0 20px; }
-  .tiers { display:flex; flex-wrap:wrap; gap:12px; margin:20px 0; }
-  .tier { flex:1 1 180px; border:1px solid var(--line); padding:14px; }
-  .price { font-size:1.6rem; color:var(--cyan); }
+  :root { --bg:#FBFBFA; --surface:#FFFFFF; --fg:#16181D; --muted:#5A616E; --line:#E3E5E9; --accent:#2F4BD8; --note-bg:#FFF6E0; --note:#7A5200; color-scheme:light; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111317; --surface:#181B21; --fg:#ECEEF2; --muted:#A3AAB8; --line:#2A2F39; --accent:#8EA2FF; --note-bg:#2C2416; --note:#E8B95A; color-scheme:dark; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:28px 22px 72px; }
+  .banner { background:var(--note-bg); color:var(--note); border-radius:8px; padding:10px 14px; font-size:.85rem; margin-bottom:40px; }
+  h1 { font-size:clamp(2rem, 5vw, 2.6rem); line-height:1.1; letter-spacing:-.02em; margin:0 0 10px; }
+  .tag { color:var(--muted); font-size:1.2rem; margin:0 0 20px; }
+  h2 { font-size:1.3rem; margin:36px 0 10px; }
+  ul.inc { padding-left:20px; } ul.inc li { margin:4px 0; }
+  .fit { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:20px; }
+  .fit div { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px; font-size:.95rem; }
+  .fit b { display:block; margin-bottom:4px; }
+  .tiers { display:grid; grid-template-columns:repeat(auto-fit, minmax(190px, 1fr)); gap:12px; margin:16px 0 8px; }
+  .tier { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:18px; }
+  .tier .name { font-weight:600; } .price { font-size:2rem; font-weight:700; letter-spacing:-.02em; margin:4px 0; }
   .note { color:var(--muted); font-size:.85rem; }
-  .reviews { border:1px dashed var(--line); padding:12px; color:var(--muted); margin:24px 0; }
-  form { display:inline; } button { padding:10px 16px; background:var(--cyan); color:#001018; border:0; font-weight:600; cursor:pointer; }
-  footer { color:var(--muted); font-size:.8rem; margin-top:40px; }
+  .reviews { border:1px dashed var(--line); border-radius:10px; padding:14px; color:var(--muted); margin:28px 0; text-align:center; }
+  form { display:inline; }
+  button { padding:12px 20px; font:inherit; font-weight:600; background:var(--accent); color:#fff; border:0; border-radius:8px; cursor:pointer; min-height:46px; }
+  @media (prefers-color-scheme: dark) { button { color:#111317; } }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  footer { color:var(--muted); font-size:.8rem; margin-top:48px; }
+  @media (max-width:560px) { .fit { grid-template-columns:1fr; } }
 </style>
 </head>
 <body><main>
-  <div class="banner">PREVIEW on localhost. Payments are MOCKED (in-process test provider; no real or sandbox payments; no card details are ever collected).</div>
+  <div class="banner" role="note">PREVIEW on localhost. Payments are MOCKED (in-process test provider; no real or sandbox payments; no card details are ever collected).</div>
   <h1>{{ product_name }}</h1>
   <p class="tag">{{ tagline }}</p>
   <p>{{ description }}</p>
   <h2>What is included</h2>
-  <ul>{% for i in includes %}<li>{{ i }}</li>{% endfor %}</ul>
-  <p><strong>Who it is for:</strong> {{ who_it_is_for }}</p>
-  <p><strong>Who it is not for:</strong> {{ who_it_is_not_for }}</p>
+  <ul class="inc">{% for i in includes %}<li>{{ i }}</li>{% endfor %}</ul>
+  <div class="fit"><div><b>Who it is for</b>{{ who_it_is_for }}</div><div><b>Who it is not for</b>{{ who_it_is_not_for }}</div></div>
   <h2>Pricing</h2>
   <div class="tiers">
-    {% for t in tiers %}<div class="tier"><div>{{ t.name }}</div><div class="price">${{ '%.0f' % t.price }}</div><div class="note">{{ t.what }}</div></div>{% endfor %}
+    {% for t in tiers %}<div class="tier"><div class="name">{{ t.name }}</div><div class="price">${{ '%.0f' % t.price }}</div><div class="note">{{ t.what }}</div></div>{% endfor %}
   </div>
   <p class="note">{{ pricing_note }}</p>
   <div class="reviews">No reviews yet</div>
   <form method="post" action="/store/{{ run_id }}/buy"><button type="submit">Simulate test purchase (MOCKED)</button></form>
   <h2>Policies</h2>
-  <p class="note">DRAFT - not legal advice; review with a qualified professional. Terms, privacy and refund drafts are in phase4_step2_policies. Refunds are reviewed and approved by the founder.</p>
+  <p class="note">DRAFT - not legal advice; review with a qualified professional. The terms, privacy and refund drafts come with the files. Refunds are reviewed and approved by the founder.</p>
   <footer>Drafted with ProveIt and approved by the founder before serving.</footer>
 </main></body>
 </html>
