@@ -28,8 +28,8 @@ APP_FACTS = (
     "results (not switched on yet). After each step there is a checkpoint that says go ahead, look again, try a "
     "different angle, or stop. The bar each checkpoint uses is set before any searching, so it can't be moved "
     "later. The founder can accept the advice, search again, try another angle, stop, or carry on anyway with a "
-    "reason. Nothing is published or sent until the founder presses Approve. The AI runs on NVIDIA's free "
-    "service, so a run costs nothing. To test a new idea, press Test a new idea, or say: evaluate this idea, "
+    "reason. Nothing is published or sent until the founder presses Approve. The AI runs locally on an open-weight "
+    "model via Ollama (or on NVIDIA's free tier), so a run costs nothing. To test a new idea, press Test a new idea, or say: evaluate this idea, "
     "followed by the idea."
 )
 

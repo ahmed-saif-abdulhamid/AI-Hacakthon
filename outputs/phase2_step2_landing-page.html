@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Track Deposits and Milestones Across Projects</title>
+<meta name="description" content="A downloadable kit to organize payment schedules and follow-ups for freelance work.">
+<meta property="og:title" content="Track Deposits and Milestones Across Projects">
+<meta property="og:description" content="A downloadable kit to organize payment schedules and follow-ups for freelance work.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<meta name="robots" content="noindex">
+<style>
+  :root { --bg:#FBFBFA; --surface:#FFFFFF; --fg:#16181D; --muted:#5A616E; --line:#E3E5E9; --accent:#2F4BD8; --note-bg:#FFF6E0; --note:#7A5200; color-scheme:light; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111317; --surface:#181B21; --fg:#ECEEF2; --muted:#A3AAB8; --line:#2A2F39; --accent:#8EA2FF; --note-bg:#2C2416; --note:#E8B95A; color-scheme:dark; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:680px; margin:0 auto; padding:28px 22px 72px; }
+  .banner { background:var(--note-bg); color:var(--note); border-radius:8px; padding:10px 14px; font-size:.85rem; margin-bottom:40px; }
+  h1 { font-size:clamp(2rem, 5vw, 2.7rem); line-height:1.1; letter-spacing:-.02em; margin:0 0 12px; }
+  .sub { color:var(--muted); font-size:1.2rem; margin:0 0 32px; }
+  ul.benefits { list-style:none; padding:0; margin:0 0 36px; display:grid; gap:10px; }
+  ul.benefits li { background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:14px 16px 14px 44px; position:relative; }
+  ul.benefits li::before { content:""; position:absolute; left:16px; top:20px; width:14px; height:8px; border-left:2.5px solid var(--accent); border-bottom:2.5px solid var(--accent); transform:rotate(-45deg); }
+  form { background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:20px; margin:0 0 40px; }
+  label { font-weight:600; display:block; margin-bottom:8px; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; }
+  input[type=email] { flex:1 1 240px; padding:12px 14px; font:inherit; color:var(--fg); background:var(--bg); border:1px solid var(--line); border-radius:8px; min-height:46px; }
+  button { padding:12px 20px; font:inherit; font-weight:600; background:var(--accent); color:#fff; border:0; border-radius:8px; cursor:pointer; min-height:46px; }
+  @media (prefers-color-scheme: dark) { button { color:#111317; } }
+  :focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+  .consent { color:var(--muted); font-size:.85rem; margin:10px 0 0; }
+  h2 { font-size:1.3rem; margin:0 0 8px; }
+  details { border-bottom:1px solid var(--line); padding:14px 0; } summary { cursor:pointer; font-weight:500; }
+  details p { color:var(--muted); margin:8px 0 0; }
+  footer { color:var(--muted); font-size:.8rem; margin-top:48px; }
+</style>
+</head>
+<body><main>
+  <div class="banner" role="note">PREVIEW on localhost. Public hosting is STUBBED: every sign-up here is stored with test=true and excluded from every gate.</div>
+  <h1>Track Deposits and Milestones Across Projects</h1>
+  <p class="sub">A downloadable kit to organize payment schedules and follow-ups for freelance work.</p>
+  <ul class="benefits"><li>Checklists to confirm deposit received before starting work</li><li>Templates to record milestone dates, amounts, and status</li><li>Guides for polite payment reminders and escalation steps</li></ul>
+  <form method="post" action="/p/r20261117-153619-4d68/signup">
+    <label for="email">Join the waitlist</label>
+    <div class="row"><input id="email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"><button type="submit">Join the waitlist</button></div>
+    <p class="consent">We store only your email address and the time you signed up, to tell you when the product is ready. No password, no payment details. You can ask us to delete it at any time.</p>
+  </form>
+  <h2>Questions</h2>
+  <details><summary>What is included in the kit?</summary><p>Printable checklists, spreadsheet templates, and written guides you can adapt to each client project.</p></details><details><summary>Do I need special software to use it?</summary><p>No. The files work in common spreadsheet apps and any text editor.</p></details>
+  <footer>Drafted with ProveIt and approved by the founder before serving. Content hash: shown in the approval console</footer>
+</main></body>
+</html>
