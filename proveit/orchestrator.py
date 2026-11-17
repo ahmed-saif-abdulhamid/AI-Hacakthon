@@ -376,7 +376,10 @@ def stage_phase1(run: Run) -> None:
     claims = [c for c in run.claims() if any(c.hit_id == h for h in research["hits"])]
     metrics = research["metrics"]
     progress(run, 1, "Debate: Advocate vs Skeptic")
-    args = debate.run(run.id, claims, metrics, run.variant(variant_n).title)
+    known = {k: v for k, v in run.state.get("brief", {}).items()
+             if k in ("skills", "budget", "hours_per_week", "target_market", "values") and v and "unspecified" not in str(v)}
+    args = debate.run(run.id, claims, metrics, run.variant(variant_n).title,
+                      "; ".join(f"{k.replace('_', ' ')}: {v}" for k, v in known.items()))
     run.state["debate"] = {k: [s.model_dump() for s in v] for k, v in args.items()}
     say(run, "debate", advocate=args["advocate"][0].text if args["advocate"] else "",
         skeptic=args["skeptic"][0].text if args["skeptic"] else "")

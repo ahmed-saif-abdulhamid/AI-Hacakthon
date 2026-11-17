@@ -44,6 +44,10 @@ def run_context(run) -> str:
     out = [f"Run {run.id} ({run.label or 'no label'}), stage {run.stage}, phase {s.get('phase', 1)} of 6.",
            "Idea: " + str(brief.get("idea") or (run.brief_raw or {}).get("fields", {}).get("idea")
                           or (run.brief_raw or {}).get("text", ""))[:300]]
+    known = {k: v for k, v in brief.items() if k in ("skills", "budget", "hours_per_week", "target_market", "values")
+             and v and "unspecified" not in str(v).lower()}
+    out.append("Founder (only these facts are known; the quotes are from strangers, never the founder): "
+               + ("; ".join(f"{k.replace('_', ' ')}: {v}" for k, v in known.items()) or "nothing beyond the idea"))
     variants = s.get("variants") or []
     if variants:
         v = variants[min(len(variants), s.get("variant_n", 1)) - 1]
@@ -71,9 +75,15 @@ def run_context(run) -> str:
     if not counted and s.get("claims"):
         out.append("No quote passed the relevance and cue checks with a weight above zero.")
     if s.get("debate"):
-        adv = " ".join(x.get("text", "") for x in s["debate"].get("advocate", [])[:2])
-        skp = " ".join(x.get("text", "") for x in s["debate"].get("skeptic", [])[:2])
-        out.append(f"Advocate: {adv[:300]} Skeptic: {skp[:300]}")
+        # Only arguments that cite a counted quote reach the assistant; uncited ones are opinions.
+        ok = {c.id for c in current_claims(run) if c.weight > 0}
+        def cited(side):
+            return " ".join(x.get("text", "") for x in s["debate"].get(side, [])
+                            if set(x.get("claim_ids") or []) & ok)[:300]
+        adv, skp = cited("advocate"), cited("skeptic")
+        if adv or skp:
+            out.append(f"Cited arguments. For going ahead: {adv or 'none backed by a counted quote'}. "
+                       f"For stopping: {skp or 'none backed by a counted quote'}.")
     pend = approval.list_approvals(run.id, "pending")
     if pend:
         out.append("Pending approvals: " + ", ".join(a.action for a in pend) + ".")

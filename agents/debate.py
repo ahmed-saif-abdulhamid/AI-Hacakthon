@@ -24,14 +24,16 @@ def _metrics_line(metrics: dict) -> str:
     return ", ".join(f"{k}={metrics.get(k)}" for k in keep)
 
 
-def argue(run_id: str, side: str, claims: list[Claim], metrics: dict, variant_title: str) -> list[Statement]:
-    user = (f"VARIANT: {variant_title}\nMETRICS: {_metrics_line(metrics)}\nCLAIMS:\n{claims_table(claims)}\n"
-            "Return 2 or 3 statements.")
+def argue(run_id: str, side: str, claims: list[Claim], metrics: dict, variant_title: str,
+          founder: str = "") -> list[Statement]:
+    user = (f"VARIANT: {variant_title}\nFOUNDER: {founder or 'nothing known beyond the idea'}\n"
+            f"METRICS: {_metrics_line(metrics)}\nCLAIMS:\n{claims_table(claims)}\nReturn 2 or 3 statements.")
     out = llm.agent_call(run_id, side, f"argue_{'go' if side == 'advocate' else 'stop'}", DebateOut, user,
                          num_predict=220, sources=sorted({c.url for c in claims if c.url and c.weight > 0}))
     return out.statements
 
 
-def run(run_id: str, claims: list[Claim], metrics: dict, variant_title: str) -> dict[str, list[Statement]]:
-    return {"advocate": argue(run_id, "advocate", claims, metrics, variant_title),
-            "skeptic": argue(run_id, "skeptic", claims, metrics, variant_title)}
+def run(run_id: str, claims: list[Claim], metrics: dict, variant_title: str,
+        founder: str = "") -> dict[str, list[Statement]]:
+    return {"advocate": argue(run_id, "advocate", claims, metrics, variant_title, founder),
+            "skeptic": argue(run_id, "skeptic", claims, metrics, variant_title, founder)}
