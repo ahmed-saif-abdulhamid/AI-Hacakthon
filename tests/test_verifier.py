@@ -138,3 +138,62 @@ def test_questions_and_general_wording_are_not_complaints():
     verifier.apply_relevance([base, general, own], V)
     assert base.weight == 0 and "question" in base.weight_note
     assert general.weight == 0 and own.weight == 1.0
+
+
+INVOICE_V = Variant(
+    n=1,
+    title="t",
+    segment="freelancers",
+    job_to_be_done="send invoice reminders and track overdue payments",
+    se_site="freelancing",
+)
+SE_URL = "https://freelancing.stackexchange.com/questions/123/client-owes-me"
+OWED = "I'm having trouble getting paid for an invoice that a client owes me"
+
+
+def test_payment_siblings_and_se_community_make_owed_invoice_on_topic():
+    from proveit.models import Claim
+
+    c = Claim(
+        id="C1",
+        run_id="r",
+        kind="pain",
+        claim_text="x",
+        source="stackexchange",
+        url=SE_URL,
+        quote=OWED + " (just £100).",
+        hit_title="Client owes me money",
+        status="verified_live",
+    )
+    verifier.mark_eligible([c], INVOICE_V)
+    assert c.weight_note == "eligible"
+    verifier.apply_relevance([c], INVOICE_V)
+    assert c.on_topic and c.weight == 1.0
+
+
+def test_throttled_stackexchange_fetch_falls_back_to_api_text(monkeypatch):
+    class Throttled:
+        status_code = 429
+
+        def json(self):
+            return {"error_id": 502, "error_name": "throttle_violation"}
+
+    monkeypatch.setattr(verifier.httpx, "get", lambda *a, **k: Throttled())
+    monkeypatch.setattr(verifier, "SE_MIN_INTERVAL_SECONDS", 0.0)
+    text = OWED + ". It has been two months."
+    h = Hit(id="H1", source="stackexchange", url=SE_URL, text=text, sentences=split_sentences(text))
+    item = [{"hit_id": "H1", "sentence_ids": [1], "kind": "pain", "claim_text": "a"}]
+    claims = verifier.build_claims("r", {"H1": h}, item)
+    assert verifier._fetch(SE_URL, 1.0) is None
+    stats = verifier.verify_live(claims, hits_by_id={"H1": h})
+    assert claims[0].status == "verified_live" and "API text" in claims[0].weight_note
+    assert stats["verified_from_api_text"] == 1 and stats["verified_live"] == 0
+    # Without the hit's API text the claim stays an archived match.
+    again = verifier.build_claims("r", {"H1": h}, item)
+    verifier.verify_live(again)
+    assert again[0].status == "archived_match" and "page unreachable" in again[0].weight_note
+
+
+def test_pain_cue_matches_non_response_and_late_payment():
+    assert verifier.match_cue("pain", "The client hasn't responded to my invoice")
+    assert verifier.match_cue("pain", "They pay late every single month")

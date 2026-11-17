@@ -265,6 +265,7 @@ def research_variant(run: Run, variant: Variant, broaden: bool = False) -> dict:
         timeout=limits["verify_timeout_s"],
         min_chars=limits["min_quote_chars_fuzzy"],
         threshold=limits["fuzzy_threshold"],
+        hits_by_id=hits_by_id,
     )
     evidence_thresholds = run.thresholds["gate1_evidence"]
     verifier.apply_relevance(claims, variant, evidence_thresholds["max_age_months"])

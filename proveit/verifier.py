@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import os
 import re
+import threading
+import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
@@ -41,6 +43,10 @@ PROSE_MIN_CHARS, PROSE_MAX_CHARS = 15, 500
 PROSE_MIN_LETTER_SHARE = 0.8
 LIST_BULLETS = ("-", "*", "•")
 SE_API = "https://api.stackexchange.com/2.3/questions/"
+# Unauthenticated Stack Exchange API calls are throttled (HTTP 429): space them out across threads.
+SE_MIN_INTERVAL_SECONDS = 0.35
+# When a live page cannot be read, these sources' API text (fetched earlier in the same run) is used.
+API_TEXT_SOURCES = ("stackexchange", "hn")
 
 CUE_KINDS = {"pain": "pain", "wtp": "wtp", "price_point": "price_point"}
 FIRST_PERSON = re.compile(r"\b(i|i'm|i've|i'd|me|my|we|we're|we've|our|us)\b", re.I)
@@ -75,8 +81,21 @@ GENERIC = keywords(
     "app apps software digital template templates kit pack guide guides checklist checklists work working "
     "time day week month year help manage management process system service services product products "
     "free first need needs want get make use using local independent professional professionals "
-    "freelance freelancer freelancers us uk usa world"
+    "us uk usa world"
 )
+
+# Domain expansion: when the job or segment is about getting paid, people describe it with sibling
+# words ("paid", "owes me", "late") that do not share a stem with "payments" or "invoice".
+# Each entry: trigger stems -> sibling stems added to the job keywords.
+TOPIC_EXPANSIONS: list[tuple[frozenset[str], set[str]]] = [
+    (
+        frozenset({"payment", "invoic", "deposit", "mileston", "overdu", "overdue"}),
+        keywords(
+            "pay paid unpaid paying owe owes owed bill billing late delay delayed deposit deposits "
+            "milestone milestones invoice invoices"
+        ),
+    ),
+]
 
 
 class Topic(set):
@@ -94,7 +113,19 @@ def topic_keywords(variant: Variant) -> Topic:
         seg = keywords(variant.segment)
     if not job:
         job = keywords(variant.job_to_be_done)
+    for triggers, siblings in TOPIC_EXPANSIONS:
+        if (seg | job) & triggers:
+            job = job | (siblings - GENERIC)
     return Topic(seg, job)
+
+
+def topic_context(c: Claim, variant: Variant) -> str:
+    """Text read for the on-topic check: the quote, its thread title and, for a Stack Exchange post on
+    the variant's own community, that community's name (e.g. "freelancing")."""
+    context = (c.quote or "") + " " + c.hit_title
+    if c.source == "stackexchange" and variant.se_site and f"//{variant.se_site}." in (c.url or ""):
+        context += " " + variant.se_site
+    return context
 
 
 def overlap(text: str, topic: set[str]) -> list[str]:
@@ -197,6 +228,21 @@ _SE_URL = re.compile(
 )
 
 
+_se_lock = threading.Lock()
+_se_last_call = [0.0]
+
+
+def _se_get(url: str, params: dict, headers: dict, timeout: float) -> dict | None:
+    """One paced Stack Exchange API GET; None unless the API answered 200 with JSON."""
+    with _se_lock:
+        wait = _se_last_call[0] + SE_MIN_INTERVAL_SECONDS - time.monotonic()
+        if wait > 0:
+            time.sleep(wait)
+        _se_last_call[0] = time.monotonic()
+    r = httpx.get(url, params=params, headers=headers, timeout=timeout)
+    return r.json() if r.status_code == httpx.codes.OK else None
+
+
 def _fetch_stackexchange(m: re.Match, timeout: float) -> str | None:
     """Stack Exchange web pages sit behind a bot challenge, so re-read the same public post (question and
     answers, current version) through the official API instead of the HTML page."""
@@ -206,9 +252,11 @@ def _fetch_stackexchange(m: re.Match, timeout: float) -> str | None:
     base = SE_API + m.group("qid")
     headers = {"User-Agent": USER_AGENT}
     try:
-        q = httpx.get(base, params=params, headers=headers, timeout=timeout).json()
-        a = httpx.get(base + "/answers", params=params, headers=headers, timeout=timeout).json()
+        q = _se_get(base, params, headers, timeout)
+        a = _se_get(base + "/answers", params, headers, timeout) if q is not None else None
     except (*NETWORK_ERRORS, ValueError):
+        return None
+    if q is None or a is None:  # throttled (429) or any other error: the page could not be read
         return None
     bodies = [i.get("title", "") + " " + i.get("body", "") for i in q.get("items", [])]
     bodies += [i.get("body", "") for i in a.get("items", [])]
@@ -244,8 +292,13 @@ def verify_live(
     min_chars: int = FUZZY_MIN_CHARS,
     threshold: int = FUZZY_THRESHOLD,
     fetcher: Callable[[str], str | None] | None = None,
+    hits_by_id: dict[str, Hit] | None = None,
 ) -> dict:
-    """Re-fetch up to ``cap`` distinct public URLs in parallel and set each claim's status."""
+    """Re-fetch up to ``cap`` distinct public URLs in parallel and set each claim's status.
+
+    When a Stack Exchange or HN page cannot be read (throttled or down), the quote is checked against
+    that hit's API text from ``hits_by_id``, fetched earlier in the same run; such claims are counted
+    under ``verified_from_api_text`` and noted on the claim."""
     fetch = fetcher or (lambda u: _fetch(u, timeout))
     # Prioritise claims that could count (on-topic and cue-confirmed come first).
     candidates = [c for c in claims if c.quote and c.url]
@@ -254,7 +307,12 @@ def verify_live(
     with ThreadPoolExecutor(max_workers=FETCH_WORKERS) as ex:
         pages = dict(zip(urls, ex.map(fetch, urls), strict=False))
     now = datetime.now(UTC)
-    stats = {"checked_urls": len(urls), "reachable": sum(1 for p in pages.values() if p), "verified_live": 0}
+    stats = {
+        "checked_urls": len(urls),
+        "reachable": sum(1 for p in pages.values() if p),
+        "verified_live": 0,
+        "verified_from_api_text": 0,
+    }
     for c in candidates:
         c.fetched_at = now
         page = pages.get(c.url)
@@ -264,10 +322,21 @@ def verify_live(
         elif page and quote_on_page(c.quote, page, min_chars, threshold):
             c.status = "verified_live"
             stats["verified_live"] += 1
+        elif page is None and _api_text_match(c, hits_by_id, min_chars, threshold):
+            c.status = "verified_live"
+            stats["verified_from_api_text"] += 1
+            _add_note(c, "live page unreachable; verified against API text fetched this run")
         else:
             c.status = "archived_match"
             _add_note(c, ("page unreachable" if page is None else "not found on live page") + "; archived match")
     return stats
+
+
+def _api_text_match(c: Claim, hits_by_id: dict[str, Hit] | None, min_chars: int, threshold: int) -> bool:
+    hit = (hits_by_id or {}).get(c.hit_id or "")
+    if hit is None or hit.source not in API_TEXT_SOURCES or hit.url != c.url or not hit.text:
+        return False
+    return quote_on_page(c.quote, normalize(hit.text), min_chars, threshold)
 
 
 # ---- relevance and weight --------------------------------------------------------------
@@ -318,7 +387,7 @@ def apply_relevance(claims: list[Claim], variant: Variant, max_age_months: int =
             continue
         # On topic: the quote read together with its thread title (a single sentence rarely repeats
         # the segment's words). The pain / payment cue must still be in the quote itself.
-        context = c.quote + " " + c.hit_title
+        context = topic_context(c, variant)
         c.keyword_overlap = overlap(context, topic)
         c.on_topic = is_on_topic(context, topic)
         c.label = "SOURCED"
@@ -333,7 +402,7 @@ def mark_eligible(claims: list[Claim], variant: Variant) -> None:
     for c in claims:
         if (
             c.quote
-            and is_on_topic(c.quote + " " + c.hit_title, topic)
+            and is_on_topic(topic_context(c, variant), topic)
             and (c.kind not in CUE_KINDS or match_cue(c.kind, c.quote))
         ):
             c.weight_note = "eligible"
