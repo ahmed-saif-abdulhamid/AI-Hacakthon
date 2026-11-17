@@ -12,7 +12,7 @@ from agents import launcher
 from sources.base import split_sentences
 
 from ... import render
-from ...reports import launch_post_md
+from ...reports.launch import launch_post_md
 from ...templates import render_page
 from ..approvals import request_approval
 from ..copy_guard import drop_blocked, flag_for_founder, guarded, is_blocked

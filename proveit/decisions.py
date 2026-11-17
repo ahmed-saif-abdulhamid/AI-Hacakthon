@@ -15,7 +15,7 @@ from .commerce import refunds
 from .log import log_action, utcnow
 from .models import Approval, GateDecision
 from .pipeline.run import Run, Stage, Status, load
-from .reports import simple_gate_md
+from .reports.common import simple_gate_md
 
 MIN_OVERRIDE_REASON_CHARS = 8
 MAX_REDRAFTS = 2  # a rejected landing page, store page or Gate 4 is redrafted at most twice

@@ -13,7 +13,8 @@ from agents import builder, qa
 from ... import gates, render
 from ...log import emit, log_action
 from ...models import GateDecision, Variant
-from ...reports import module_md, preview_banner, product_spec_md, template_csv, test_report_md
+from ...reports.build import module_md, product_spec_md, template_csv, test_report_md
+from ...reports.common import preview_banner
 from ..run import PHASE_NAMES, Run, Stage, Status, runtime
 
 BUILD_ATTEMPTS = 2

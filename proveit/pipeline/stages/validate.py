@@ -10,7 +10,8 @@ from agents import strategist
 
 from ... import db, gates, render
 from ...log import emit
-from ...reports import GATE2_NOTE, lean_canvas_md, simple_gate_md
+from ...reports.common import simple_gate_md
+from ...reports.validate import GATE2_NOTE, lean_canvas_md
 from ...templates import render_page
 from ..approvals import request_approval
 from ..copy_guard import drop_blocked, flag_for_founder, guarded, is_blocked

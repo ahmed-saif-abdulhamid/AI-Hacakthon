@@ -11,7 +11,7 @@ from agents import intake
 from ... import guard, llm
 from ...log import emit, log_action
 from ...models import GateDecision
-from ...reports import eligibility_md
+from ...reports.discover import eligibility_md
 from ..run import Run, Stage, Status
 
 

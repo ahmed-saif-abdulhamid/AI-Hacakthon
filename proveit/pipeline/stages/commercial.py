@@ -9,7 +9,7 @@ from agents import policy_drafter, pricer
 
 from ... import render
 from ...log import emit
-from ...reports import policies_md, pricing_md
+from ...reports.commercial import policies_md, pricing_md
 from ..copy_guard import guarded
 from ..run import PHASE_NAMES, Run, Stage, Status
 

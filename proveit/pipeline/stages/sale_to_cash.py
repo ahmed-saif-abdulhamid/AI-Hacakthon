@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from ... import approval
 from ...commerce import delivery, payments, reconcile, refunds, webhooks
-from ...reports import payment_test_log_md
+from ...reports.launch import payment_test_log_md
 from ..approvals import wait_for_approval
 from ..run import Run, Stage, Status
 

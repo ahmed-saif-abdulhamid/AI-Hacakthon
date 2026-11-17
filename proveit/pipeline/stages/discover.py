@@ -11,7 +11,7 @@ from agents import debate, scout
 from ... import gates, llm, render
 from ...log import emit, log_action
 from ...models import GateDecision
-from ...reports import claims_json, gate1_md, interview_kit_md, market_md, opportunities_md
+from ...reports.discover import claims_json, gate1_md, interview_kit_md, market_md, opportunities_md
 from .. import research
 from ..run import PHASE_NAMES, Run, Stage, Status, log_gate, runtime
 

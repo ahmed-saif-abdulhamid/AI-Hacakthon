@@ -7,7 +7,7 @@ from agents import analyst
 
 from ... import db, gates
 from ...log import emit, log_action
-from ...reports import operate_gate_md
+from ...reports.operate import operate_gate_md
 from ..run import Run, Stage, Status
 
 METRIC_QUERIES = {
