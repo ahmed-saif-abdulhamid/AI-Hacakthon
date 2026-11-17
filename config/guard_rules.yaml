@@ -1,0 +1,93 @@
+# Guard rules. Deterministic rules run first; a short model check runs second.
+# Every gap is bounded with (\w+\W+){0,N}; no greedy .* anywhere.
+# Each rule: pattern (case-insensitive), refusal (what is refused) and alternative (one honest option).
+
+input_intent:            # Rule set A: imperative requests, not mere words
+  fake_social_proof:
+    pattern: '\b(write|writ|generate|create|make|add|draft|produce|invent|fake|post|give me|need)\b\W+(\w+\W+){0,6}?(reviews?|testimonials?|5[- ]?stars?|five[- ]stars?|ratings?|endorsements?|customer quotes)\b|\b(fake|made[- ]up|invented)\W+(\w+\W+){0,3}?(reviews?|testimonials?|quotes)\b|\bglowing\W+(\w+\W+){0,2}?(quotes|reviews?|testimonials?)|\b\d{1,5}\W+(\w+\W+){0,2}?(reviews|testimonials|ratings)\b'
+    exclude: '\b(code reviews?|review checklists?|peer reviews?|review process|design reviews?|reviewing code)\b'
+    refusal: "I can't write reviews, testimonials or ratings."
+    alternative: "I can draft a feedback request to send to real buyers after purchase, for your approval."
+  fake_signups:
+    pattern: '\b(fake|bot|bots|dummy|seed|generate|invent|inflate|buy|pad)\b\W+(\w+\W+){0,4}?(sign-?ups|users|emails|followers|traffic|orders|subscribers|waitlist|downloads|likes)\b'
+    exclude: '\b(seo traffic|test data for (my|the) tests?)\b'
+    refusal: "I can't create fake sign-ups, users, orders or traffic."
+    alternative: "I can show the real sign-up count and suggest honest places to share the landing page."
+  urgency:
+    pattern: '\b(add|include|put|create|show|insert|make|use|display)\b\W+(\w+\W+){0,6}?(count-?downs?|timers?|only \d+ (\w+ )?(left|spots|remain\w*)|offer ends|limited[- ]time|scarcity|expires? in)\b|\bonly \d+ (\w+ )?(copies|spots|seats) (left|remain\w*)'
+    refusal: "I can't add countdown timers or false scarcity."
+    alternative: "I can state the real launch price plainly, with no deadline pressure."
+  income_promise:
+    pattern: '\b(guarantee\w*|promise\w*|tell (buyers|customers|people|users|readers)|say|claim|write|state)\b\W+(\w+\W+){0,6}?(income|earn\w*|make \$|profit\w*|rich|\$\d[\d,]*k?\s*/\s*(mo|month|week|day)|pays? for itself|passive income|guaranteed results)'
+    refusal: "I can't promise income, earnings or results."
+    alternative: "I can describe what the product contains and who it is for, without outcome claims."
+  impersonation:
+    pattern: '\b(post|write|reply|comment|sign|act|speak|tweet|pretend|pose|posing)\b\W+(\w+\W+){0,6}?(as|in the voice of)\W+(a |an |the |our |my )?(happy |satisfied |real |verified )?(founder|customer|user|buyer|client|reviewer|brand|company)\b|\b(pretend(ing)? to be|pose as|posing as|impersonat\w+|in the voice of)\b'
+    refusal: "I can't pose as the founder, a customer or another brand."
+    alternative: "I can draft a post for the founder to publish under their own name, after approval."
+  credentials:
+    pattern: '\b(store|save|remember|collect|keep|log|ask for|capture)\b\W+(\w+\W+){0,3}?(passwords?|card (numbers?|details)|credit cards?|cvv|iban|bank details|cards)\b'
+    refusal: "I can't store passwords or card details."
+    alternative: "The waitlist stores only an email and a timestamp; payments stay in the MOCKED provider."
+  money_action:
+    pattern: '^\W*(please\W+)?(refund|transfer|charge|pay out|payout|wire|send money|spend)\b|\b(refund|transfer|charge|pay out|wire|send|spend)\b\W+(\w+\W+){0,3}?(order|money|customer|funds|payment|\$\d|budget|on ads)\b'
+    exclude: '\b(refund polic\w+|refund terms|refund window)\b'
+    refusal: "I can't move, spend or refund money by myself."
+    alternative: "Refunds can only be started from the order page, and need your approval."
+  account_creation:
+    pattern: '\b(create|open|register|sign up for|make|set up)\b\W+(\w+\W+){0,3}?accounts?\b'
+    refusal: "I can't create accounts on any service."
+    alternative: "I can list the steps for you to create the account yourself."
+  sign_contract:
+    pattern: '\bsign\W+(\w+\W+){0,3}?(contract|agreement|terms|deal|document)s?\b'
+    refusal: "I can't sign anything."
+    alternative: "I can draft the document, marked DRAFT, for you to review and sign yourself."
+  publish_now:
+    pattern: '\b(post|publish|tweet|send|email|blast)\b\W+(\w+\W+){0,4}?(now|immediately|on (reddit|twitter|x|facebook|linkedin|instagram|tiktok)|to (my|the|our) (list|subscribers|followers))\b'
+    refusal: "I can't post or send anything; publishing adapters are STUBBED."
+    alternative: "I can prepare a draft for you to approve and post under your own name."
+  bypass:
+    pattern: '\bignore\W+(\w+\W+){0,2}?(rules|instructions|guardrails|policy)\b|\bfounder\W+(\w+\W+){0,2}?(already\W+)?approved\b|\bdeveloper mode\b|\bjailbreak\b|\bbypass\W+(\w+\W+){0,2}?(guard\w*|rules|approval\w*)\b|\bwithout (asking|approval|my approval)\b|\bskip (the )?approval'
+    refusal: "I can't skip the rules or treat a message as an approval."
+    alternative: "Approvals only come from the hash-bound approval buttons or the CLI."
+  arabic_intent:
+    pattern: '(اكتب|أكتب|انشئ|أنشئ|اصنع|ولد|ولّد)\W+(\S+\W+){0,4}?(مراجع|تقييم|شهاد)|(عداد|مؤقت)\W+(\S+\W+){0,3}?(تنازلي)|(اضمن|نضمن|وعد)\W+(\S+\W+){0,4}?(دخل|ربح|أرباح)'
+    refusal: "I can't write fake reviews, add timers or promise income."
+    alternative: "I can draft honest copy for your approval."
+
+typo_tokens:             # fuzzy-matched (rapidfuzz ratio >= 85) on prompt tokens of >= 6 chars
+  reviews: reviews
+  testimonials: testimonials
+  testimonial: testimonial
+  countdown: countdown
+  generate: generate
+  guarantee: guarantee
+  passwords: passwords
+  followers: followers
+
+excluded_categories:     # Rule set B: briefs only
+  product_context: '\b(idea|offer|sell|selling|build|launch|app|course|service|platform|bot|store|shop|business|product|template|guide|kit|ebook|pack|newsletter|subscription|channel|tool|startup|website|community|for)\b'
+  allow_list: '\b(time investment|invest(ing)? time|diagnos\w* (slow|broken) websites?|legal pad|design[- ]tokens?|business[- ]cards?( designs?)?|seo traffic|portfolio (templates?|websites?|sites?|reviews?)|(design|designer|creative|photography|ux) portfolios?|ship(ping)?[- ](a[- ]|your[- ]|my[- ])?side[- ]projects?|ship faster|code[- ]review|medical students|health ?checks? for websites?|website health|token (budget|limits?)|api tokens?|trading cards? design|ship(ping)? (code|features|software|updates))\b'
+  categories:
+    physical_goods:
+      pattern: '\b(physical (goods|products|items)|inventory|handmade|hand-made|printed (t-?shirts|mugs|posters|books|products)|merch(andise)?|hardware devices?|dropshipping|drop-shipping|candles|jewelry|jewellery|t-?shirts|mugs|furniture|cosmetics|clothing line|ship(ping)? (physical|products|goods|orders))\b'
+    financial_crypto:
+      pattern: '\b(crypto\w*|bitcoin|ethereum|nfts?|defi|token sale|trading signals?|signals group|forex|stocks? (picks|tips|signals)|day trading|loans?|lending|investment advice|portfolio management|robo-?advisor|insurance products?)\b'
+    health:
+      pattern: '\b(diagnos(e|is|ing) (patients|symptoms|diseases|illness\w*)|supplements?|cbd|gummies|therapy app|mental health app|diet plans?|weight[- ]loss|medical advice|app for patients|symptom checker|treatment plans?|prescriptions?|nutrition plans? for (patients|diabetics))\b'
+    legal_advice:
+      pattern: '\b(legal advice|contract review service|lawsuits?|visa application help|immigration advice|tax advice|legal representation|draft(ing)? (wills|legal contracts) for clients)\b'
+    arabic:
+      pattern: '(كريبتو|عملات رقمية|العملات المشفرة|بيتكوين|تداول|فوركس|قروض|قرض|استشارة قانونية|استشارات قانونية|نصيحة طبية|نصائح طبية|مكملات|تشخيص|منتجات مادية|شحن المنتجات)'
+  ask_tier: '\b(portfolio|token|tokens|trading|ship|shipping|therapy|medical|treatment|health|invest\w*|legal|stock|finance|financial)\b'
+
+output_copy:             # Rule set C: outward-facing copy only
+  numeric_social_proof: '\d[\d,.]*\s*\+?\s*(k\s*)?(happy\s+)?(users|customers|founders|buyers|downloads|sign-?ups|members|students|teams|designers|freelancers)\b'
+  ratings: '\b\d(\.\d)?\s*(/\s*5|stars?|★)|\brated\b|\bloved by\b|\btrusted by\b|\bas seen (in|on)\b|★'
+  attributed_quote: '"[^"]{10,200}"\s*[-–—]\s*[A-Z][a-z]+'
+  urgency: '\bonly \d+\W+(\w+\W+){0,2}?(left|remain\w*)|\blast chance\b|\bends (today|soon|in)\b|\bcount-?down\b|\bhurry\b|\blimited[- ]time\b'
+  income: '\bguarantee(d)?\W+(\w+\W+){0,2}?(results|income|success|earnings)\b|\bpays? for itself\b|\b(make|earn|making|earning)\W+(\w+\W+){0,2}?\$\d|\bpassive income\b|\bget rich\b|\bwill (succeed|grow your)\b'
+  customer_voice: '\b(as a (customer|user|buyer)|I (bought|used|tried) this)\b'
+money_rule_names: [income]   # dropped for policy drafts (they may say "refund", "payment")
+
+refusal_scope: "Protocol 0"

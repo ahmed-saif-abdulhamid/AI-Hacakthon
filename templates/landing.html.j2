@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ headline }}</title>
+<style>
+  :root { --bg:#06090F; --fg:#E6F7FF; --muted:#8AA4B8; --cyan:#00F0FF; --line:#00F0FF33; --amber:#FFB800; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:32px 20px 64px; }
+  .banner { border:1px solid var(--amber); color:var(--amber); padding:8px 12px; font:12px/1.4 ui-monospace, monospace; margin-bottom:24px; }
+  h1 { font-size:2rem; margin:0 0 8px; } .sub { color:var(--muted); font-size:1.15rem; margin:0 0 28px; }
+  ul.benefits { list-style:none; padding:0; } ul.benefits li { border:1px solid var(--line); padding:12px 14px; margin:8px 0; }
+  form { border:1px solid var(--line); padding:16px; margin:28px 0; }
+  input[type=email] { width:100%; box-sizing:border-box; padding:10px; background:#0B111B; color:var(--fg); border:1px solid var(--line); }
+  button { margin-top:10px; padding:10px 16px; background:var(--cyan); color:#001018; border:0; font-weight:600; cursor:pointer; }
+  .consent { color:var(--muted); font-size:.85rem; margin-top:8px; }
+  details { border-bottom:1px solid var(--line); padding:10px 0; } summary { cursor:pointer; }
+  footer { color:var(--muted); font-size:.8rem; margin-top:40px; }
+</style>
+</head>
+<body><main>
+  <div class="banner">PREVIEW on localhost. Public hosting is STUBBED: every sign-up here is stored with test=true and excluded from every gate.</div>
+  <h1>{{ headline }}</h1>
+  <p class="sub">{{ subheadline }}</p>
+  <ul class="benefits">{% for b in benefits %}<li>{{ b }}</li>{% endfor %}</ul>
+  <form method="post" action="/p/{{ run_id }}/signup">
+    <label for="email">Join the waitlist</label>
+    <input id="email" name="email" type="email" required placeholder="you@example.com">
+    <p class="consent">We store only your email address and the time you signed up, to tell you when the product is ready. No password, no payment details. You can ask us to delete it at any time.</p>
+    <button type="submit">Join the waitlist</button>
+  </form>
+  <h2>Questions</h2>
+  {% for f in faq %}<details><summary>{{ f.q }}</summary><p>{{ f.a }}</p></details>{% endfor %}
+  <footer>Drafted with ProveIt and approved by the founder before serving. Content hash: {{ content_note }}</footer>
+</main></body>
+</html>

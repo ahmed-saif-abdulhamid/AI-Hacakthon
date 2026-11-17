@@ -1,0 +1,188 @@
+{
+ "variant": {
+  "title": "Client onboarding toolkit",
+  "segment": "freelance web designers",
+  "job_to_be_done": "onboard new clients and collect project content"
+ },
+ "calls": [
+  {
+   "source": "hn",
+   "query": "client onboarding process",
+   "ok": true,
+   "pain_capable": true,
+   "hits": [
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=9000001",
+     "title": "Ask HN: client onboarding",
+     "text": "Onboarding new clients is the most tedious part of my freelance web design work. I use a mix of docs and email.",
+     "sentences": [
+      "Onboarding new clients is the most tedious part of my freelance web design work.",
+      "I use a mix of docs and email."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=9000002",
+     "title": "Freelancing tips",
+     "text": "I waste hours every project chasing clients for content and logins. Then the deadline slips.",
+     "sentences": [
+      "I waste hours every project chasing clients for content and logins.",
+      "Then the deadline slips."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=9000003",
+     "title": "Web design business",
+     "text": "Collecting content from clients is a nightmare on every web project. Nobody reads the brief.",
+     "sentences": [
+      "Collecting content from clients is a nightmare on every web project.",
+      "Nobody reads the brief."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=9000004",
+     "title": "Designers and clients",
+     "text": "As a freelance designer I hate the back and forth of client onboarding emails. It feels unprofessional.",
+     "sentences": [
+      "As a freelance designer I hate the back and forth of client onboarding emails.",
+      "It feels unprofessional."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    }
+   ]
+  },
+  {
+   "source": "hn",
+   "query": "chasing clients for content",
+   "ok": true,
+   "pain_capable": true,
+   "hits": [
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=9000005",
+     "title": "Agency life",
+     "text": "Our client intake process is manual and messy, and web projects stall waiting for content. We tried forms.",
+     "sentences": [
+      "Our client intake process is manual and messy, and web projects stall waiting for content.",
+      "We tried forms."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=9000006",
+     "title": "Templates",
+     "text": "I paid $29 for a client onboarding template pack for my web design business last year. It was worth it.",
+     "sentences": [
+      "I paid $29 for a client onboarding template pack for my web design business last year.",
+      "It was worth it."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=9000007",
+     "title": "Tools",
+     "text": "Client onboarding tools for freelance web designers like Dubsado cost $40 per month. That is a lot for a solo designer.",
+     "sentences": [
+      "Client onboarding tools for freelance web designers like Dubsado cost $40 per month.",
+      "That is a lot for a solo designer."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    }
+   ]
+  },
+  {
+   "source": "stackexchange",
+   "query": "client onboarding process @ freelancing",
+   "ok": true,
+   "pain_capable": true,
+   "hits": [
+    {
+     "source": "stackexchange",
+     "url": "https://freelancing.stackexchange.com/questions/1",
+     "title": "How do I collect content from clients?",
+     "text": "It is frustrating that clients never send web project content on time. What process do you use?",
+     "sentences": [
+      "It is frustrating that clients never send web project content on time.",
+      "What process do you use?"
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "stackexchange",
+     "url": "https://freelancing.stackexchange.com/questions/2",
+     "title": "Onboarding checklist for web design clients",
+     "text": "I wish there was a simple onboarding checklist for web design clients. Something I can reuse.",
+     "sentences": [
+      "I wish there was a simple onboarding checklist for web design clients.",
+      "Something I can reuse."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "stackexchange",
+     "url": "https://freelancing.stackexchange.com/questions/3",
+     "title": "Client questionnaire",
+     "text": "Dubsado and HoneyBook are client onboarding tools that many freelance web designers use. Both are subscriptions.",
+     "sentences": [
+      "Dubsado and HoneyBook are client onboarding tools that many freelance web designers use.",
+      "Both are subscriptions."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    }
+   ]
+  },
+  {
+   "source": "github",
+   "query": "client onboarding",
+   "ok": true,
+   "pain_capable": false,
+   "hits": [
+    {
+     "source": "github",
+     "url": "https://github.com/example/client-onboarding-kit",
+     "title": "example/client-onboarding-kit",
+     "text": "example/client-onboarding-kit: Client onboarding checklist for freelance web designers and new project content.",
+     "sentences": [
+      "example/client-onboarding-kit: Client onboarding checklist for freelance web designers and new project content."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    }
+   ]
+  },
+  {
+   "source": "searxng",
+   "query": "client onboarding process",
+   "ok": false,
+   "pain_capable": true,
+   "hits": [],
+   "error": "unavailable: test"
+  },
+  {
+   "source": "searxng",
+   "query": "chasing clients for content",
+   "ok": false,
+   "pain_capable": true,
+   "hits": [],
+   "error": "unavailable: test"
+  }
+ ]
+}

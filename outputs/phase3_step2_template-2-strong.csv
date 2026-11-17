@@ -1,0 +1,4 @@
+Client Name,Invoice Date,Original Due Date,First Follow-Up Date,First Follow-Up Email Content,Client Response to First Follow-Up,Second Follow-Up Date,Second Follow-Up Email Content
+Client A,2024-04-01,2024-04-15,2024-04-18,"Hi Client A, we noticed your invoice is overdue. Could you please confirm payment by April 20?",No response,2024-04-25,"Hi Client A, we’re following up again. Your invoice is still overdue. Please pay by April 28 to avoid late fees."
+Client B,2024-04-05,2024-04-10,2024-04-13,"Hi Client B, we noticed your invoice is overdue. Could you please confirm payment by April 12?","Yes, payment made on April 12",2024-04-20,No follow-up needed
+Client C,2024-04-08,2024-04-18,2024-04-21,"Hi Client C, we noticed your invoice is overdue. Could you please confirm payment by April 20?",No response,2024-04-28,"Hi Client C, we’re following up again. Your invoice is still overdue. Please pay by May 1 to avoid late fees."

@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>J.A.R.V.I.S. · ProveIt</title>
+<style>
+:root{--bg:#06090F;--panel:#0A0F18;--fg:#D8F6FF;--muted:#7E98AC;--cyan:#00F0FF;--line:#00F0FF33;--amber:#FFB800;--crimson:#FF2A54;--green:#3CFFA0;
+--mono:"JetBrains Mono","Fira Code",ui-monospace,Consolas,monospace}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.5 var(--mono);padding-bottom:86px}
+a{color:var(--cyan)}
+header{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+header .brand{font-weight:700;letter-spacing:.18em;color:var(--cyan);margin-right:auto}
+header .brand small{color:var(--muted);letter-spacing:.05em;font-weight:400}
+button{font:inherit;background:transparent;color:var(--cyan);border:1px solid var(--line);padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--cyan)} button.on{background:#00F0FF22;border-color:var(--cyan)}
+button.primary{background:var(--cyan);color:#001018;font-weight:700}
+button.danger{color:var(--crimson);border-color:#FF2A5455} button.warn{color:var(--amber);border-color:#FFB80055}
+.badge{display:inline-block;border:1px solid var(--line);padding:1px 6px;margin:1px;font-size:11px;white-space:nowrap}
+.b-live{color:var(--green);border-color:#3CFFA055}.b-arch{color:var(--amber);border-color:#FFB80055}.b-assume{color:var(--muted)}
+.b-mock{color:var(--amber);border-color:#FFB80088}.b-stub{color:#C38BFF;border-color:#C38BFF88}.b-red{color:var(--crimson);border-color:var(--crimson)}
+main{display:grid;gap:14px;padding:14px 16px}
+main.dual{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr)}
+@media (max-width:900px){main.dual{grid-template-columns:1fr}}
+section.panel{border:1px solid var(--line);background:var(--panel);padding:12px;min-width:0}
+h2{font-size:12px;letter-spacing:.2em;color:var(--cyan);margin:0 0 10px;text-transform:uppercase}
+h3{font-size:12px;color:var(--fg);margin:12px 0 6px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+label{display:block;color:var(--muted);font-size:11px;margin-top:6px}
+input,textarea,select{width:100%;background:#050810;color:var(--fg);border:1px solid var(--line);padding:6px;font:inherit}
+textarea{min-height:64px;resize:vertical}
+.row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.phases{display:flex;gap:4px;flex-wrap:wrap}.phases div{flex:1 1 90px;border:1px solid var(--line);padding:4px 6px;font-size:11px;color:var(--muted)}
+.phases div.active{color:var(--bg);background:var(--cyan)}.phases div.past{color:var(--cyan)}
+.meter{height:10px;border:1px solid var(--line);position:relative;margin:4px 0 10px}.meter>i{position:absolute;inset:0 auto 0 0;background:var(--cyan)}
+.meter>b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--amber)}
+.gatebox{border:1px solid var(--line);padding:10px;margin-top:8px}
+.gatebox.go{border-color:var(--cyan)}.gatebox.repeat,.gatebox.pivot{border-color:var(--amber)}.gatebox.stop{border-color:var(--crimson)}
+.verdict{font-size:22px;font-weight:700;letter-spacing:.15em}
+.go .verdict{color:var(--cyan)}.repeat .verdict,.pivot .verdict{color:var(--amber)}.stop .verdict{color:var(--crimson)}
+.debate{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media (max-width:600px){.debate{grid-template-columns:1fr}}
+.debate div{border:1px solid var(--line);padding:8px}.adv h3{color:var(--cyan)}.skp h3{color:var(--crimson)}
+.tablewrap{overflow-x:auto;max-height:420px;overflow-y:auto}
+table{border-collapse:collapse;width:100%;font-size:12px}td,th{border-bottom:1px solid #00F0FF1A;padding:5px;text-align:left;vertical-align:top}
+th{color:var(--muted);font-weight:400;position:sticky;top:0;background:var(--panel)}
+.quote{color:var(--fg)}.grey{color:var(--muted);font-size:11px}
+.approval{border:1px solid var(--amber);padding:8px;margin:6px 0}.approval.flash{animation:flash 1s 4}
+@keyframes flash{50%{box-shadow:0 0 0 3px var(--amber)}}
+.sha{word-break:break-all;color:var(--amber)}
+iframe.preview{width:100%;height:280px;border:1px solid var(--line);background:#fff}
+pre{white-space:pre-wrap;word-break:break-word;background:#050810;border:1px solid var(--line);padding:8px;max-height:420px;overflow:auto}
+#hudwrap{position:relative;display:flex;flex-direction:column;align-items:center}
+#hud{width:100%;max-width:640px;aspect-ratio:1/1}
+#narr{width:100%;max-height:190px;overflow:auto;font-size:12px;border-top:1px solid var(--line);margin-top:8px;padding-top:6px}
+#narr p{margin:3px 0}#narr .you{color:var(--muted)}#narr .p0{color:var(--crimson)}
+.askbar{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:10px 16px;
+padding-bottom:calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:6px;flex-wrap:wrap;z-index:6}
+.askbar input{flex:1 1 260px}
+#askout{position:fixed;right:16px;bottom:74px;max-width:min(560px,calc(100% - 32px));background:var(--panel);border:1px solid var(--line);padding:10px;display:none;z-index:7;white-space:pre-wrap}
+#askout.crimson{border-color:var(--crimson);color:#FFD6DE}
+.hidden{display:none!important}
+.redbanner{border:1px solid var(--crimson);color:var(--crimson);padding:6px 8px;margin:6px 0}
+.ambanner{border:1px solid var(--amber);color:var(--amber);padding:6px 8px;margin:6px 0}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">J.A.R.V.I.S. <small>Just A Rather Very Intelligent Strategist · ProveIt engine</small></div>
+  <button id="m-tactical" onclick="setMode('tactical')">[ ⌨️ TACTICAL WRITING MODE ]</button>
+  <button id="m-hud" onclick="setMode('hud')">[ 🎙️ J.A.R.V.I.S. HOLOGRAPHIC VOICE HUD ]</button>
+  <button id="m-dual" onclick="setMode('dual')">[ ⇄ DUAL-SYNC ]</button>
+  <button id="voiceToggle" onclick="toggleVoice()">VOICE: ON</button>
+  <span id="modelBadge" class="badge">model: …</span>
+</header>
+
+<main id="main">
+<section class="panel" id="tactical">
+  <h2>Founder brief</h2>
+  <div class="grid2">
+    <div><label>Idea (required)</label><textarea id="f-idea"></textarea></div>
+    <div><label>Founder skills</label><textarea id="f-skills"></textarea></div>
+    <div><label>Budget</label><input id="f-budget"></div>
+    <div><label>Hours / week</label><input id="f-hours_per_week"></div>
+    <div><label>Target market / region</label><input id="f-target_market"></div>
+    <div><label>Core values</label><input id="f-values"></div>
+  </div>
+  <label>Paste full brief (labelled lines such as "Idea: …" are parsed into the fields)</label>
+  <textarea id="paste"></textarea>
+  <div class="row">
+    <button onclick="parsePaste()">Parse brief</button>
+    <button onclick="loadPreset('weak')">Load Weak Brief</button>
+    <button onclick="loadPreset('strong')">Load Strong Brief</button>
+    <select id="runmode" style="width:auto"><option value="live">live mode (variant 1)</option><option value="full">full mode (3 variants)</option></select>
+    <button class="primary" onclick="startRun()">RUN PIPELINE</button>
+    <select id="runpick" style="width:auto;min-width:220px" onchange="followRun(this.value)"><option value="">— select a run —</option></select>
+  </div>
+
+  <h2 style="margin-top:16px">Live pipeline telemetry</h2>
+  <div class="phases" id="phases"></div>
+  <div class="row"><span id="shaBadge" class="badge">SHA-256: —</span><span id="stageBadge" class="badge">stage: —</span><span id="usageBadge" class="badge">cost: $0.00</span></div>
+  <div id="banners"></div>
+  <div class="grid2">
+    <div>Evidence meter (weighted pain vs pre-registered threshold)<div class="meter" id="evMeter"><i></i><b></b></div><span id="evText" class="grey"></span></div>
+    <div>Source coverage meter<div class="meter" id="covMeter"><i></i><b></b></div><span id="covText" class="grey"></span></div>
+  </div>
+  <div id="gate"></div>
+  <div id="debate"></div>
+
+  <h2 style="margin-top:16px">Cryptographic approval console</h2>
+  <div id="approvals"><span class="grey">No pending approvals.</span></div>
+
+  <h2 style="margin-top:16px">Evidence ledger</h2>
+  <div class="tablewrap"><table id="ledger"><thead><tr><th>ID</th><th>Status</th><th>Kind / cue</th><th>Verbatim quote (cut by code)</th><th>Source</th></tr></thead><tbody></tbody></table></div>
+
+  <h2 style="margin-top:16px">Artifacts</h2>
+  <div class="row" id="files"></div>
+  <div id="viewer"></div>
+
+  <h2 style="margin-top:16px">What works and what is mocked</h2>
+  <div class="row">{% for name, st in status_table %}<span class="badge {{ 'b-mock' if st == 'MOCKED' else ('b-stub' if st == 'STUBBED' else '') }}">{{ name }}: {{ st }}</span>{% endfor %}</div>
+</section>
+
+<section class="panel" id="hudpanel">
+  <h2>Holographic voice HUD</h2>
+  <div id="hudwrap">
+    <canvas id="hud" width="900" height="900" aria-label="J.A.R.V.I.S. voice visualiser"></canvas>
+    <div class="row">
+      <button id="ptt" class="primary">[ 🎙️ PUSH TO TALK ]</button>
+      <button id="wake" onclick="toggleWake()">WAKE WORD "JARVIS": OFF</button>
+      <span id="voiceInfo" class="grey"></span>
+    </div>
+    <div id="narr"></div>
+  </div>
+</section>
+</main>
+
+<div id="askout"></div>
+<div class="askbar">
+  <input id="ask" placeholder='Ask J.A.R.V.I.S. — "why did you stop this idea?", "rewrite the headline", or any instruction' onkeydown="if(event.key==='Enter')sendAsk()">
+  <button class="primary" onclick="sendAsk()">ASK</button>
+  <button onclick="pttOnce()">🎙️</button>
+</div>
+
+<script>
+const API = {{ api_base|tojson }} || "";
+const EMBED = {{ 'true' if embed else 'false' }};
+const COLORS = {cyan:"#00F0FF", amber:"#FFB800", crimson:"#FF2A54"};
+const PHASES = ["Discover","Validate","Build","Commercial setup","Launch","Operate & learn"];
+let S = {mode:"{{ initial_mode }}", run:null, seq:0, view:null, voice:true, core:"cyan", coreText:"STANDBY", wake:false, filesSeen:""};
+
+async function api(path, opts={}) {
+  const r = await fetch(API + path, Object.assign({headers:{"Content-Type":"application/json"}}, opts));
+  const ct = r.headers.get("content-type") || "";
+  const body = ct.includes("json") ? await r.json() : await r.text();
+  if (!r.ok) throw Object.assign(new Error(typeof body === "string" ? body : (body.detail || body.error || r.status)), {status:r.status, body});
+  return body;
+}
+function esc(s){return String(s ?? "").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+// ---------- modes ----------
+function setMode(m){
+  S.mode = m;
+  const main = document.getElementById("main");
+  document.getElementById("tactical").classList.toggle("hidden", m === "hud");
+  document.getElementById("hudpanel").classList.toggle("hidden", m === "tactical");
+  main.classList.toggle("dual", m === "dual");
+  for (const k of ["tactical","hud","dual"]) document.getElementById("m-"+k).classList.toggle("on", k === m);
+  try { localStorage.setItem("jarvis_mode", m); } catch(e) {}
+  resizeHud();
+}
+function toggleVoice(){ S.voice = !S.voice; document.getElementById("voiceToggle").textContent = "VOICE: " + (S.voice ? "ON" : "OFF"); if(!S.voice) speechSynthesis.cancel(); }
+
+// ---------- brief form ----------
+const FIELDS = ["idea","skills","budget","hours_per_week","target_market","values"];
+const LABELS = {idea:/^(starting )?idea$/, skills:/^(founder'?s? )?skills?$/, budget:/^budget$/, hours_per_week:/^(available )?(time|hours?)( ?(\/|per) ?week)?$/, target_market:/^(target( market)?|market|region)$/, values:/^(core )?values$/};
+function parseBrief(text){
+  const out = {};
+  for (let line of text.split(/\r?\n/)) {
+    line = line.replace(/^[\s>*\-#]+/, "").replace(/\*\*/g, "").trim();
+    const m = line.match(/^([A-Za-z' \/]+?)\s*[:\-–]\s+(.+)$/); if (!m) continue;
+    const label = m[1].trim().toLowerCase();
+    for (const f of FIELDS) if (!out[f] && LABELS[f].test(label)) { out[f] = m[2].trim(); break; }
+  }
+  return out;
+}
+function parsePaste(){ const p = parseBrief(document.getElementById("paste").value); for (const f of FIELDS) if (p[f]) document.getElementById("f-"+f).value = p[f]; if(!p.idea && document.getElementById("paste").value.trim()) document.getElementById("f-idea").value = document.getElementById("paste").value.trim(); }
+async function loadPreset(name){ const r = await api("/api/presets/"+name); document.getElementById("paste").value = r.text; parsePaste(); }
+async function startRun(){
+  const fields = {}; for (const f of FIELDS) fields[f] = document.getElementById("f-"+f).value.trim();
+  if (!fields.idea) { showAsk("The idea is required.", false); return; }
+  const r = await api("/api/runs", {method:"POST", body:JSON.stringify({brief_text:"", fields, mode:document.getElementById("runmode").value})});
+  await refreshRuns(); followRun(r.run_id);
+}
+async function refreshRuns(){
+  const runs = await api("/api/runs"); const sel = document.getElementById("runpick");
+  sel.innerHTML = '<option value="">— select a run —</option>' + runs.map(r=>`<option value="${r.id}" ${r.id===S.run?"selected":""}>${r.id} ${r.label||""} · ${r.stage}${r.outcome?" · "+r.outcome:""}</option>`).join("");
+}
+function followRun(id){ if(!id) return; S.run = id; S.seq = 0; S.filesSeen = ""; document.getElementById("narr").innerHTML = ""; S.core="cyan"; S.coreText="SCANNING"; poll(); }
+
+// ---------- polling + rendering ----------
+async function poll(){
+  if (!S.run) return;
+  try {
+    const [v, tel] = await Promise.all([api("/api/runs/"+S.run), api(`/api/runs/${S.run}/telemetry?since=${S.seq}`)]);
+    S.view = v;
+    for (const t of tel) { S.seq = Math.max(S.seq, t.seq); onTelemetry(t); }
+    render(v);
+  } catch(e) { console.warn(e); }
+}
+setInterval(poll, 1000);
+setInterval(()=>{ refreshRuns().catch(()=>{}); api("/api/model").then(m=>{ const b=document.getElementById("modelBadge"); b.textContent = "model: " + m.model + " · " + m.state; b.className = "badge " + (m.state==="ready"?"b-live":"b-red"); }).catch(()=>{}); }, 5000);
+
+function onTelemetry(t){
+  const fresh = Date.parse(t.ts) > Date.now() - 20000;  // never re-speak an old run's narration
+  if (t.kind === "narration") { narr(t.text); if (fresh) say(t.text); }
+  if (t.kind === "protocol0") { setCore("crimson","PROTOCOL 0"); }
+  if (t.kind === "gate") {
+    const o = t.text; setCore(o==="go"?"cyan":(o==="stop"?"crimson":"amber"), o.toUpperCase());
+  }
+  if (t.kind === "approval") setCore("amber","AWAITING APPROVAL");
+  if (t.kind === "progress" && S.core !== "crimson") { S.coreText = "PHASE " + t.phase; }
+  if (t.kind === "error") { narr("Error: " + t.text, "p0"); setCore("crimson","ERROR"); }
+}
+function setCore(c, text){ S.core = c; S.coreText = text; }
+
+function badge(c){
+  if (c.weight > 0 && c.status === "verified_live") return `<span class="badge b-live">[VERIFIED_LIVE: ${c.weight}]</span>`;
+  if (c.weight > 0 && c.status === "archived_match") return `<span class="badge b-arch">[ARCHIVED_MATCH: ${c.weight}]</span>`;
+  if (c.label === "ASSUMPTION" || c.status === "unverified") return `<span class="badge b-assume">[ASSUMPTION: 0.0]</span>`;
+  return `<span class="badge b-assume">[${c.status.toUpperCase()}: 0.0]</span>`;
+}
+function meter(id, val, max, thr){ const el=document.getElementById(id); const pct=Math.min(100, 100*val/max); el.querySelector("i").style.width=pct+"%"; el.querySelector("b").style.left=Math.min(100,100*thr/max)+"%"; }
+
+function render(v){
+  const ph = document.getElementById("phases"); ph.innerHTML = PHASES.map((n,i)=>`<div class="${i+1===v.phase?"active":(i+1<v.phase?"past":"")}">${i+1}. ${n}</div>`).join("");
+  const sb = document.getElementById("shaBadge");
+  sb.textContent = "SHA-256 pre-registered: " + (v.thresholds_sha256||"").slice(0,16) + "…" + (v.goalpost_moved ? "  GOALPOST_MOVED: TRUE" : "  GOALPOST_MOVED: FALSE");
+  sb.className = "badge " + (v.goalpost_moved ? "b-red" : "b-live");
+  document.getElementById("stageBadge").textContent = "stage: " + v.stage + (v.working ? " (working…)" : "");
+  const u = v.usage || {}; document.getElementById("usageBadge").textContent = `cost: $0.00 · ${u.calls||0} model calls · ${((u.tokens_in||0)+(u.tokens_out||0))} tokens · ${u.seconds||0}s`;
+  let ban = "";
+  if (v.override) ban += `<div class="ambanner">Phases 3-5 shown as a preview after a founder override; demand not yet proven. Reason: ${esc(v.override.reason)}</div>`;
+  if (v.goalpost_moved) ban += `<div class="redbanner">GOALPOST_MOVED: TRUE. Thresholds changed after pre-registration.</div>`;
+  if (v.error) ban += `<div class="redbanner">${esc(v.error).slice(0,300)}</div>`;
+  if (v.clarify && v.stage === "await_clarify") ban += `<div class="ambanner">${esc(v.clarify)} <button onclick="decide('clarify_ok')">Confirm: digital product, no advice</button></div>`;
+  document.getElementById("banners").innerHTML = ban;
+  const m = v.metrics, th = v.thresholds;
+  if (m && th) {
+    meter("evMeter", m.sourced_pain, Math.max(th.min_sourced_pain*2, m.sourced_pain), th.min_sourced_pain);
+    document.getElementById("evText").textContent = `${m.sourced_pain} weighted (${m.claims_verified_live} live, ${m.claims_archived} archived) vs ≥ ${th.min_sourced_pain}`;
+    meter("covMeter", m.coverage, 1, th.min_coverage);
+    document.getElementById("covText").textContent = `${m.coverage} vs ≥ ${th.min_coverage} · ` + (v.coverage_rows||[]).map(r=>`${r.source}:${r.on_topic}/${r.hits}${r.ok?"":" (unavailable)"}`).join(" · ");
+  }
+  renderGate(v); renderDebate(v); renderLedger(v); renderFiles(v); renderApprovals(v);
+}
+
+function gateCard(title, g, buttons){
+  if (!g) return "";
+  return `<div class="gatebox ${g.outcome}"><div class="grey">${title}</div><div class="verdict">${g.outcome.toUpperCase()}</div>
+   <div>reason: <b>${esc(g.reason)}</b> · rule: ${esc(g.rule_fired)} · next: ${esc(g.next_step||"-")} · founder: ${esc(g.founder_decision)}</div>
+   <div style="margin-top:4px">${esc(g.recommendation)}</div>${buttons||""}</div>`;
+}
+function renderGate(v){
+  let html = "";
+  const st = v.stage;
+  let b1 = "";
+  if (st === "await_founder" || st === "stopped") b1 = `<div class="row"><button onclick="decide('accept')">Accept</button><button class="warn" onclick="decide('repeat')">Repeat</button><button class="warn" onclick="decide('pivot')">Pivot to variant ${(v.variant_n||1)+1}</button><button class="danger" onclick="decide('stop')">Stop</button></div>`;
+  if (st === "await_founder" && v.gate1 && v.gate1.outcome !== "go") b1 += overrideBox();
+  html += gateCard("GATE 1 · EVIDENCE (code decides)", v.gate1, (v.gate2 ? "" : b1));
+  let b2 = st === "await_override" ? `<div class="row"><button onclick="decide('accept')">Accept REPEAT</button><button class="danger" onclick="decide('stop')">Stop</button></div>` + overrideBox() : "";
+  html += gateCard("GATE 2 · DEMAND", v.gate2, b2);
+  html += gateCard("GATE 3 · TESTS", v.gate3, "");
+  if (st === "await_gate4") html += `<div class="gatebox repeat"><div class="grey">GATE 4 · FOUNDER APPROVAL OF PRICE AND POLICIES</div><div class="row"><button class="primary" onclick="decide('gate4_approve')">Approve</button><button class="danger" onclick="decide('gate4_reject')">Reject</button></div></div>`;
+  html += gateCard("GATE 4 · COMMERCIAL", v.gate4, "");
+  document.getElementById("gate").innerHTML = html;
+}
+function overrideBox(){ return `<div class="row"><input id="ovr" placeholder="Override reason (required, guard-checked, logged)"><button class="warn" onclick="decide('override', document.getElementById('ovr').value)">Founder override</button></div>`; }
+async function decide(d, reason=""){ const r = await api(`/api/runs/${S.run}/decide`, {method:"POST", body:JSON.stringify({decision:d, reason})}); if (!r.ok) showAsk(r.error, true); poll(); }
+
+function renderDebate(v){
+  if (!v.debate) { document.getElementById("debate").innerHTML = ""; return; }
+  const ids = new Set((v.claims||[]).filter(c=>c.weight>0).map(c=>c.id));
+  const st = s => { const ok = (s.claim_ids||[]).filter(i=>ids.has(i)); return `<p>${ok.length?"":"<span class='grey'>ASSUMPTION:</span> "}${esc(s.text)} ${ok.map(i=>`<span class="badge">[${i}]</span>`).join("")}</p>`; };
+  document.getElementById("debate").innerHTML = `<div class="debate"><div class="adv"><h3>ADVOCATE · case for GO</h3>${v.debate.advocate.map(st).join("")}</div><div class="skp"><h3>SKEPTIC · case for STOP</h3>${v.debate.skeptic.map(st).join("")}</div></div><p class="grey">Citations shown only if the claim kept a weight above zero; the full check (keyword and number support) runs in render.py.</p>`;
+}
+function renderLedger(v){
+  const rows = (v.claims||[]).slice().sort((a,b)=>b.weight-a.weight).map(c=>`<tr><td>${c.id}</td><td>${badge(c)}</td><td>${c.kind}<br><span class="grey">${esc(c.cue_matched||"-")}</span></td>
+   <td class="quote">"${esc(c.quote||"")}"<div class="grey">${esc(c.claim_text)}${c.weight_note?" · "+esc(c.weight_note):""}</div></td><td>${c.url?`<a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.source)}</a>`:"ASSUMPTION"}</td></tr>`).join("");
+  document.querySelector("#ledger tbody").innerHTML = rows || `<tr><td colspan="5" class="grey">No claims yet.</td></tr>`;
+}
+function renderFiles(v){
+  const key = (v.files||[]).join(",");
+  if (key === S.filesSeen) return; S.filesSeen = key;
+  document.getElementById("files").innerHTML = (v.files||[]).filter(f=>/^(phase|payment)/.test(f)).map(f=>`<button onclick="viewFile('${f}')">${f}</button>`).join("");
+}
+async function viewFile(name){
+  const t = await api(`/api/runs/${S.run}/files/${name}`);
+  const el = document.getElementById("viewer");
+  if (name.endsWith(".html")) { el.innerHTML = `<iframe class="preview" sandbox=""></iframe>`; el.querySelector("iframe").srcdoc = t; }
+  else el.innerHTML = `<pre>${esc(t)}</pre>`;
+}
+
+// ---------- approvals ----------
+let shownApprovals = "";
+async function renderApprovals(v){
+  const list = await api("/api/approvals?status=pending" + (S.run ? "&run="+S.run : ""));
+  const key = list.map(a=>a.id).join(",");
+  if (key === shownApprovals) return; shownApprovals = key;
+  const box = document.getElementById("approvals");
+  if (!list.length) { box.innerHTML = `<span class="grey">No pending approvals.</span>`; return; }
+  box.innerHTML = "";
+  for (const a of list) {
+    const payload = await api(`/api/approvals/${a.id}/payload`);
+    const div = document.createElement("div"); div.className = "approval"; div.id = "ap-"+a.id;
+    div.innerHTML = `<div><b>${esc(a.action)}</b> · ${esc(a.id)} · ${esc(a.note)}</div><div>payload SHA-256: <span class="sha">${a.payload_sha256}</span></div>
+      <div class="preview-slot"></div><div class="row"><button class="primary">[ APPROVE (HASH-LOCKED) ]</button><button class="danger">[ REJECT ]</button></div>`;
+    const slot = div.querySelector(".preview-slot");
+    if (/^\s*<!doctype html/i.test(payload)) { const f=document.createElement("iframe"); f.className="preview"; f.sandbox=""; f.srcdoc=payload; slot.appendChild(f); }
+    else { slot.innerHTML = `<pre>${esc(payload)}</pre>`; }
+    const [ok, no] = div.querySelectorAll("button");
+    ok.onclick = () => approve(a.id, true, a.payload_sha256); no.onclick = () => approve(a.id, false, a.payload_sha256);
+    box.appendChild(div);
+  }
+}
+async function approve(id, yes, sha){ await api(`/api/approvals/${id}`, {method:"POST", body:JSON.stringify({approve:yes, payload_sha256:sha})}); shownApprovals = ""; poll(); }
+function highlightApproval(id){ setMode(S.mode === "hud" ? "dual" : S.mode); const el = document.getElementById("ap-"+id); if (el) { el.scrollIntoView({behavior:"smooth", block:"center"}); el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash"); } }
+
+// ---------- Ask J.A.R.V.I.S. ----------
+function showAsk(text, crimson){ const o = document.getElementById("askout"); o.textContent = text; o.className = crimson ? "crimson" : ""; o.style.display = "block"; clearTimeout(o._t); o._t = setTimeout(()=>o.style.display="none", 14000); }
+async function sendAsk(text){
+  const inp = document.getElementById("ask"); text = (text ?? inp.value).trim(); if (!text) return; inp.value = "";
+  narr("You: " + text, "you");
+  const r = await api("/api/ask", {method:"POST", body:JSON.stringify({text, run_id:S.run})});
+  showAsk(r.text, r.alert === "crimson");
+  if (r.alert === "crimson") { setCore("crimson","PROTOCOL 0"); narr(r.spoken, "p0"); }
+  else narr(r.spoken);
+  say(r.spoken);
+  if (r.highlight_approval) highlightApproval(r.highlight_approval);
+  if (r.start_run) { await refreshRuns(); followRun(r.start_run); }
+}
+function narr(text, cls=""){ const n = document.getElementById("narr"); const p = document.createElement("p"); p.className = cls; p.textContent = text; n.appendChild(p); n.scrollTop = n.scrollHeight; }
+
+// ---------- voice out: local Piper via /api/voice/speak, else browser en-GB voice ----------
+let AC = null, analyser = null, freq = new Uint8Array(64), speakingSynth = 0, queue = Promise.resolve();
+function audioCtx(){ if (!AC) { AC = new (window.AudioContext||window.webkitAudioContext)(); analyser = AC.createAnalyser(); analyser.fftSize = 128; analyser.smoothingTimeConstant = .75; analyser.connect(AC.destination); } return AC; }
+function pickVoice(){
+  const vs = speechSynthesis.getVoices(); const pref = ["Microsoft Ryan Online (Natural) - English (United Kingdom)","Google UK English Male","Daniel","Microsoft George - English (United Kingdom)","Arthur"];
+  for (const n of pref) { const v = vs.find(x=>x.name===n); if (v) return v; }
+  return vs.find(v=>v.lang==="en-GB" && /male|george|ryan|daniel|arthur|oliver/i.test(v.name)) || vs.find(v=>v.lang==="en-GB") || null;
+}
+function say(text){ if (!S.voice || !text) return; queue = queue.then(()=>speakOne(text)).catch(()=>{}); }
+async function speakOne(text){
+  const ctrl = new AbortController(); const timer = setTimeout(()=>ctrl.abort(), 500);
+  try {
+    const r = await fetch(API + "/api/voice/speak", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({text}), signal:ctrl.signal});
+    clearTimeout(timer);
+    if (!r.ok) throw new Error("no server tts");
+    const buf = await (await r.blob()).arrayBuffer();
+    const ctx = audioCtx(); if (ctx.state === "suspended") await ctx.resume();
+    const audio = await ctx.decodeAudioData(buf);
+    await new Promise(res => { const src = ctx.createBufferSource(); src.buffer = audio; src.connect(analyser); src.onended = res; src.start(); });
+    document.getElementById("voiceInfo").textContent = "voice: local Piper (en-GB)";
+  } catch (e) {
+    clearTimeout(timer);
+    await new Promise(res => {
+      const u = new SpeechSynthesisUtterance(text); const v = pickVoice(); if (v) u.voice = v; u.lang = "en-GB"; u.pitch = 0.92; u.rate = 1.04;
+      u.onstart = () => speakingSynth = 1; u.onend = u.onerror = () => { speakingSynth = 0; res(); };
+      u.onboundary = () => speakingSynth = 1.6;
+      speechSynthesis.speak(u);
+      document.getElementById("voiceInfo").textContent = "voice: browser " + (v ? v.name : "en-GB") + " (waveform simulated)";
+    });
+  }
+}
+
+// ---------- voice in: push-to-talk, wake word, local whisper fallback ----------
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, wakeRec = null, micSrc = null, micAn = null, micFreq = new Uint8Array(64);
+async function micToAnalyser(on){
+  try {
+    if (on && !micSrc) { const ctx = audioCtx(); const stream = await navigator.mediaDevices.getUserMedia({audio:true}); micSrc = ctx.createMediaStreamSource(stream); micSrc._stream = stream; micAn = ctx.createAnalyser(); micAn.fftSize = 128; micSrc.connect(micAn); }
+    if (!on && micSrc) { micSrc.disconnect(); micSrc._stream.getTracks().forEach(t=>t.stop()); micSrc = null; micAn = null; micFreq.fill(0); }
+  } catch(e) {}
+}
+function handleHeard(text){
+  text = text.trim(); if (!text) return;
+  const m = text.match(/^\s*(hey\s+)?jarvis[\s,.:!-]*(.*)$/i);
+  sendAsk(m ? (m[2] || "") : text);
+}
+function startPTT(){
+  setCore(S.core, "LISTENING"); micToAnalyser(true);
+  if (SR) { rec = new SR(); rec.lang = "en-GB"; rec.interimResults = false; rec.onresult = e => handleHeard(e.results[0][0].transcript); rec.onend = () => micToAnalyser(false); rec.start(); }
+  else recordFallback();
+}
+function stopPTT(){ if (rec) { rec.stop(); rec = null; } else if (mediaRec) mediaRec.stop(); }
+let mediaRec = null;
+async function recordFallback(){
+  const stream = await navigator.mediaDevices.getUserMedia({audio:true}); const chunks = [];
+  mediaRec = new MediaRecorder(stream); mediaRec.ondataavailable = e => chunks.push(e.data);
+  mediaRec.onstop = async () => { stream.getTracks().forEach(t=>t.stop()); mediaRec = null; micToAnalyser(false);
+    const fd = new FormData(); fd.append("audio", new Blob(chunks, {type:"audio/webm"}), "speech.webm");
+    const r = await fetch(API + "/api/voice/transcribe", {method:"POST", body:fd}); const j = await r.json();
+    if (j.text) handleHeard(j.text); else showAsk("Speech recognition is unavailable in this browser and the local fallback is not installed.", false); };
+  mediaRec.start();
+}
+function pttOnce(){ startPTT(); setTimeout(stopPTT, 6000); }
+const pttBtn = document.getElementById("ptt");
+pttBtn.addEventListener("pointerdown", startPTT); pttBtn.addEventListener("pointerup", stopPTT); pttBtn.addEventListener("pointerleave", ()=>{ if (rec || mediaRec) stopPTT(); });
+function toggleWake(){
+  S.wake = !S.wake; document.getElementById("wake").textContent = `WAKE WORD "JARVIS": ${S.wake ? "ON" : "OFF"}`;
+  if (!SR) { showAsk("Continuous wake-word listening needs the browser SpeechRecognition API.", false); S.wake = false; return; }
+  if (S.wake) {
+    wakeRec = new SR(); wakeRec.lang = "en-GB"; wakeRec.continuous = true; wakeRec.interimResults = false;
+    wakeRec.onresult = e => { const t = e.results[e.results.length-1][0].transcript; if (/^\s*(hey\s+)?jarvis\b/i.test(t)) handleHeard(t); };
+    wakeRec.onend = () => { if (S.wake) wakeRec.start(); };
+    wakeRec.start();
+  } else if (wakeRec) { wakeRec.onend = null; wakeRec.stop(); }
+}
+
+// ---------- the HUD canvas ----------
+const cv = document.getElementById("hud"), g2 = cv.getContext("2d");
+function resizeHud(){ const r = cv.getBoundingClientRect(); const d = window.devicePixelRatio || 1; if (r.width) { cv.width = r.width * d; cv.height = r.width * d; } }
+window.addEventListener("resize", resizeHud);
+let tick = 0;
+function sourceLatencies(){
+  const rows = (S.view && S.view.coverage_rows) || []; const out = {};
+  for (const r of rows) out[r.source] = r;
+  return ["hn","stackexchange","github","searxng","wikipedia"].map(s => ({s, r: out[s]}));
+}
+function draw(){
+  requestAnimationFrame(draw); tick++;
+  const W = cv.width, H = cv.height, cx = W/2, cy = H/2, R = Math.min(W,H)/2 * .92;
+  if (!W) return;
+  const col = COLORS[S.core] || COLORS.cyan;
+  g2.clearRect(0,0,W,H);
+  // frequency data: real analyser (Piper audio or microphone), else a simulated envelope for browser speech
+  if (analyser) analyser.getByteFrequencyData(freq);
+  if (micAn) micAn.getByteFrequencyData(micFreq);
+  const synthAmp = speakingSynth ? (0.45 + 0.35*Math.abs(Math.sin(tick/5)) ) * (speakingSynth > 1 ? 1.15 : 1) : 0;
+  if (speakingSynth > 1) speakingSynth = 1;
+  // outer ring: phase segments + rotating ticks
+  const phase = (S.view && S.view.phase) || 0;
+  for (let i = 0; i < 6; i++) {
+    const a0 = -Math.PI/2 + i*Math.PI/3 + 0.04, a1 = a0 + Math.PI/3 - 0.08;
+    g2.beginPath(); g2.arc(cx,cy,R*.97,a0,a1); g2.lineWidth = R*.035;
+    g2.strokeStyle = i+1 === phase ? col : (i+1 < phase ? col+"88" : "#00F0FF22"); g2.stroke();
+    const am = (a0+a1)/2; g2.fillStyle = i+1 === phase ? col : "#7E98AC"; g2.font = `${Math.round(R*.04)}px monospace`; g2.textAlign = "center";
+    g2.fillText(`${i+1} ${PHASES[i].toUpperCase()}`, cx + Math.cos(am)*R*.88, cy + Math.sin(am)*R*.88);
+  }
+  g2.save(); g2.translate(cx,cy); g2.rotate(tick/400);
+  for (let i = 0; i < 120; i++) { const a = i*Math.PI/60; const long = i % 10 === 0; g2.beginPath(); g2.moveTo(Math.cos(a)*R*.80, Math.sin(a)*R*.80); g2.lineTo(Math.cos(a)*R*(long?.76:.785), Math.sin(a)*R*(long?.76:.785)); g2.strokeStyle = long ? col : "#00F0FF44"; g2.lineWidth = long?2:1; g2.stroke(); }
+  g2.restore();
+  // source telemetry arcs
+  sourceLatencies().forEach((x, i) => {
+    const a = Math.PI*0.62 + i*0.19; const ok = x.r ? x.r.ok : null;
+    g2.fillStyle = ok === null ? "#33465A" : (ok ? (x.r.covered ? COLORS.cyan : COLORS.amber) : COLORS.crimson);
+    g2.beginPath(); g2.arc(cx + Math.cos(a)*R*.72, cy + Math.sin(a)*R*.72, R*.012, 0, 7); g2.fill();
+    g2.font = `${Math.round(R*.028)}px monospace`; g2.textAlign = "left";
+    g2.fillText(`${x.s}${x.r ? " " + x.r.on_topic + "/" + x.r.hits : ""}`, cx + Math.cos(a)*R*.72 + R*.02, cy + Math.sin(a)*R*.72 + R*.01);
+  });
+  // middle ring: 64-band circular waveform
+  const inner = R*.42;
+  for (let i = 0; i < 64; i++) {
+    let v = Math.max(analyser ? freq[i % freq.length] / 255 : 0, micAn ? micFreq[i % micFreq.length] / 255 : 0);
+    v = Math.max(v, synthAmp * (0.35 + 0.65*Math.abs(Math.sin(i*0.7 + tick/6))));
+    v = Math.max(v, 0.03 + 0.02*Math.sin(i + tick/20));
+    const a = i/64 * Math.PI*2 - Math.PI/2, len = R*(.04 + v*.24);
+    g2.beginPath(); g2.moveTo(cx + Math.cos(a)*inner, cy + Math.sin(a)*inner); g2.lineTo(cx + Math.cos(a)*(inner+len), cy + Math.sin(a)*(inner+len));
+    g2.strokeStyle = col; g2.globalAlpha = .35 + v*.65; g2.lineWidth = R*.018; g2.stroke(); g2.globalAlpha = 1;
+  }
+  // inner core
+  const pulse = 1 + 0.03*Math.sin(tick/12);
+  const grad = g2.createRadialGradient(cx,cy,R*.05,cx,cy,R*.36*pulse); grad.addColorStop(0,col+"cc"); grad.addColorStop(.6,col+"22"); grad.addColorStop(1,"transparent");
+  g2.fillStyle = grad; g2.beginPath(); g2.arc(cx,cy,R*.36*pulse,0,7); g2.fill();
+  g2.beginPath(); g2.arc(cx,cy,R*.30,0,7); g2.strokeStyle = col; g2.lineWidth = 2; g2.stroke();
+  g2.fillStyle = "#E6FBFF"; g2.textAlign = "center"; g2.font = `bold ${Math.round(R*.075)}px monospace`; g2.fillText(S.coreText, cx, cy + R*.02);
+  g2.font = `${Math.round(R*.032)}px monospace`; g2.fillStyle = col;
+  const sub = S.view ? (S.view.stage || "") : "no run selected"; g2.fillText(sub.toUpperCase(), cx, cy + R*.1);
+  if (S.view && S.view.thresholds_sha256) { g2.fillStyle = S.view.goalpost_moved ? COLORS.crimson : "#7E98AC"; g2.fillText("SHA " + S.view.thresholds_sha256.slice(0,12), cx, cy - R*.12); }
+}
+// initial
+try { const m = localStorage.getItem("jarvis_mode"); if (m && !EMBED) S.mode = m; } catch(e) {}
+setMode(S.mode);
+refreshRuns().then(()=>{ const sel = document.getElementById("runpick"); if (sel.options.length > 1 && !S.run) followRun(sel.options[1].value); }).catch(()=>{});
+requestAnimationFrame(draw);
+if (speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
+document.addEventListener("click", () => { if (AC && AC.state === "suspended") AC.resume(); }, {once:false});
+</script>
+</body>
+</html>

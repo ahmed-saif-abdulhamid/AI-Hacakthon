@@ -1,0 +1,181 @@
+{
+ "variant": {
+  "title": "Motivational lock screen wallpapers",
+  "segment": "smartphone users who like motivational quotes",
+  "job_to_be_done": "decorate phone lock screen wallpapers with motivational quotes"
+ },
+ "calls": [
+  {
+   "source": "hn",
+   "query": "motivational quote wallpapers",
+   "ok": true,
+   "pain_capable": true,
+   "hits": [
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=8000001",
+     "title": "Lock screens",
+     "text": "I change my phone lock screen wallpaper to a new motivational quote every week. I wish my compiler was faster.",
+     "sentences": [
+      "I change my phone lock screen wallpaper to a new motivational quote every week.",
+      "I wish my compiler was faster."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=8000002",
+     "title": "Wallpapers",
+     "text": "There are thousands of free motivational quote wallpapers for phone lock screens. Debugging this race condition is so frustrating.",
+     "sentences": [
+      "There are thousands of free motivational quote wallpapers for phone lock screens.",
+      "Debugging this race condition is so frustrating."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=8000003",
+     "title": "Phones",
+     "text": "My lock screen shows a motivational quote and I like it.",
+     "sentences": [
+      "My lock screen shows a motivational quote and I like it."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=8000004",
+     "title": "Quotes",
+     "text": "Finding a lock screen wallpaper with a motivational quote that is not cheesy is a bit tedious.",
+     "sentences": [
+      "Finding a lock screen wallpaper with a motivational quote that is not cheesy is a bit tedious."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    }
+   ]
+  },
+  {
+   "source": "hn",
+   "query": "lock screen quotes",
+   "ok": true,
+   "pain_capable": true,
+   "hits": [
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=8000005",
+     "title": "Minimal phones",
+     "text": "A plain black lock screen wallpaper beats any motivational quote on my phone. Our build pipeline is broken again.",
+     "sentences": [
+      "A plain black lock screen wallpaper beats any motivational quote on my phone.",
+      "Our build pipeline is broken again."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=8000006",
+     "title": "Free apps",
+     "text": "Free apps already rotate motivational quote wallpapers on the phone lock screen.",
+     "sentences": [
+      "Free apps already rotate motivational quote wallpapers on the phone lock screen."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "hn",
+     "url": "https://news.ycombinator.com/item?id=8000007",
+     "title": "Design",
+     "text": "Typography on motivational quote wallpapers for the lock screen is fun to design.",
+     "sentences": [
+      "Typography on motivational quote wallpapers for the lock screen is fun to design."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    }
+   ]
+  },
+  {
+   "source": "stackexchange",
+   "query": "lock screen wallpaper @ android",
+   "ok": true,
+   "pain_capable": true,
+   "hits": [
+    {
+     "source": "stackexchange",
+     "url": "https://android.stackexchange.com/questions/1",
+     "title": "Set lock screen wallpaper",
+     "text": "How do I set a different phone lock screen wallpaper with quotes?",
+     "sentences": [
+      "How do I set a different phone lock screen wallpaper with quotes?"
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "stackexchange",
+     "url": "https://android.stackexchange.com/questions/2",
+     "title": "Rotate wallpapers",
+     "text": "Is there a way to rotate motivational quote wallpapers on the lock screen daily?",
+     "sentences": [
+      "Is there a way to rotate motivational quote wallpapers on the lock screen daily?"
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    },
+    {
+     "source": "stackexchange",
+     "url": "https://android.stackexchange.com/questions/3",
+     "title": "Widgets",
+     "text": "Lock screen widgets can show a motivational quote on the phone.",
+     "sentences": [
+      "Lock screen widgets can show a motivational quote on the phone."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    }
+   ]
+  },
+  {
+   "source": "github",
+   "query": "quote wallpaper",
+   "ok": true,
+   "pain_capable": false,
+   "hits": [
+    {
+     "source": "github",
+     "url": "https://github.com/example/quote-wallpapers",
+     "title": "example/quote-wallpapers",
+     "text": "example/quote-wallpapers: Free motivational quote wallpapers for phone lock screens.",
+     "sentences": [
+      "example/quote-wallpapers: Free motivational quote wallpapers for phone lock screens."
+     ],
+     "published_at": "2026-09-01T00:00:00+00:00",
+     "engagement": 10
+    }
+   ]
+  },
+  {
+   "source": "searxng",
+   "query": "motivational quote wallpapers",
+   "ok": false,
+   "pain_capable": true,
+   "hits": [],
+   "error": "unavailable: test"
+  },
+  {
+   "source": "searxng",
+   "query": "lock screen quotes",
+   "ok": false,
+   "pain_capable": true,
+   "hits": [],
+   "error": "unavailable: test"
+  }
+ ]
+}

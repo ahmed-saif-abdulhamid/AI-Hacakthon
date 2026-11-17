@@ -1,0 +1,23 @@
+# Pre-registered gate thresholds (team defaults, shown as ASSUMPTION in outputs).
+# The founder may edit them BEFORE a run starts. sha256(gates.yaml + brief) is logged
+# as the first entry of every run; a later change is logged as goalpost_moved: true.
+gate1_evidence:
+  min_sourced_pain: 6            # weighted count (verified_live 1.0, archived_match 0.5)
+  min_distinct_sources: 2
+  max_age_months: 24
+  min_recent_share: 0.5          # share of counted pain claims dated within max_age_months
+  min_wtp_signals: 1             # a verified price point, or a "would pay" / "paid for" quote
+  competitor_band: [1, 15]       # DISTINCT verified competitor claims
+  min_founder_fit: 3             # 0-5, computed in code from the brief; unspecified = neutral
+  min_coverage: 0.5              # share of pain-capable calls (HN, SE, SearXNG) with >= 3 on-topic hits
+  min_on_topic_hits: 3
+  model_suspect_missed: 3        # >= this many code-qualified sentences left unselected -> model_suspect
+  near_miss_ratio: 0.6           # rule 6: every failed check within 60% of target -> REPEAT
+  max_repeats: 2
+gate2_demand:
+  waitlist_target: 100
+  window_days: 14
+  min_visits_for_rate: 200
+  min_conversion: 0.10
+gate3_tests:
+  all_required_pass: true

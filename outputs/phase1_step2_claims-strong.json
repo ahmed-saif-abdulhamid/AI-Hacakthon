@@ -1,0 +1,2659 @@
+{
+  "run_id": "r20261117-025139-cb8b",
+  "thresholds_sha256": "b367a0d1338c03a8f7d6318d971398eb4139dff4b5fc0ed3444023704ce5ef90",
+  "note": "quotes are extracted by code from the source record and re-checked against the public page where reachable; a claim counts only if code confirms it is on-topic and contains a pain or payment cue.",
+  "claims": [
+    {
+      "id": "C1",
+      "kind": "pain",
+      "claim_text": "I absolutely despise sending follow up reminders it feels needy, awkward, and just a reframing",
+      "quote": "I absolutely despise sending follow up reminders it feels needy, awkward, and just a reframing of mental energy.",
+      "url": "https://news.ycombinator.com/item?id=45537969",
+      "source": "hn",
+      "hit_id": "H3",
+      "hit_title": "Tired of chasing clients for late payments",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2025-10-10T12:03:56Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "despise",
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "late",
+        "payment",
+        "send"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C2",
+      "kind": "pain",
+      "claim_text": "Each month there is at least one client who does not pay my invoice.",
+      "quote": "Each month there is at least one client who does not pay my invoice.",
+      "url": "https://news.ycombinator.com/item?id=45537969",
+      "source": "hn",
+      "hit_id": "H3",
+      "hit_title": "Tired of chasing clients for late payments",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2025-10-10T12:03:56Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "does not pay",
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "late",
+        "payment"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C3",
+      "kind": "pain",
+      "claim_text": "Invoicing and sometimes needing to follow up on late payments doesn't help either.",
+      "quote": "Invoicing and sometimes needing to follow up on late payments doesn't help either.",
+      "url": "https://freelancing.stackexchange.com/questions/2621/away-from-hourly-work-to-a-prepaid-package-of-hours",
+      "source": "stackexchange",
+      "hit_id": "H2",
+      "hit_title": "Away from hourly work to a prepaid package of hours",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2014-11-14T00:17:57Z",
+      "engagement": 1081,
+      "status": "archived_match",
+      "weight": 0.5,
+      "cue_matched": "doesn't help",
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "invoic",
+        "late",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C4",
+      "kind": "pain",
+      "claim_text": "The constant task-switching of working 1 hour for this client and 2 hours for that",
+      "quote": "I am working with a number of small clients that often request small changes, once every 2-4 months at least, and the constant task-switching of working 1 hour for this client and 2 hours for that client is not ideal.",
+      "url": "https://freelancing.stackexchange.com/questions/2621/away-from-hourly-work-to-a-prepaid-package-of-hours",
+      "source": "stackexchange",
+      "hit_id": "H2",
+      "hit_title": "Away from hourly work to a prepaid package of hours",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2014-11-14T00:17:57Z",
+      "engagement": 1081,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C5",
+      "kind": "pain",
+      "claim_text": "There's more time wasted than I care for, and the late payments are especially infuriating.",
+      "quote": "There's more time wasted than I care for, and the late payments are especially infuriating.",
+      "url": "https://freelancing.stackexchange.com/questions/2621/away-from-hourly-work-to-a-prepaid-package-of-hours",
+      "source": "stackexchange",
+      "hit_id": "H2",
+      "hit_title": "Away from hourly work to a prepaid package of hours",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2014-11-14T00:17:57Z",
+      "engagement": 1081,
+      "status": "archived_match",
+      "weight": 0.5,
+      "cue_matched": "waste",
+      "on_topic": true,
+      "keyword_overlap": [
+        "late",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C6",
+      "kind": "wtp",
+      "claim_text": "What if an AI tool could send those reminders for me?",
+      "quote": "So, I am thinking...what if an AI tool could send those reminders for me?",
+      "url": "https://news.ycombinator.com/item?id=45537969",
+      "source": "hn",
+      "hit_id": "H3",
+      "hit_title": "Tired of chasing clients for late payments",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2025-10-10T12:03:56Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "late",
+        "payment",
+        "send"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C7",
+      "kind": "wtp",
+      "claim_text": "Connect to Stripe or PayPal, it predicts who will likely pay late and automatically sends",
+      "quote": "Connect to Stripe or PayPal, it predicts who will likely pay late and automatically sends out a reminder email that gets firmer each time.",
+      "url": "https://news.ycombinator.com/item?id=45537969",
+      "source": "hn",
+      "hit_id": "H3",
+      "hit_title": "Tired of chasing clients for late payments",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2025-10-10T12:03:56Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "late",
+        "payment",
+        "send"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C8",
+      "kind": "wtp",
+      "claim_text": "I am thinking of moving away from hourly work and offering mainly prepaid packages of",
+      "quote": "To combat this, I am thinking of moving away from hourly work and offering mainly prepaid packages of hours.",
+      "url": "https://freelancing.stackexchange.com/questions/2621/away-from-hourly-work-to-a-prepaid-package-of-hours",
+      "source": "stackexchange",
+      "hit_id": "H2",
+      "hit_title": "Away from hourly work to a prepaid package of hours",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2014-11-14T00:17:57Z",
+      "engagement": 1081,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C9",
+      "kind": "pain",
+      "claim_text": "Freelance developers face difficulty following up on late payments.",
+      "quote": "And all would be grand if not the fact that they haven't paid my completion invoice yet.",
+      "url": "https://freelancing.stackexchange.com/questions/6960/code-ownership-in-web-dev-subcontracting",
+      "source": "stackexchange",
+      "hit_id": "H6",
+      "hit_title": "Code ownership in web dev subcontracting",
+      "sentence_ids": [
+        9
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2017-07-03T11:11:31Z",
+      "engagement": 268,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C10",
+      "kind": "pain",
+      "claim_text": "Freelance developers often receive payments 30-60 days after invoicing.",
+      "quote": "On my invoicing system I have set 30 days for payment, but payment usually arrived more like 30-60 days after invoice was delivered.",
+      "url": "https://freelancing.stackexchange.com/questions/3713/how-long-should-i-leave-an-overdue-payment",
+      "source": "stackexchange",
+      "hit_id": "H7",
+      "hit_title": "How long should I leave an overdue payment?",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2015-09-23T07:32:01Z",
+      "engagement": 224,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "after",
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C11",
+      "kind": "pain",
+      "claim_text": "Freelancers set 30-day payment terms but clients often pay late.",
+      "quote": "So I freelance along side my day-to-day job, and I have a couple of regular clients who are very slow at paying.",
+      "url": "https://freelancing.stackexchange.com/questions/3713/how-long-should-i-leave-an-overdue-payment",
+      "source": "stackexchange",
+      "hit_id": "H7",
+      "hit_title": "How long should I leave an overdue payment?",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2015-09-23T07:32:01Z",
+      "engagement": 224,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C12",
+      "kind": "wtp",
+      "claim_text": "Freelancers ask about proper format for handling milestone payments.",
+      "quote": "Follow up questions: what is the proper format for handling these types of payments?",
+      "url": "https://freelancing.stackexchange.com/questions/2759/what-is-the-correct-way-to-handle-progressive-billing-especially-in-the-uk",
+      "source": "stackexchange",
+      "hit_id": "H5",
+      "hit_title": "What is the correct way to handle progressive billing, especially in the UK?",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2015-01-05T12:24:06Z",
+      "engagement": 549,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C13",
+      "kind": "wtp",
+      "claim_text": "Freelancers want to know where to specify payment schedules.",
+      "quote": "Where do you specify the schedule of payments?",
+      "url": "https://freelancing.stackexchange.com/questions/2759/what-is-the-correct-way-to-handle-progressive-billing-especially-in-the-uk",
+      "source": "stackexchange",
+      "hit_id": "H5",
+      "hit_title": "What is the correct way to handle progressive billing, especially in the UK?",
+      "sentence_ids": [
+        6
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2015-01-05T12:24:06Z",
+      "engagement": 549,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C14",
+      "kind": "pain",
+      "claim_text": "Freelancers are anxious about managing client communications.",
+      "quote": "Just thinking about clients and things to do create anxiety.",
+      "url": "https://freelancing.stackexchange.com/questions/10646/just-thinking-about-clients-and-things-to-do-create-anxiety",
+      "source": "stackexchange",
+      "hit_id": "H8",
+      "hit_title": "Just thinking about clients and things to do create anxiety",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2023-04-19T16:08:21Z",
+      "engagement": 99,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C15",
+      "kind": "pain",
+      "claim_text": "Freelancers feel overwhelmed by scattered client emails and demands.",
+      "quote": "Things like: Remember to follow up Organize tax documents/forms Reply to a client Send invoice Keeping track of feedback and requirements The thing with freelancing is that clients contact at scattered times throughout the day.",
+      "url": "https://freelancing.stackexchange.com/questions/10646/just-thinking-about-clients-and-things-to-do-create-anxiety",
+      "source": "stackexchange",
+      "hit_id": "H8",
+      "hit_title": "Just thinking about clients and things to do create anxiety",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2023-04-19T16:08:21Z",
+      "engagement": 99,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "freelanc",
+        "invoic",
+        "send"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C16",
+      "kind": "pain",
+      "claim_text": "Freelancers experience stress and physical symptoms from client work.",
+      "quote": "I'm even having stomach cramps from time to time possibly due to this.",
+      "url": "https://freelancing.stackexchange.com/questions/10646/just-thinking-about-clients-and-things-to-do-create-anxiety",
+      "source": "stackexchange",
+      "hit_id": "H8",
+      "hit_title": "Just thinking about clients and things to do create anxiety",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2023-04-19T16:08:21Z",
+      "engagement": 99,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C17",
+      "kind": "pain",
+      "claim_text": "Freelancers chase clients for payment due to late payments.",
+      "quote": "Hey HN, I built Uaryn because I was tired of chasing clients for payment.",
+      "url": "https://news.ycombinator.com/item?id=47102030",
+      "source": "hn",
+      "hit_id": "H12",
+      "hit_title": "Show HN: Uaryn - Smart invoicing that learns when your clients pay",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2026-02-21T16:07:54Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "tired of",
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C18",
+      "kind": "pain",
+      "claim_text": "Freelancers use generic reminders that don't adapt to client behavior.",
+      "quote": "Instead of blasting generic \"your invoice is overdue\" emails, the system adjusts timing and frequency based on how each client historically pays.",
+      "url": "https://news.ycombinator.com/item?id=47102030",
+      "source": "hn",
+      "hit_id": "H12",
+      "hit_title": "Show HN: Uaryn - Smart invoicing that learns when your clients pay",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2026-02-21T16:07:54Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C19",
+      "kind": "pain",
+      "claim_text": "Freelancers face frustration when clients delay payments.",
+      "quote": "I've been chasing annoyingly small invoice of £100 for over a month now.",
+      "url": "https://freelancing.stackexchange.com/questions/6581/should-i-warn-client-that-im-going-to-have-to-threaten-legal-action",
+      "source": "stackexchange",
+      "hit_id": "H10",
+      "hit_title": "Should I warn client that I'm going to have to threaten legal action?",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2017-02-21T11:14:26Z",
+      "engagement": 972,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C20",
+      "kind": "wtp",
+      "claim_text": "Freelancers plan to send legal threats for unpaid invoices.",
+      "quote": "I am planning on sending a letter threatening to take him to the small claims court as well as stating how he will be liable to pay my legal fees when I win.",
+      "url": "https://freelancing.stackexchange.com/questions/6581/should-i-warn-client-that-im-going-to-have-to-threaten-legal-action",
+      "source": "stackexchange",
+      "hit_id": "H10",
+      "hit_title": "Should I warn client that I'm going to have to threaten legal action?",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2017-02-21T11:14:26Z",
+      "engagement": 972,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "send"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C21",
+      "kind": "pain",
+      "claim_text": "Freelancers spend time writing and sending formal emails about unpaid invoices.",
+      "quote": "However, that will take time to write properly and also going to the Post Office to send recorded delivery will also consume valuable time. I'm thinking my next course of action might be to send him a really formal email stating that I am under the impression that he is trying to avoid payment, and if he doesn't pay soon then I will be considering legal action.",
+      "url": "https://freelancing.stackexchange.com/questions/6581/should-i-warn-client-that-im-going-to-have-to-threaten-legal-action",
+      "source": "stackexchange",
+      "hit_id": "H10",
+      "hit_title": "Should I warn client that I'm going to have to threaten legal action?",
+      "sentence_ids": [
+        6,
+        7
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2017-02-21T11:14:26Z",
+      "engagement": 972,
+      "status": "archived_match",
+      "weight": 0.5,
+      "cue_matched": "doesn't pay",
+      "on_topic": true,
+      "keyword_overlap": [
+        "payment",
+        "send"
+      ],
+      "weight_note": "page unreachable; archived match",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C22",
+      "kind": "pain",
+      "claim_text": "Freelancers are frustrated when payment follow-ups go unanswered.",
+      "quote": "He then says that he will review the account and then come back with follow up on email, and nothing happens in the 48 hours elapsed, so .",
+      "url": "https://news.ycombinator.com/item?id=49764468",
+      "source": "hn",
+      "hit_id": "H11",
+      "hit_title": "Stripe Withholding Balance of $100000",
+      "sentence_ids": [
+        14
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2026-09-19T08:15:17Z",
+      "engagement": 11,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "follow"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C23",
+      "kind": "pain",
+      "claim_text": "Freelancers are frustrated when managers withhold client funds without explanation.",
+      "quote": "We then ask to speak to a Manager, and after a hassle and going forth and and back a nanager calls after 2 hours, who doesnt even want to state his full name, only his First name, which we dont even know if its true, and then wheh we insisted he said he cant say their full name.",
+      "url": "https://news.ycombinator.com/item?id=49764468",
+      "source": "hn",
+      "hit_id": "H11",
+      "hit_title": "Stripe Withholding Balance of $100000",
+      "sentence_ids": [
+        13
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2026-09-19T08:15:17Z",
+      "engagement": 11,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "after"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C24",
+      "kind": "competitor",
+      "claim_text": "Freelancers use Stripe for invoicing and payments.",
+      "quote": "We have been in business for 2 years, using Stripe as our primary method for Apply pay, as it is a comfortable payment method for clients.",
+      "url": "https://news.ycombinator.com/item?id=49764468",
+      "source": "hn",
+      "hit_id": "H11",
+      "hit_title": "Stripe Withholding Balance of $100000",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2026-09-19T08:15:17Z",
+      "engagement": 11,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "payment"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C25",
+      "kind": "competitor",
+      "claim_text": "Uaryn offers adaptive reminders based on client payment history.",
+      "quote": "Uaryn is a simple invoicing tool with one twist: adaptive reminders that learn from your clients' payment behavior.",
+      "url": "https://news.ycombinator.com/item?id=47102030",
+      "source": "hn",
+      "hit_id": "H12",
+      "hit_title": "Show HN: Uaryn - Smart invoicing that learns when your clients pay",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2026-02-21T16:07:54Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C26",
+      "kind": "price_point",
+      "claim_text": "Uaryn has a free tier with 3 invoices per month.",
+      "quote": "Tech stack (for the curious): - Next.js 14 + Prisma + PostgreSQL (Neon) - Stripe Connect for direct payments to freelancer accounts - LemonSqueezy for subscription billing - Resend for transactional emails - Vercel cron jobs for reminder scheduling and recurring invoice generation - Deployed on Vercel Pricing: Free tier (3 invoices/month), Pro at $9/month for unlimited invoices, recurring billing, analytics, and custom branding.",
+      "url": "https://news.ycombinator.com/item?id=47102030",
+      "source": "hn",
+      "hit_id": "H12",
+      "hit_title": "Show HN: Uaryn - Smart invoicing that learns when your clients pay",
+      "sentence_ids": [
+        10
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2026-02-21T16:07:54Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "/month",
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C27",
+      "kind": "pain",
+      "claim_text": "Freelancers rely on Payoneer due to lack of alternatives.",
+      "quote": "After speaking with 50+ freelancers, we saw a clear gap: despite issues like high fees and account freezes, many still rely on Payoneer because no alternative offers the same experience.",
+      "url": "https://news.ycombinator.com/item?id=48012653",
+      "source": "hn",
+      "hit_id": "H9",
+      "hit_title": "Show HN: USD Accounts for Pakistani Freelancers",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2026-05-04T18:17:31Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "after",
+        "freelanc"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C28",
+      "kind": "pain",
+      "claim_text": "Freelancers juggle multiple tools to manage payments.",
+      "quote": "Most end up juggling multiple tools just to make it work.",
+      "url": "https://news.ycombinator.com/item?id=48012653",
+      "source": "hn",
+      "hit_id": "H9",
+      "hit_title": "Show HN: USD Accounts for Pakistani Freelancers",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:55:03.313462Z",
+      "published_at": "2026-05-04T18:17:31Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "freelanc"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C29",
+      "kind": "pain",
+      "claim_text": "Freelancers waste 15-30 minutes creating invoices each time.",
+      "quote": "As a freelancer, I often found myself wasting 15-30 minutes creating invoices each time, jumping between Word templates, Excel sheets, and bloated online generators.",
+      "url": "https://news.ycombinator.com/item?id=44421674",
+      "source": "hn",
+      "hit_id": "H16",
+      "hit_title": "Show HN: InvoiceFast - Generate clean, compliant invoices in seconds",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2025-06-30T10:49:32Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "freelanc"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C30",
+      "kind": "competitor",
+      "claim_text": "Invoicebloom.io helps freelancers manage client details and payment statuses in one dashboard.",
+      "quote": "Manage Clients with Built-in CRM: Keep tabs on client details, payment statuses (Draft, Sent, Paid), and communications in one dashboard.",
+      "url": "https://news.ycombinator.com/item?id=44645666",
+      "source": "hn",
+      "hit_id": "H13",
+      "hit_title": "Show HN: Invoicebloom.io - Professional Invoicing and CRM",
+      "sentence_ids": [
+        20
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2025-07-22T11:41:39Z",
+      "engagement": 3,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "client",
+        "detail"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C31",
+      "kind": "pain",
+      "claim_text": "Freelancers need a tool to collect client details and project scope at project start.",
+      "quote": "Then I started receiving requests for features such as \"Steve can you add client profiles so I can email and call from the profile card\" and so today Im sharing with you all an app that has been used for a couple of months by freelancers and small business owners.",
+      "url": "https://news.ycombinator.com/item?id=44645666",
+      "source": "hn",
+      "hit_id": "H13",
+      "hit_title": "Show HN: Invoicebloom.io - Professional Invoicing and CRM",
+      "sentence_ids": [
+        13
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2025-07-22T11:41:39Z",
+      "engagement": 3,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "client",
+        "freelanc",
+        "start"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C32",
+      "kind": "pain",
+      "claim_text": "Freelancers often check email for past client information.",
+      "quote": "I also starting noticing that I kept going back to my email to check for client's information regarding past jobs I have done.",
+      "url": "https://news.ycombinator.com/item?id=44645666",
+      "source": "hn",
+      "hit_id": "H13",
+      "hit_title": "Show HN: Invoicebloom.io - Professional Invoicing and CRM",
+      "sentence_ids": [
+        6
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2025-07-22T11:41:39Z",
+      "engagement": 3,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "client",
+        "start"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C33",
+      "kind": "pain",
+      "claim_text": "Freelancers spend more time managing outdated CRMs than selling.",
+      "quote": "I realized the CRM space wasn't just broken, it was outdated and bloated, causing agents to spend more time managing the tool than selling homes.",
+      "url": "https://news.ycombinator.com/item?id=42590047",
+      "source": "hn",
+      "hit_id": "H14",
+      "hit_title": "Reimagining CRMs with AI: A Bootstrapped SaaS Founder's Journey",
+      "sentence_ids": [
+        6
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2025-01-03T22:17:22Z",
+      "engagement": 5,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C34",
+      "kind": "pain",
+      "claim_text": "Real estate agents collect rich client details like preferences and life events.",
+      "quote": "2. Data should work for you: Real estate agents collect rich client details-preferences, goals, life events - mostly because at its core its an industry of 'relationships' but CRMs (despite their namesake) rarely use this data meaningfully, mostly just housing it inside hard to locate fields, dropdowns, or tabs.",
+      "url": "https://news.ycombinator.com/item?id=42590047",
+      "source": "hn",
+      "hit_id": "H14",
+      "hit_title": "Reimagining CRMs with AI: A Bootstrapped SaaS Founder's Journey",
+      "sentence_ids": [
+        10
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2025-01-03T22:17:22Z",
+      "engagement": 5,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "hard to",
+      "on_topic": true,
+      "keyword_overlap": [
+        "client",
+        "collect"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C35",
+      "kind": "pain",
+      "claim_text": "Lost €50K to non-paying clients during onboarding.",
+      "quote": "Then I lost €50K+ to clients who never paid.",
+      "url": "https://news.ycombinator.com/item?id=46634178",
+      "source": "hn",
+      "hit_id": "H17",
+      "hit_title": "Show HN: I lost €50K to non-paying clients, so I built an AI contract platform",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2026-01-15T15:45:26Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "client"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C36",
+      "kind": "wtp",
+      "claim_text": "AI extracts project scope and payment terms from meeting notes.",
+      "quote": "The core idea: paste your meeting notes, AI extracts scope/deliverables/payment terms and generates a proposal.",
+      "url": "https://news.ycombinator.com/item?id=46634178",
+      "source": "hn",
+      "hit_id": "H17",
+      "hit_title": "Show HN: I lost €50K to non-paying clients, so I built an AI contract platform",
+      "sentence_ids": [
+        7
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2026-01-15T15:45:26Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "client",
+        "scope"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C37",
+      "kind": "wtp",
+      "claim_text": "Client accepts proposal, contract auto-generates.",
+      "quote": "Client accepts → contract auto-generates.",
+      "url": "https://news.ycombinator.com/item?id=46634178",
+      "source": "hn",
+      "hit_id": "H17",
+      "hit_title": "Show HN: I lost €50K to non-paying clients, so I built an AI contract platform",
+      "sentence_ids": [
+        8
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2026-01-15T15:45:26Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "client"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C38",
+      "kind": "wtp",
+      "claim_text": "AI learns freelancer's rates, terms, and client preferences over time.",
+      "quote": "The AI has memory...it learns your rates, terms, clients over time.",
+      "url": "https://news.ycombinator.com/item?id=46634178",
+      "source": "hn",
+      "hit_id": "H17",
+      "hit_title": "Show HN: I lost €50K to non-paying clients, so I built an AI contract platform",
+      "sentence_ids": [
+        12
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2026-01-15T15:45:26Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "client"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C39",
+      "kind": "pain",
+      "claim_text": "Client prefers end-of-project billing, not invoicing during onboarding.",
+      "quote": "They prefer to have me bill at the end of the project, and are claiming that it makes it harder to bill their third party clients for their project if I'm sending multiple invoices.",
+      "url": "https://freelancing.stackexchange.com/questions/10166/client-not-amenable-to-invoicing-of-third-party-client-onboarding",
+      "source": "stackexchange",
+      "hit_id": "H19",
+      "hit_title": "Client not amenable to invoicing of third party client onboarding",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2021-07-02T20:31:47Z",
+      "engagement": 93,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "client",
+        "project"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C40",
+      "kind": "pain",
+      "claim_text": "Freelancer needs money but has Net 30 payment terms.",
+      "quote": "I need the money, but also I made it Net 30.",
+      "url": "https://freelancing.stackexchange.com/questions/10166/client-not-amenable-to-invoicing-of-third-party-client-onboarding",
+      "source": "stackexchange",
+      "hit_id": "H19",
+      "hit_title": "Client not amenable to invoicing of third party client onboarding",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2021-07-02T20:31:47Z",
+      "engagement": 93,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "client"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C41",
+      "kind": "pain",
+      "claim_text": "Client delays payment by 3 weeks after project start.",
+      "quote": "The client pays within a week so they've said (it's a new client of mine), but even then it'll be 3 weeks since I started doing new third-party client introductions.",
+      "url": "https://freelancing.stackexchange.com/questions/10166/client-not-amenable-to-invoicing-of-third-party-client-onboarding",
+      "source": "stackexchange",
+      "hit_id": "H19",
+      "hit_title": "Client not amenable to invoicing of third party client onboarding",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2021-07-02T20:31:47Z",
+      "engagement": 93,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "client",
+        "start"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C42",
+      "kind": "pain",
+      "claim_text": "Freelancer logs time for meetings, but not billed.",
+      "quote": "I guess we had tentatively agreed to do end of project, but I didn't expect to log the time simply meeting and interviewing.",
+      "url": "https://freelancing.stackexchange.com/questions/10166/client-not-amenable-to-invoicing-of-third-party-client-onboarding",
+      "source": "stackexchange",
+      "hit_id": "H19",
+      "hit_title": "Client not amenable to invoicing of third party client onboarding",
+      "sentence_ids": [
+        9
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2021-07-02T20:31:47Z",
+      "engagement": 93,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "client",
+        "project"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C43",
+      "kind": "pain",
+      "claim_text": "Bench time is not billable to clients.",
+      "quote": "Which doesn't seem like a beneficial relationship for me, since we've negotiated based on an hourly rate, which doesn't help if there'd be no billable hours.",
+      "url": "https://freelancing.stackexchange.com/questions/8044/non-billable-hours-if-youre-expected-on-a-bench-with-unclear-timelines",
+      "source": "stackexchange",
+      "hit_id": "H18",
+      "hit_title": "Non-billable hours if you're expected on a bench with unclear timelines",
+      "sentence_ids": [
+        10
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2018-12-29T00:45:40Z",
+      "engagement": 402,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C44",
+      "kind": "pain",
+      "claim_text": "Freelancer is expected to work without compensation or clear timelines.",
+      "quote": "In the end, I'm mentally reserving my availability for this new client (and I do know it's a serious contract as well, e.g., they do have the money to spend, if required), but, at the same time, they're effective getting me onto their bench without providing the compensation, and I'm getting the impression that they simply need me as an insurance .",
+      "url": "https://freelancing.stackexchange.com/questions/8044/non-billable-hours-if-youre-expected-on-a-bench-with-unclear-timelines",
+      "source": "stackexchange",
+      "hit_id": "H18",
+      "hit_title": "Non-billable hours if you're expected on a bench with unclear timelines",
+      "sentence_ids": [
+        9
+      ],
+      "fetched_at": "2026-11-17T02:56:51.733618Z",
+      "published_at": "2018-12-29T00:45:40Z",
+      "engagement": 402,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "client"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C45",
+      "kind": "pain",
+      "claim_text": "Spent more time writing friendly reminder emails than doing actual work",
+      "quote": "As a freelancer, I spent more time writing \"friendly reminder\" emails than doing actual work.",
+      "url": "https://news.ycombinator.com/item?id=47102030",
+      "source": "hn",
+      "hit_id": "H25",
+      "hit_title": "Show HN: Uaryn - Smart invoicing that learns when your clients pay",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-02-21T16:07:54Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "invoic"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C46",
+      "kind": "pain",
+      "claim_text": "Losing hours every week writing 'just checking in' emails for unpaid invoices",
+      "quote": "I built Chase because I kept losing hours every week writing \"just checking in\" emails for unpaid invoices - and I knew every other freelancer was doing the same.",
+      "url": "https://news.ycombinator.com/item?id=47243082",
+      "source": "hn",
+      "hit_id": "H27",
+      "hit_title": "Show HN: Chase - automated invoice follow-up emails for freelancers",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-03-04T04:32:10Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "Chase",
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "invoic"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C47",
+      "kind": "pain",
+      "claim_text": "Repeatedly watching freelancers lose time to admin just to get paid",
+      "quote": "The idea came from repeatedly watching freelancers (and honestly, myself) lose time to admin just to get paid.",
+      "url": "https://news.ycombinator.com/item?id=46771990",
+      "source": "hn",
+      "hit_id": "H28",
+      "hit_title": "[dead]",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-01-26T21:45:00Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "freelanc"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C48",
+      "kind": "pain",
+      "claim_text": "Most tools I tried felt like full accounting suites when all I really wanted was",
+      "quote": "Most tools I tried felt like full accounting suites when all I really wanted was: • create an invoice quickly • send it • see what's paid / overdue • and automatically chase unpaid ones So I built Experi to focus only on that.",
+      "url": "https://news.ycombinator.com/item?id=46771990",
+      "source": "hn",
+      "hit_id": "H28",
+      "hit_title": "[dead]",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-01-26T21:45:00Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "overdue",
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "overdu"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C49",
+      "kind": "wtp",
+      "claim_text": "Automatically sends follow-up emails on day 3, 7, and 14 after the due date",
+      "quote": "If they don't pay, Chase automatically sends follow-up emails on day 3, 7, and 14 after the due date.",
+      "url": "https://news.ycombinator.com/item?id=47243082",
+      "source": "hn",
+      "hit_id": "H27",
+      "hit_title": "Show HN: Chase - automated invoice follow-up emails for freelancers",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-03-04T04:32:10Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "due",
+        "freelanc",
+        "invoic"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C50",
+      "kind": "wtp",
+      "claim_text": "Creates professional invoices in under 2 minutes",
+      "quote": "What it does: - Create professional invoices in under 2 minutes (3 fields minimum) - Built-in Stripe payments - clients pay directly from the invoice - Smart reminders that adapt over time (J0, J+15, J+28, J+30, J+37 schedule) - Recurring invoices for retainer clients - Analytics: average days-to-payment, on-time rate, revenue trends - PDF export, custom branding What it doesn't do: - Accounting, tax reports, expense tracking.",
+      "url": "https://news.ycombinator.com/item?id=47102030",
+      "source": "hn",
+      "hit_id": "H25",
+      "hit_title": "Show HN: Uaryn - Smart invoicing that learns when your clients pay",
+      "sentence_ids": [
+        7
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-02-21T16:07:54Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "track"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C51",
+      "kind": "wtp",
+      "claim_text": "Automatically chases overdue invoices",
+      "quote": "It currently supports: • fast invoice creation • client and project management • scheduled and recurring invoices • automatic chasing of overdue invoices • clear tracking of paid vs outstanding The goal is not to replace accounting software, but to be the \"background invoicing engine\" for people running small operations.",
+      "url": "https://news.ycombinator.com/item?id=46771990",
+      "source": "hn",
+      "hit_id": "H28",
+      "hit_title": "[dead]",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-01-26T21:45:00Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "paid",
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "overdu",
+        "track"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C52",
+      "kind": "wtp",
+      "claim_text": "Tracks all client interactions, payment history, and project progress in one place",
+      "quote": "This allows you to: Track all client interactions Generate invoices directly from completed tasks See payment history and project progress in one place A complete ecosystem-seamless and efficient.",
+      "url": "https://news.ycombinator.com/item?id=46012153",
+      "source": "hn",
+      "hit_id": "H26",
+      "hit_title": "Workbass: Free Invoice-Generating Software for Modern Businesses",
+      "sentence_ids": [
+        11
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2025-11-22T04:39:40Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "track"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C53",
+      "kind": "price_point",
+      "claim_text": "Free tier (3 invoices/month), Pro at $9/month for unlimited invoices",
+      "quote": "Tech stack (for the curious): - Next.js 14 + Prisma + PostgreSQL (Neon) - Stripe Connect for direct payments to freelancer accounts - LemonSqueezy for subscription billing - Resend for transactional emails - Vercel cron jobs for reminder scheduling and recurring invoice generation - Deployed on Vercel Pricing: Free tier (3 invoices/month), Pro at $9/month for unlimited invoices, recurring billing, analytics, and custom branding.",
+      "url": "https://news.ycombinator.com/item?id=47102030",
+      "source": "hn",
+      "hit_id": "H25",
+      "hit_title": "Show HN: Uaryn - Smart invoicing that learns when your clients pay",
+      "sentence_ids": [
+        10
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-02-21T16:07:54Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "/month",
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "invoic"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C54",
+      "kind": "wtp",
+      "claim_text": "Automatically sends payment reminders and alerts for overdue payments",
+      "quote": "4. Smart Billing Automations Workbass automates important billing tasks so you never miss a payment: Automatic payment reminders Recurring invoices for monthly services Alerts for overdue payments Auto-updated invoice statuses This improves cash flow and reduces manual work.",
+      "url": "https://news.ycombinator.com/item?id=46012153",
+      "source": "hn",
+      "hit_id": "H26",
+      "hit_title": "Workbass: Free Invoice-Generating Software for Modern Businesses",
+      "sentence_ids": [
+        12
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2025-11-22T04:39:40Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "overdu"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C55",
+      "kind": "wtp",
+      "claim_text": "Creates unlimited invoices and tracks payments",
+      "quote": "You can: Create unlimited invoices Track payments Save client billing information Manage recurring invoices Send professional invoice documents Everything is clean, fast, and beginner-friendly.",
+      "url": "https://news.ycombinator.com/item?id=46012153",
+      "source": "hn",
+      "hit_id": "H26",
+      "hit_title": "Workbass: Free Invoice-Generating Software for Modern Businesses",
+      "sentence_ids": [
+        8
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2025-11-22T04:39:40Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "track"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C56",
+      "kind": "wtp",
+      "claim_text": "Chase generates a Stripe payment link and sends it to your client",
+      "quote": "The idea is simple: you create an invoice, Chase generates a Stripe payment link and sends it to your client.",
+      "url": "https://news.ycombinator.com/item?id=47243082",
+      "source": "hn",
+      "hit_id": "H27",
+      "hit_title": "Show HN: Chase - automated invoice follow-up emails for freelancers",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-03-04T04:32:10Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "invoic"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C57",
+      "kind": "wtp",
+      "claim_text": "Track invoices, expenses and reports for freelancers and small business.",
+      "quote": "Track invoices, expenses and reports for freelancers and small business.",
+      "url": "https://github.com/Assassinflegravity/TaxAct-Professional-Return-Edition",
+      "source": "github",
+      "hit_id": "H29",
+      "hit_title": "Assassinflegravity/TaxAct-Professional-Return-Edition",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-08-31T15:26:35Z",
+      "engagement": 16,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "invoic",
+        "track"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C58",
+      "kind": "pain",
+      "claim_text": "I have stopped bleeding by closing access to vertex, removing my services etc.",
+      "quote": "Due to specific family issue, I was not able to check my emails/ gcp last month but this is going to be devastating for me. I have stopped bleeding by closing access to vertex, removing my services etc.",
+      "url": "https://news.ycombinator.com/item?id=46230460",
+      "source": "hn",
+      "hit_id": "H30",
+      "hit_title": "Ask HN: GCP account got compromised and ran million dollar bill",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2025-12-11T12:18:26Z",
+      "engagement": 4,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "due"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C59",
+      "kind": "competitor",
+      "claim_text": "Billzy - overdue invoice recovery for freelancers",
+      "quote": "Billzy - overdue invoice recovery for freelancers",
+      "url": "https://news.ycombinator.com/item?id=47409997",
+      "source": "hn",
+      "hit_id": "H31",
+      "hit_title": "Billzy - overdue invoice recovery for freelancers",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-03-17T08:37:11Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "invoic",
+        "overdu"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C60",
+      "kind": "pain",
+      "claim_text": "As a solo developer and someone who works with apprentices and freelancers, I needed clarity",
+      "quote": "As a solo developer and someone who works with apprentices and freelancers, I needed clarity on three things: Where does my time actually go across different projects?",
+      "url": "https://news.ycombinator.com/item?id=46150243",
+      "source": "hn",
+      "hit_id": "H32",
+      "hit_title": "Been building a for 3 years now it's ready to use, kinda",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2025-12-04T17:29:00Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "develop",
+        "freelanc"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C61",
+      "kind": "pain",
+      "claim_text": "How do I track collaborations and payments transparently?",
+      "quote": "How do I track collaborations and payments transparently?",
+      "url": "https://news.ycombinator.com/item?id=46150243",
+      "source": "hn",
+      "hit_id": "H32",
+      "hit_title": "Been building a for 3 years now it's ready to use, kinda",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2025-12-04T17:29:00Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "track"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C62",
+      "kind": "wtp",
+      "claim_text": "It's a web-based hub that combines a few key things: A non-invasive time tracker (manual",
+      "quote": "It's a web-based hub that combines a few key things: A non-invasive time tracker (manual or timer) that links hours directly to specific projects and budgets.",
+      "url": "https://news.ycombinator.com/item?id=46150243",
+      "source": "hn",
+      "hit_id": "H32",
+      "hit_title": "Been building a for 3 years now it's ready to use, kinda",
+      "sentence_ids": [
+        6
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2025-12-04T17:29:00Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C63",
+      "kind": "pain",
+      "claim_text": "Freelance web developers manually export time and create invoices in Bexio.",
+      "quote": "The problem I've identified: Many use Bexio (popular Swiss accounting software) plus separate time tracking tools (Toggl, Clockify, etc.). Every month they manually export hours and create invoices in Bexio.",
+      "url": "https://news.ycombinator.com/item?id=45608129",
+      "source": "hn",
+      "hit_id": "H33",
+      "hit_title": "Ask HN: Do Bexio users struggle with time tracking integration?",
+      "sentence_ids": [
+        2,
+        3
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2025-10-16T17:25:37Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "problem",
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "track"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C64",
+      "kind": "pain",
+      "claim_text": "Freelance web developers spend 3-5 hours per month on invoice creation.",
+      "quote": "Takes 3-5 hours per month.",
+      "url": "https://news.ycombinator.com/item?id=45608129",
+      "source": "hn",
+      "hit_id": "H33",
+      "hit_title": "Ask HN: Do Bexio users struggle with time tracking integration?",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2025-10-16T17:25:37Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "track"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C65",
+      "kind": "competitor",
+      "claim_text": "Vasooli helps businesses manage overdue invoices and receivables collection.",
+      "quote": "I'm also currently building Vasooli, a B2B SaaS product focused on helping businesses manage overdue invoices and receivables collection.",
+      "url": "https://news.ycombinator.com/item?id=49943007",
+      "source": "hn",
+      "hit_id": "H35",
+      "hit_title": "Ask HN: Who wants to be hired? (October 2026)",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-10-03T10:39:22Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "overdu"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C66",
+      "kind": "competitor",
+      "claim_text": "Vasooli includes multi-tenant backend, invoice workflows, and scalable collection workflows.",
+      "quote": "I'm designing and implementing the product end-to-end, including the multi-tenant backend, authentication, invoice and customer workflows, CSV/manual imports, background workers, notifications, and the underlying architecture for scalable collection workflows.",
+      "url": "https://news.ycombinator.com/item?id=49943007",
+      "source": "hn",
+      "hit_id": "H35",
+      "hit_title": "Ask HN: Who wants to be hired? (October 2026)",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-10-03T10:39:22Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C67",
+      "kind": "competitor",
+      "claim_text": "YourFinanceWORKS is an open-source financial management platform with AI.",
+      "quote": "Hey HN, I've been building YourFinanceWORKS, a comprehensive open-source financial management platform that combines enterprise-grade features with AI-powered automation.",
+      "url": "https://news.ycombinator.com/item?id=47212707",
+      "source": "hn",
+      "hit_id": "H34",
+      "hit_title": "Show HN: YourFinanceWORKS - Open-source financial management with AI",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-03-02T01:17:57Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C68",
+      "kind": "competitor",
+      "claim_text": "YourFinanceWORKS is a self-hosted alternative to QuickBooks/Xero.",
+      "quote": "Think of it as a self-hosted alternative to QuickBooks/Xero with advanced capabilities.",
+      "url": "https://news.ycombinator.com/item?id=47212707",
+      "source": "hn",
+      "hit_id": "H34",
+      "hit_title": "Show HN: YourFinanceWORKS - Open-source financial management with AI",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-03-02T01:17:57Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C69",
+      "kind": "pain",
+      "claim_text": "Freelance developers face challenges with clients who don't pay on time.",
+      "quote": "I've worked in industries where customers don't like paying invoices.",
+      "url": "https://news.ycombinator.com/item?id=47639699",
+      "source": "hn",
+      "hit_id": "H36",
+      "hit_title": "Ask HN: How do you handle clients who don't pay on time?",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-04-04T15:11:04Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C70",
+      "kind": "pain",
+      "claim_text": "Businesses rely on overdue invoices to assess client authority.",
+      "quote": "If your contact can't get a $500 invoice paid, then you're not talking to someone with the authority to spend $500,000.",
+      "url": "https://news.ycombinator.com/item?id=47639699",
+      "source": "hn",
+      "hit_id": "H36",
+      "hit_title": "Ask HN: How do you handle clients who don't pay on time?",
+      "sentence_ids": [
+        11
+      ],
+      "fetched_at": "2026-11-17T02:59:32.809577Z",
+      "published_at": "2026-04-04T15:11:04Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "invoic"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C71",
+      "kind": "pain",
+      "claim_text": "Invoicing and sometimes needing to follow up on late payments doesn't help either.",
+      "quote": "Invoicing and sometimes needing to follow up on late payments doesn't help either.",
+      "url": "https://freelancing.stackexchange.com/questions/2621/away-from-hourly-work-to-a-prepaid-package-of-hours",
+      "source": "stackexchange",
+      "hit_id": "H37",
+      "hit_title": "Away from hourly work to a prepaid package of hours",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2014-11-14T00:17:57Z",
+      "engagement": 1081,
+      "status": "archived_match",
+      "weight": 0.5,
+      "cue_matched": "doesn't help",
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "invoic",
+        "late",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C72",
+      "kind": "pain",
+      "claim_text": "There's more time wasted than I care for, and the late payments are especially infuriating.",
+      "quote": "There's more time wasted than I care for, and the late payments are especially infuriating.",
+      "url": "https://freelancing.stackexchange.com/questions/2621/away-from-hourly-work-to-a-prepaid-package-of-hours",
+      "source": "stackexchange",
+      "hit_id": "H37",
+      "hit_title": "Away from hourly work to a prepaid package of hours",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2014-11-14T00:17:57Z",
+      "engagement": 1081,
+      "status": "archived_match",
+      "weight": 0.5,
+      "cue_matched": "waste",
+      "on_topic": true,
+      "keyword_overlap": [
+        "late",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C73",
+      "kind": "pain",
+      "claim_text": "Each month there is at least one client who does not pay my invoice.",
+      "quote": "Each month there is at least one client who does not pay my invoice.",
+      "url": "https://news.ycombinator.com/item?id=45537969",
+      "source": "hn",
+      "hit_id": "H38",
+      "hit_title": "Tired of chasing clients for late payments",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2025-10-10T12:03:56Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "does not pay",
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "late",
+        "payment"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C74",
+      "kind": "pain",
+      "claim_text": "I absolutely despise sending follow up reminders it feels needy, awkward, and just a reframing",
+      "quote": "I absolutely despise sending follow up reminders it feels needy, awkward, and just a reframing of mental energy.",
+      "url": "https://news.ycombinator.com/item?id=45537969",
+      "source": "hn",
+      "hit_id": "H38",
+      "hit_title": "Tired of chasing clients for late payments",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2025-10-10T12:03:56Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "despise",
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "late",
+        "payment",
+        "send"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C75",
+      "kind": "wtp",
+      "claim_text": "Connect to Stripe or PayPal, it predicts who will likely pay late and automatically sends",
+      "quote": "Connect to Stripe or PayPal, it predicts who will likely pay late and automatically sends out a reminder email that gets firmer each time.",
+      "url": "https://news.ycombinator.com/item?id=45537969",
+      "source": "hn",
+      "hit_id": "H38",
+      "hit_title": "Tired of chasing clients for late payments",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2025-10-10T12:03:56Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "late",
+        "payment",
+        "send"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C76",
+      "kind": "pain",
+      "claim_text": "My frustrations have grown out of their complete lack of trust in my skill and",
+      "quote": "My frustrations have grown out of their complete lack of trust in my skill and ability; they push past my recommendations for what their friends \"vote\" on, despite any facts, studies, \"proof,\" etc. I send to justify my choices.",
+      "url": "https://freelancing.stackexchange.com/questions/935/firing-a-client-due-to-difficult-ongoing-work-relationship",
+      "source": "stackexchange",
+      "hit_id": "H39",
+      "hit_title": "Firing a client due to difficult ongoing work relationship",
+      "sentence_ids": [
+        6
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2013-11-05T00:55:24Z",
+      "engagement": 4395,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "send"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C77",
+      "kind": "pain",
+      "claim_text": "Their emails have become increasingly harsh in tone - even to the extent where they",
+      "quote": "As if that wasn't enough, their emails have become increasingly harsh in tone - even to the extent where they send follow up emails to apologize a day or so later.",
+      "url": "https://freelancing.stackexchange.com/questions/935/firing-a-client-due-to-difficult-ongoing-work-relationship",
+      "source": "stackexchange",
+      "hit_id": "H39",
+      "hit_title": "Firing a client due to difficult ongoing work relationship",
+      "sentence_ids": [
+        8
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2013-11-05T00:55:24Z",
+      "engagement": 4395,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "send"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C78",
+      "kind": "wtp",
+      "claim_text": "I am thinking...what if an AI tool could send those reminders for me?",
+      "quote": "So, I am thinking...what if an AI tool could send those reminders for me?",
+      "url": "https://news.ycombinator.com/item?id=45537969",
+      "source": "hn",
+      "hit_id": "H38",
+      "hit_title": "Tired of chasing clients for late payments",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2025-10-10T12:03:56Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "late",
+        "payment",
+        "send"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C79",
+      "kind": "pain",
+      "claim_text": "Freelance developers face difficulty following up on late payments after sending invoices.",
+      "quote": "To date I've been supplying an invoice for the total amount , with follow up statements for each payment.",
+      "url": "https://freelancing.stackexchange.com/questions/2759/what-is-the-correct-way-to-handle-progressive-billing-especially-in-the-uk",
+      "source": "stackexchange",
+      "hit_id": "H41",
+      "hit_title": "What is the correct way to handle progressive billing, especially in the UK?",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2015-01-05T12:24:06Z",
+      "engagement": 549,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C80",
+      "kind": "pain",
+      "claim_text": "Freelancers worry about complex tax returns from inconsistent payment structures.",
+      "quote": "If we take 'correct' to loosely mean \"I'm not going to end up with a convoluted tax return at the end of the year\", is this the 'correct' way, or should I be issuing a separate invoice for each payment?",
+      "url": "https://freelancing.stackexchange.com/questions/2759/what-is-the-correct-way-to-handle-progressive-billing-especially-in-the-uk",
+      "source": "stackexchange",
+      "hit_id": "H41",
+      "hit_title": "What is the correct way to handle progressive billing, especially in the UK?",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2015-01-05T12:24:06Z",
+      "engagement": 549,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C81",
+      "kind": "pain",
+      "claim_text": "Freelancers seek clarity on proper payment schedule formatting in invoices.",
+      "quote": "Follow up questions: what is the proper format for handling these types of payments?",
+      "url": "https://freelancing.stackexchange.com/questions/2759/what-is-the-correct-way-to-handle-progressive-billing-especially-in-the-uk",
+      "source": "stackexchange",
+      "hit_id": "H41",
+      "hit_title": "What is the correct way to handle progressive billing, especially in the UK?",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2015-01-05T12:24:06Z",
+      "engagement": 549,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C82",
+      "kind": "pain",
+      "claim_text": "Freelancers have no legal standing to demand full payment if contract lacks a kill clause.",
+      "quote": "My contract doesn't contain a kill clause, so I assume that I don't have legal standing to demand 90% payment.",
+      "url": "https://freelancing.stackexchange.com/questions/8198/contract-canceled-after-90-of-effort-was-expended-client-pegs-delivered-value",
+      "source": "stackexchange",
+      "hit_id": "H42",
+      "hit_title": "Contract canceled after 90% of effort was expended - client pegs delivered value at 50%",
+      "sentence_ids": [
+        8
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2019-04-03T21:28:14Z",
+      "engagement": 202,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "after",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C83",
+      "kind": "pain",
+      "claim_text": "Client cancels contract after 90% effort expended, refusing to pay full amount.",
+      "quote": "Since they appear to be committed to their position, I expect that if I invoice them for 90% of the contract value, they will only pay 50%.",
+      "url": "https://freelancing.stackexchange.com/questions/8198/contract-canceled-after-90-of-effort-was-expended-client-pegs-delivered-value",
+      "source": "stackexchange",
+      "hit_id": "H42",
+      "hit_title": "Contract canceled after 90% of effort was expended - client pegs delivered value at 50%",
+      "sentence_ids": [
+        6
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2019-04-03T21:28:14Z",
+      "engagement": 202,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "after",
+        "invoic"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C84",
+      "kind": "wtp",
+      "claim_text": "Freelancer invoices client for 90% of effort already expended.",
+      "quote": "I've explained that I will have to submit an invoice for 90% because I've already expended 90% of the effort required to complete the project, but that they may of course still request completion of the full project under our original terms.",
+      "url": "https://freelancing.stackexchange.com/questions/8198/contract-canceled-after-90-of-effort-was-expended-client-pegs-delivered-value",
+      "source": "stackexchange",
+      "hit_id": "H42",
+      "hit_title": "Contract canceled after 90% of effort was expended - client pegs delivered value at 50%",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2019-04-03T21:28:14Z",
+      "engagement": 202,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "after",
+        "invoic"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C85",
+      "kind": "pain",
+      "claim_text": "Employer cuts off payment after delivering MVP, refusing to pay half-month wages.",
+      "quote": "Then he immediately cut me off without paying me the payment for the other 1/2 month.",
+      "url": "https://freelancing.stackexchange.com/questions/9779/international-employer-initiated-paypal-buyer-claim-without-any-reason",
+      "source": "stackexchange",
+      "hit_id": "H43",
+      "hit_title": "International Employer Initiated PayPal Buyer Claim Without Any Reason",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2020-06-30T13:24:15Z",
+      "engagement": 171,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C86",
+      "kind": "pain",
+      "claim_text": "Freelancer delivered full project value but received only partial payment.",
+      "quote": "I worked for this employer for a month, and he only paid me for half-month then suddenly replaced me after I delivered the MVP.",
+      "url": "https://freelancing.stackexchange.com/questions/9779/international-employer-initiated-paypal-buyer-claim-without-any-reason",
+      "source": "stackexchange",
+      "hit_id": "H43",
+      "hit_title": "International Employer Initiated PayPal Buyer Claim Without Any Reason",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2020-06-30T13:24:15Z",
+      "engagement": 171,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "after"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C87",
+      "kind": "wtp",
+      "claim_text": "Freelancer plans to go public and make product open source to warn others.",
+      "quote": "Actions I'm planning to do: Go public on this and be vocal about everything to warn other freelancers Make the product open source.",
+      "url": "https://freelancing.stackexchange.com/questions/9779/international-employer-initiated-paypal-buyer-claim-without-any-reason",
+      "source": "stackexchange",
+      "hit_id": "H43",
+      "hit_title": "International Employer Initiated PayPal Buyer Claim Without Any Reason",
+      "sentence_ids": [
+        9
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2020-06-30T13:24:15Z",
+      "engagement": 171,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "freelanc"
+      ],
+      "weight_note": "page unreachable; archived match; off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C88",
+      "kind": "wtp",
+      "claim_text": "Freelancer is willing to cover PayPal payment gateway charges for client.",
+      "quote": "The payment will be made via PayPal, and he is willing to cover the payment gateway charges of PayPal.",
+      "url": "https://freelancing.stackexchange.com/questions/10519/how-to-mention-payment-gateway-charges-in-an-invoice",
+      "source": "stackexchange",
+      "hit_id": "H44",
+      "hit_title": "How to mention payment gateway charges in an invoice?",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2022-10-12T08:48:28Z",
+      "engagement": 156,
+      "status": "archived_match",
+      "weight": 0.5,
+      "cue_matched": "charge",
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C89",
+      "kind": "pain",
+      "claim_text": "Freelancer seeks guidance on how to transparently list payment gateway charges in invoices.",
+      "quote": "So when I make the invoice, how shall I write the entry of the payment gateway charges in the invoice?",
+      "url": "https://freelancing.stackexchange.com/questions/10519/how-to-mention-payment-gateway-charges-in-an-invoice",
+      "source": "stackexchange",
+      "hit_id": "H44",
+      "hit_title": "How to mention payment gateway charges in an invoice?",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2022-10-12T08:48:28Z",
+      "engagement": 156,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "invoic",
+        "payment"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C90",
+      "kind": "pain",
+      "claim_text": "Freelancers face anxiety from scattered client emails and demands.",
+      "quote": "Things like: Remember to follow up Organize tax documents/forms Reply to a client Send invoice Keeping track of feedback and requirements The thing with freelancing is that clients contact at scattered times throughout the day. I may wake up in the morning and see an email to address, and I may be enjoying my night when I check my email and see a new message. It's just difficult to get my mind off of freelancing and all the clients' demands and all the emails that need replying, etc.",
+      "url": "https://freelancing.stackexchange.com/questions/10646/just-thinking-about-clients-and-things-to-do-create-anxiety",
+      "source": "stackexchange",
+      "hit_id": "H45",
+      "hit_title": "Just thinking about clients and things to do create anxiety",
+      "sentence_ids": [
+        4,
+        5,
+        6
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2023-04-19T16:08:21Z",
+      "engagement": 99,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "freelanc",
+        "invoic",
+        "send"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C91",
+      "kind": "pain",
+      "claim_text": "Freelancers often have to follow up on late payments after sending invoices.",
+      "quote": "Things like: Remember to follow up Organize tax documents/forms Reply to a client Send invoice Keeping track of feedback and requirements The thing with freelancing is that clients contact at scattered times throughout the day.",
+      "url": "https://freelancing.stackexchange.com/questions/10646/just-thinking-about-clients-and-things-to-do-create-anxiety",
+      "source": "stackexchange",
+      "hit_id": "H45",
+      "hit_title": "Just thinking about clients and things to do create anxiety",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2023-04-19T16:08:21Z",
+      "engagement": 99,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "follow",
+        "freelanc",
+        "invoic",
+        "send"
+      ],
+      "weight_note": "page unreachable; archived match; label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C92",
+      "kind": "competitor",
+      "claim_text": "Many Pakistani freelancers rely on Payoneer due to lack of alternatives.",
+      "quote": "After speaking with 50+ freelancers, we saw a clear gap: despite issues like high fees and account freezes, many still rely on Payoneer because no alternative offers the same experience.",
+      "url": "https://news.ycombinator.com/item?id=48012653",
+      "source": "hn",
+      "hit_id": "H46",
+      "hit_title": "Show HN: USD Accounts for Pakistani Freelancers",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2026-05-04T18:17:31Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "after",
+        "freelanc"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C93",
+      "kind": "trend",
+      "claim_text": "Existing solutions focus on USD accounts but lack invoice tooling.",
+      "quote": "Existing solutions focus a lot on USD accounts but we want to go a step further and offer invoice tooling and getting the details right for freelancers.",
+      "url": "https://news.ycombinator.com/item?id=48012653",
+      "source": "hn",
+      "hit_id": "H46",
+      "hit_title": "Show HN: USD Accounts for Pakistani Freelancers",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2026-05-04T18:17:31Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "invoic"
+      ],
+      "weight_note": "context only; never counted by a gate",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C94",
+      "kind": "competitor",
+      "claim_text": "Rizq offers payment links and invoice tooling for freelancers.",
+      "quote": "What we're building: - Virtual USD accounts - Payment links for clients - Virtual cards - P2P transfers - Access to global stocks & ETFs We're still early, but the waitlist is live.",
+      "url": "https://news.ycombinator.com/item?id=48012653",
+      "source": "hn",
+      "hit_id": "H46",
+      "hit_title": "Show HN: USD Accounts for Pakistani Freelancers",
+      "sentence_ids": [
+        7
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2026-05-04T18:17:31Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "freelanc",
+        "payment"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C95",
+      "kind": "pain",
+      "claim_text": "Freelancers manually log billable hours using Google Forms.",
+      "quote": "I was tracking billable hours using Google Forms (yes, really). Every time I switched tasks, I had to manually fill out the project name, start time, end time, and description.",
+      "url": "https://news.ycombinator.com/item?id=46346549",
+      "source": "hn",
+      "hit_id": "H47",
+      "hit_title": "Show HN: tmpo - Minimal CLI time tracker with auto-detection for developers",
+      "sentence_ids": [
+        3,
+        4
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2025-12-21T17:39:23Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "develop"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C96",
+      "kind": "pain",
+      "claim_text": "Freelancers lose money when failing to log billable hours.",
+      "quote": "After forgetting to log hours several times and losing money, I decided there had to be a better way.",
+      "url": "https://news.ycombinator.com/item?id=46346549",
+      "source": "hn",
+      "hit_id": "H47",
+      "hit_title": "Show HN: tmpo - Minimal CLI time tracker with auto-detection for developers",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2025-12-21T17:39:23Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "after",
+        "develop"
+      ],
+      "weight_note": "label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C97",
+      "kind": "competitor",
+      "claim_text": "tmpo helps freelancers track time and export data for invoicing.",
+      "quote": "tmpo is a CLI time tracker that gets out of your way: - Automatically detects project names from git repos or .",
+      "url": "https://news.ycombinator.com/item?id=46346549",
+      "source": "hn",
+      "hit_id": "H47",
+      "hit_title": "Show HN: tmpo - Minimal CLI time tracker with auto-detection for developers",
+      "sentence_ids": [
+        6
+      ],
+      "fetched_at": "2026-11-17T03:03:18.496851Z",
+      "published_at": "2025-12-21T17:39:23Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "develop"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    }
+  ],
+  "source_calls": {
+    "variant_1": [
+      {
+        "source": "hn",
+        "query": "payment follow up mess",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 4,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "late payments never come",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 6,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "chasing clients for payment",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 11,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "freelance developers",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 20,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "stackexchange",
+        "query": "invoice follow up @ freelancing",
+        "ok": true,
+        "hits": 3,
+        "on_topic": 3,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "stackexchange",
+        "query": "payment follow @ freelancing",
+        "ok": true,
+        "hits": 10,
+        "on_topic": 10,
+        "covered": true,
+        "error": null
+      }
+    ],
+    "variant_2": [
+      {
+        "source": "hn",
+        "query": "onboarding clients slow",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 9,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "client onboarding mess",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 7,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "client details never collected",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 11,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "stackexchange",
+        "query": "client onboarding checklist @ freelancing",
+        "ok": true,
+        "hits": 0,
+        "on_topic": 0,
+        "covered": false,
+        "error": null
+      },
+      {
+        "source": "stackexchange",
+        "query": "onboarding clients @ freelancing",
+        "ok": true,
+        "hits": 3,
+        "on_topic": 3,
+        "covered": true,
+        "error": null
+      }
+    ],
+    "variant_3": [
+      {
+        "source": "hn",
+        "query": "invoices never tracked",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 5,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "overdue invoices slow",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 19,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "payment tracker manual",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 4,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "stackexchange",
+        "query": "invoice tracker tool @ webapps",
+        "ok": true,
+        "hits": 0,
+        "on_topic": 0,
+        "covered": false,
+        "error": null
+      },
+      {
+        "source": "stackexchange",
+        "query": "invoices never @ webapps",
+        "ok": true,
+        "hits": 3,
+        "on_topic": 0,
+        "covered": false,
+        "error": null
+      }
+    ]
+  }
+}

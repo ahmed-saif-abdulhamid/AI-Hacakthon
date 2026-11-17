@@ -1,0 +1,19 @@
+# Cue lexicons used by code (not the model) to confirm a claim's kind.
+# A claim counts only if the model's kind label and the code's cue agree.
+pain:
+  en: "hate|struggl|frustrat|annoy|wish|pain|waste|tedious|can'?t find|no good way|manual(ly)?|problem|broken|hard to|expensive|headache|nightmare|time.consuming|messy|chas(e|ing)|keep forgetting|drowning|overwhelm|tired of|sick of|fed up|takes forever|a mess|clunky|painful|pain in the|despise|awkward|infuriat|stress(ful)?|dread|unpaid|overdue|never (pay|paid|reply|replies|respond|send|sent)|does(n'?t| not) (pay|work|help)"
+  ar: "أكره|صعب|صعوبة|مشكلة|مشكله|محبط|مزعج|أتمنى|ضياع|مضيعة|يدوي|متعب|مكلف|غالي"
+wtp:
+  en: "paid|pay for|would pay|paying|subscription|\\$\\s?\\d|€\\s?\\d|£\\s?\\d|price|pricing|budget|bought|worth paying|charge|per month|/mo\\b|license fee"
+  ar: "دفعت|أدفع|سأدفع|اشتراك|سعر|السعر|ميزانية|اشتريت|جنيه|دولار"
+price_point:
+  en: "\\$\\s?\\d|€\\s?\\d|£\\s?\\d|\\d+\\s?(usd|dollars|eur|egp)|per month|/mo\\b|/month|one.time"
+  ar: "جنيه|دولار|سعر"
+stopwords: >-
+  a an the and or but if then else for to of in on at by with from as is are was were be been being
+  it its this that these those i you he she we they me my your our their them his her not no yes do
+  does did done have has had having can could should would will just so than too very also into out
+  up down over under about more most some any all each other such only own same both few how what when
+  where which who whom why there here get got make made use using used want need like one two new
+  app apps tool tools thing things way ways people someone something anyone lot lots really much
+  help helps kit pack guide template templates simple easy small business product products digital

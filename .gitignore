@@ -1,0 +1,23 @@
+# Local reference material (team-only, never committed)
+Claude Response.txt
+Idea and Execution Plan.txt
+Problem_Statement_Explained.pdf
+MADS_x_CSEA_AI_Hackathon*
+*.pptx
+*.pdf
+
+# Secrets and local state
+.env
+data/
+runs/*
+!runs/promoted/
+__pycache__/
+*.pyc
+.venv/
+*.db
+*.db-wal
+*.db-shm
+.pytest_cache/
+.ruff_cache/
+jarvis_audio/
+voices/

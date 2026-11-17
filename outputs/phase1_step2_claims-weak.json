@@ -1,0 +1,439 @@
+{
+  "run_id": "r20261117-024852-d819",
+  "thresholds_sha256": "4cce009ff2e69bd758f66990858db7a1dc62d9743bf4fa389c0bfb3f779426b0",
+  "note": "quotes are extracted by code from the source record and re-checked against the public page where reachable; a claim counts only if code confirms it is on-topic and contains a pain or payment cue.",
+  "claims": [
+    {
+      "id": "C1",
+      "kind": "competitor",
+      "claim_text": "Wake app adds lock screen widgets for motivation quotes",
+      "quote": "Features: - Add lock screen, home screen or today quote widgets.",
+      "url": "https://news.ycombinator.com/item?id=43148630",
+      "source": "hn",
+      "hit_id": "H1",
+      "hit_title": "Show HN: Wake - AI Motivation Quotes iOS app. [Lifetime subscription giveaway]",
+      "sentence_ids": [
+        4
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-02-23T11:46:38Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "lock",
+        "motiv",
+        "quot",
+        "screen"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C2",
+      "kind": "competitor",
+      "claim_text": "Wake app has AI feature to boost motivation via quote context",
+      "quote": "- AI feature to get more context on quotes and authors you like to further boost motivation.",
+      "url": "https://news.ycombinator.com/item?id=43148630",
+      "source": "hn",
+      "hit_id": "H1",
+      "hit_title": "Show HN: Wake - AI Motivation Quotes iOS app. [Lifetime subscription giveaway]",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-02-23T11:46:38Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "motiv",
+        "quot"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C3",
+      "kind": "competitor",
+      "claim_text": "Users can create personalized motivational wallpapers with custom quotes",
+      "quote": "Users can fetch a random quote from a local JSON file or add their own, then create a personalized wallpaper with the chosen background color and motivational text.",
+      "url": "https://github.com/avril-o/positive-wallpaper-changer",
+      "source": "github",
+      "hit_id": "H3",
+      "hit_title": "avril-o/positive-wallpaper-changer",
+      "sentence_ids": [
+        2
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-10-09T14:11:04Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "motiv",
+        "quot",
+        "user",
+        "wallpap"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C4",
+      "kind": "competitor",
+      "claim_text": "App automatically updates desktop wallpaper with motivational text",
+      "quote": "The app automatically updates the desktop wallpaper.",
+      "url": "https://github.com/avril-o/positive-wallpaper-changer",
+      "source": "github",
+      "hit_id": "H3",
+      "hit_title": "avril-o/positive-wallpaper-changer",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-10-09T14:11:04Z",
+      "engagement": 1,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "wallpap"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C5",
+      "kind": "wtp",
+      "claim_text": "Wake app offers lifetime subscription at $0.00",
+      "quote": "Important: You need to select $0.00 Lifetime option in the paywall and complete the free purchase in order to get the lifetime subscription.",
+      "url": "https://news.ycombinator.com/item?id=43148630",
+      "source": "hn",
+      "hit_id": "H1",
+      "hit_title": "Show HN: Wake - AI Motivation Quotes iOS app. [Lifetime subscription giveaway]",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-02-23T11:46:38Z",
+      "engagement": 2,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "$0",
+      "on_topic": true,
+      "keyword_overlap": [
+        "motiv",
+        "quot"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C6",
+      "kind": "wtp",
+      "claim_text": "Smartphone users want to decorate lock screens with motivational quote wallpapers.",
+      "quote": "What you get every morning: - Local weather forecast for your area - Top stock market/financial moves - News headlines that matter - A motivational quote to start the day Looking for 23 more beta testers.",
+      "url": "https://news.ycombinator.com/item?id=47496268",
+      "source": "hn",
+      "hit_id": "H7",
+      "hit_title": "Show HN: AI Morning Briefing - weather, stocks, news, and a quote emailed daily",
+      "sentence_ids": [
+        7
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2026-03-23T22:57:26Z",
+      "engagement": null,
+      "status": "archived_match",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "motiv",
+        "quot"
+      ],
+      "weight_note": "not live-checked (verify cap); label not confirmed by code",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C7",
+      "kind": "competitor",
+      "claim_text": "EchoVaults allows a persistent message on lock screen during setup.",
+      "quote": "-1. Persistent Lock Screen Instruction (You Set This) During setup, EchoVaults lets you write a permanent message that stays visible on your phone's lock screen.",
+      "url": "https://news.ycombinator.com/item?id=44602658",
+      "source": "hn",
+      "hit_id": "H5",
+      "hit_title": "EchoVaults - Digital Vaults for loved ones in emergency situations.",
+      "sentence_ids": [
+        5
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-07-18T09:07:09Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "lock",
+        "phone",
+        "screen"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C8",
+      "kind": "pain",
+      "claim_text": "EchoVaults does not bypass phone security or weaken native lock screen.",
+      "quote": "-2. They Must Unlock Your Phone (First Layer of Defense) EchoVaults doesn't bypass or weaken your device's native security.",
+      "url": "https://news.ycombinator.com/item?id=44602658",
+      "source": "hn",
+      "hit_id": "H5",
+      "hit_title": "EchoVaults - Digital Vaults for loved ones in emergency situations.",
+      "sentence_ids": [
+        8
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-07-18T09:07:09Z",
+      "engagement": null,
+      "status": "verified_live",
+      "weight": 0.0,
+      "cue_matched": null,
+      "on_topic": false,
+      "keyword_overlap": [
+        "phone"
+      ],
+      "weight_note": "off topic for this variant (code keyword check)",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C9",
+      "kind": "competitor",
+      "claim_text": "Backdrops allows custom video wallpapers on macOS lock screen.",
+      "quote": "Backdrop is my Live Wallpaper app for Mac, it can play video wallpapers on your desktop.",
+      "url": "https://news.ycombinator.com/item?id=45247396",
+      "source": "hn",
+      "hit_id": "H8",
+      "hit_title": "Show HN: I reverse engineered macOS to allow custom Lock Screen wallpapers",
+      "sentence_ids": [
+        7
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-09-15T08:28:09Z",
+      "engagement": 82,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "lock",
+        "screen",
+        "wallpap"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C10",
+      "kind": "pain",
+      "claim_text": "Users are frustrated by lack of lock screen customization on macOS.",
+      "quote": "For years, I've been frustrated by the lack of customisation of macOS.",
+      "url": "https://news.ycombinator.com/item?id=45247396",
+      "source": "hn",
+      "hit_id": "H8",
+      "hit_title": "Show HN: I reverse engineered macOS to allow custom Lock Screen wallpapers",
+      "sentence_ids": [
+        3
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-09-15T08:28:09Z",
+      "engagement": 82,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "frustrat",
+      "on_topic": true,
+      "keyword_overlap": [
+        "lock",
+        "screen",
+        "wallpap"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C11",
+      "kind": "competitor",
+      "claim_text": "Backdrops enables custom lock screen video wallpapers via reverse engineering.",
+      "quote": "However, through extensive reverse engineering of the macOS wallpaper system, I figured out a way to provide Backdrop wallpapers to the system in a way that allows them to play on the lock screen, and even appear in a custom section in System Settings.",
+      "url": "https://news.ycombinator.com/item?id=45247396",
+      "source": "hn",
+      "hit_id": "H8",
+      "hit_title": "Show HN: I reverse engineered macOS to allow custom Lock Screen wallpapers",
+      "sentence_ids": [
+        10
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2025-09-15T08:28:09Z",
+      "engagement": 82,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "lock",
+        "screen",
+        "wallpap"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C12",
+      "kind": "pain",
+      "claim_text": "Smartphone users unlock phone repeatedly when taking notes.",
+      "quote": "I finally built this app after many years of being sick of unlocking my phone every goddamn time I need to take or view my notes. It particularly sucks when I'm doing my grocery and going down the list.",
+      "url": "https://news.ycombinator.com/item?id=47467671",
+      "source": "hn",
+      "hit_id": "H9",
+      "hit_title": "Show HN: Joonote - A note-taking app on your lock screen and notification panel",
+      "sentence_ids": [
+        1,
+        2
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2026-03-21T15:02:30Z",
+      "engagement": 54,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": "sick of",
+      "on_topic": true,
+      "keyword_overlap": [
+        "lock",
+        "phone",
+        "screen"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C13",
+      "kind": "competitor",
+      "claim_text": "Bink Chrome Extension adds motivational quotes to browser homescreen.",
+      "quote": "AmitGujar/Bink-Chrome-Extension: Bink makes your browser Homescreen Beautiful with Daily new Wallpapers and Motivational Quotes, Weather, and Much More.",
+      "url": "https://github.com/AmitGujar/Bink-Chrome-Extension",
+      "source": "github",
+      "hit_id": "H10",
+      "hit_title": "AmitGujar/Bink-Chrome-Extension",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2023-04-14T01:34:59Z",
+      "engagement": 15,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "motiv",
+        "quot",
+        "wallpap"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C14",
+      "kind": "competitor",
+      "claim_text": "Android app contains motivational wallpapers and quotes.",
+      "quote": "yasincidem/AndroidOpenSourceMotivationApp: :muscle: A motivation app that contains wallpaper, quotes, videos",
+      "url": "https://github.com/yasincidem/AndroidOpenSourceMotivationApp",
+      "source": "github",
+      "hit_id": "H11",
+      "hit_title": "yasincidem/AndroidOpenSourceMotivationApp",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2017-11-07T13:13:39Z",
+      "engagement": 7,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "motiv",
+        "quot",
+        "wallpap"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    },
+    {
+      "id": "C15",
+      "kind": "competitor",
+      "claim_text": "Python-based system displays motivational quotes on Ubuntu desktop.",
+      "quote": "Akshayanvishaalb/quote-wallpaper: A Python-based dynamic wallpaper system for Ubuntu GNOME that displays motivational quotes, automatically updating the desktop wallpaper on login.",
+      "url": "https://github.com/Akshayanvishaalb/quote-wallpaper",
+      "source": "github",
+      "hit_id": "H12",
+      "hit_title": "Akshayanvishaalb/quote-wallpaper",
+      "sentence_ids": [
+        1
+      ],
+      "fetched_at": "2026-11-17T02:51:06.523835Z",
+      "published_at": "2026-02-04T13:27:29Z",
+      "engagement": 3,
+      "status": "verified_live",
+      "weight": 1.0,
+      "cue_matched": null,
+      "on_topic": true,
+      "keyword_overlap": [
+        "motiv",
+        "quot",
+        "wallpap"
+      ],
+      "weight_note": "",
+      "label": "SOURCED"
+    }
+  ],
+  "source_calls": {
+    "variant_1": [
+      {
+        "source": "hn",
+        "query": "lock screen quotes mess",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 20,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "hn",
+        "query": "motivational quotes chasing",
+        "ok": true,
+        "hits": 20,
+        "on_topic": 13,
+        "covered": true,
+        "error": null
+      },
+      {
+        "source": "stackexchange",
+        "query": "motivational quote wallpapers @ webapps",
+        "ok": true,
+        "hits": 0,
+        "on_topic": 0,
+        "covered": false,
+        "error": null
+      }
+    ]
+  }
+}

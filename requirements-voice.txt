@@ -1,0 +1,3 @@
+# Optional local voice stack (open source, offline). The browser speech APIs are the fallback.
+piper-tts==1.3.0
+# faster-whisper==1.1.1   # optional local speech-to-text fallback (larger download)
